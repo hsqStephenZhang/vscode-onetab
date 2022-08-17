@@ -6,23 +6,40 @@
   "engines": {
     "vscode": "^1.69.0"
   },
+  "license": "MIT",
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onCommand:onetab.helloworld",
-    "onCommand:onetab.refreshEntry"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "onetab.helloworld",
-        "title": "Hello World"
-      },
-      {
         "command": "onetab.refreshEntry",
         "title": "Refresh Entry"
+      },
+      {
+        "command": "onetab.send.thisTab",
+        "title": "%onetab.send.thisTab%"
+      },
+      {
+        "command": "onetab.send.otherTabs",
+        "title": "%onetab.send.otherTabs%"
+      },
+      {
+        "command": "onetab.send.allTabs",
+        "title": "%onetab.send.allTabs%"
+      },
+      {
+        "command": "onetab.restore",
+        "title": "restore tabs",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "onetab.test",
+        "title": "test"
       }
     ],
     "viewsContainers": {
@@ -43,7 +60,53 @@
           "contextualTitle": "Tabs-Provider"
         }
       ]
-    }
+    },
+    "menus": {
+      "editor/title/context": [
+        {
+          "group": "1_onetab",
+          "submenu": "onetab.editor.title"
+        }
+      ],
+      "editor/title": [ 
+        {
+          "group": "2_onetab",
+          "submenu": "onetab.editor.title"
+        }
+      ],
+      "view/title": [],
+      "view/item/context": [
+        {
+          "command": "onetab.restore",
+          "when": "view =~ /^(tabsProvider)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline@1"
+        }
+      ],
+      "onetab.editor.title": [
+        {
+          "command": "onetab.test",
+          "group": "onetab"
+        },
+        {
+          "command": "onetab.send.thisTab",
+          "group": "onetab"
+        },
+        {
+          "command": "onetab.send.otherTabs",
+          "group": "onetab"
+        },
+        {
+          "command": "onetab.send.allTabs",
+          "group": "onetab"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "onetab.editor.title",
+        "label": "%onetab.options%"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

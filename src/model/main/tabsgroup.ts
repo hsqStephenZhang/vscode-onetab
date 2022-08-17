@@ -14,8 +14,9 @@ export class TabsGroup extends Node {
   public tabs: TabItem[] = [];
 
   constructor(tabs: TabItem[]) {
-    super("new tabs group", vscode.TreeItemCollapsibleState.Collapsed);
+    super("untitled tabs group", vscode.TreeItemCollapsibleState.Collapsed);
     this.tabs = tabs;
+    this.contextValue = "tabsGroup";
   }
 
   public getChildren(): Node[] | Promise<Node[]> {
