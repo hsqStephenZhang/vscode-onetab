@@ -1,0 +1,32 @@
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.swp
+
+pids
+logs
+results
+tmp
+
+# API keys and secrets
+.env
+
+# Dependency directory
+node_modules
+
+# Editors
+.idea
+*.iml
+.vscode
+.vscodeignore
+
+# Ignore built ts files
+out/**/*
+
+# ignore lock file
+yarn.lock
+package-lock.json
