@@ -8,12 +8,16 @@ import { Node } from "../interface/node";
 
 export class TabItem extends Node {
   public iconPath = new vscode.ThemeIcon("output-view-icon");
+  public fileUri: vscode.Uri;
   constructor(
     public readonly label: string,
+    public readonly uri: vscode.Uri,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly command?: vscode.Command
   ) {
     super(label, collapsibleState);
+    this.fileUri = uri;
+    this.contextValue = "tab";
   }
 
   public getChildren(): Node[] {

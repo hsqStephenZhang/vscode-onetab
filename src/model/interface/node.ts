@@ -8,7 +8,6 @@ import * as vscode from "vscode";
 
 export abstract class Node extends vscode.TreeItem {
   public parent?: Node;
-//   public storage: Memento;
 
   public getChildren(): Node[] | Promise<Node[]> {
     return [];
