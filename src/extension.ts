@@ -6,6 +6,13 @@ import { TabItem } from "./model/main/tabitem";
 import { TabsState } from "./model/main/tabstate";
 import { TabsGroup } from "./model/main/tabsgroup";
 import { TabInputText } from "vscode";
+import {
+  tabsGroupPin,
+  tabsGroupRemove,
+  tabsGroupRename,
+  tabsGroupRestore,
+} from "./commands/tabsGroup";
+import { sendAllTabs, sendOtherTabs, sendThisTab } from "./commands/sendTab";
 
 // this method is called when your extension is activated
 // your extension is activated  the very first time the command is executed
@@ -22,111 +29,49 @@ export function activate(context: vscode.ExtensionContext) {
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
-  let outputChannel = vscode.window.createOutputChannel("HelloWorld Debug");
+  let outputChannel = vscode.window.createOutputChannel("Onetab");
   let tabsProvider = new TabsProvider(rootPath);
+  Global.outputChannel = outputChannel;
+  Global.tabsProvider = tabsProvider;
 
-  vscode.window.createTreeView("tabsProvider", {
+  vscode.window.createTreeView("onetabs", {
     treeDataProvider: tabsProvider,
   });
 
-  vscode.commands.registerCommand("onetab.send.allTabs", () => {
-    const tabs = vscode.window.tabGroups.all
-      .map((group) => group.tabs)
-      .flat(1)
-      .filter((tab) => {
-        return tab.input instanceof TabInputText;
-      });
-    const tabItems = tabs.map((tab) => {
-      // safety: already filter tabs, so tab.input are all TabInputText now
-      let textFile = tab.input as TabInputText;
-      return new TabItem(
-        tab.label,
-        textFile.uri,
-        vscode.TreeItemCollapsibleState.Collapsed
-      );
-    });
-    const group = new TabsGroup(tabItems);
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get("tabsState", new TabsState())
-    );
-    state.addTabsGroup(group);
-    WorkState.update("tabsState", state);
-    vscode.window.tabGroups.close(tabs);
-    tabsProvider.refresh();
-  });
+  // send tab related commands
+  vscode.commands.registerCommand("onetab.send.allTabs", sendAllTabs);
+  vscode.commands.registerCommand("onetab.send.otherTabs", sendOtherTabs);
+  vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
 
-  vscode.commands.registerCommand("onetab.send.otherTabs", () => {
-    let currentTab = vscode.window.tabGroups.activeTabGroup
-      .activeTab as vscode.Tab;
-    const tabs = vscode.window.tabGroups.all
-      .map((group) => group.tabs)
-      .flat(1)
-      .filter((tab) => {
-        return currentTab !== tab && tab.input instanceof TabInputText;
-      });
-    const tabItems = tabs.map((tab) => {
-      // safety: already filter tabs, so tab.input are all TabInputText now
-      let textFile = tab.input as TabInputText;
-      return new TabItem(
-        tab.label,
-        textFile.uri,
-        vscode.TreeItemCollapsibleState.Collapsed
-      );
-    });
-    const group = new TabsGroup(tabItems);
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get("tabsState", new TabsState())
-    );
-    state.addTabsGroup(group);
-    WorkState.update("tabsState", state);
-    vscode.window.tabGroups.close(tabs);
-    tabsProvider.refresh();
-  });
+  // tabs group related commands
+  vscode.commands.registerCommand("onetab.tabsGroup.restore", tabsGroupRestore);
+  vscode.commands.registerCommand("onetab.tabsGroup.rename", tabsGroupRename);
+  vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
+  vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
 
-  vscode.commands.registerCommand("onetab.send.thisTab", () => {
-    let tab = vscode.window.tabGroups.activeTabGroup.activeTab as vscode.Tab;
-    if (tab.input instanceof TabInputText) {
-      const group = new TabsGroup([
-        new TabItem(
-          tab.label,
-          tab.input.uri,
-          vscode.TreeItemCollapsibleState.None
-        ),
-      ]);
-      const state = Object.assign(
-        new TabsState(),
-        WorkState.get("tabsState", new TabsState())
-      );
-      state.addTabsGroup(group);
-      WorkState.update("tabsState", state);
-      vscode.window.tabGroups.close(tab);
-      tabsProvider.refresh();
-    }
-  });
-
-  vscode.commands.registerCommand("onetab.refreshEntry", () => {
-    tabsProvider.refresh();
-  });
-
-  vscode.commands.registerCommand("onetab.test", () => {
-    vscode.window.showInformationMessage("test");
-  });
-
-  vscode.commands.registerCommand(
-    "onetab.restore",
-    async (tabsGroup: TabsGroup) => {
-      outputChannel.appendLine(tabsGroup.label);
-      for (const tab of tabsGroup.tabs) {
-        const fileUri = tab.fileUri;
-        vscode.window.showTextDocument(fileUri, { preview: false });
-      }
-    }
+  // watch file delete of tab groups
+  const watcher = vscode.workspace.createFileSystemWatcher(
+    "**/*",
+    false,
+    false,
+    false
   );
+  watcher.onDidCreate((uri) => {
+    Global.outputChannel.appendLine(uri.fsPath);
+  });
+  watcher.onDidDelete((uri) => {
+    Global.outputChannel.appendLine(uri.fsPath);
+    const state = Object.assign(
+      new TabsState(),
+      WorkState.get("tabsState", new TabsState())
+    );
+    state.removeTab(uri.fsPath);
+    WorkState.update("tabsState", state);
+    Global.tabsProvider.refresh();
+  });
 
   // refresh at the beginning
-  tabsProvider.refresh();
+  Global.tabsProvider.refresh();
 }
 
 // this method is called when your extension is deactivated

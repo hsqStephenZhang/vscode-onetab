@@ -17,10 +17,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "onetab.refreshEntry",
-        "title": "Refresh Entry"
-      },
-      {
         "command": "onetab.send.thisTab",
         "title": "%onetab.send.thisTab%"
       },
@@ -33,13 +29,24 @@
         "title": "%onetab.send.allTabs%"
       },
       {
-        "command": "onetab.restore",
+        "command": "onetab.tabsGroup.restore",
         "title": "restore tabs",
         "icon": "$(refresh)"
       },
       {
-        "command": "onetab.test",
-        "title": "test"
+        "command": "onetab.tabsGroup.rename",
+        "title": "rename tabs group",
+        "icon": "$(pencil)"
+      },
+      {
+        "command": "onetab.tabsGroup.pin",
+        "title": "pin tabs group",
+        "icon": "$(check)"
+      },
+      {
+        "command": "onetab.tabsGroup.remove",
+        "title": "close tabs group",
+        "icon": "$(close)"
       }
     ],
     "viewsContainers": {
@@ -54,10 +61,16 @@
     "views": {
       "onetab": [
         {
-          "id": "tabsProvider",
-          "name": "tabsProvider",
+          "id": "onetabs",
+          "name": "onetabs",
           "icon": "media/dep.svg",
-          "contextualTitle": "Tabs-Provider"
+          "contextualTitle": "Tabs"
+        },
+        {
+          "id": "feedback",
+          "name": "feedback",
+          "icon": "media/dep.svg",
+          "contextualTitle": "FeedBack"
         }
       ]
     },
@@ -68,25 +81,35 @@
           "submenu": "onetab.editor.title"
         }
       ],
-      "editor/title": [ 
+      "editor/title": [
         {
           "group": "2_onetab",
           "submenu": "onetab.editor.title"
         }
       ],
-      "view/title": [],
       "view/item/context": [
         {
-          "command": "onetab.restore",
-          "when": "view =~ /^(tabsProvider)$/ && viewItem =~ /^(tabsGroup)$/",
-          "group": "inline@1"
+          "command": "onetab.tabsGroup.remove",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline"
+        },
+        {
+          "command": "onetab.tabsGroup.restore",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline"
+        },
+        {
+          "command": "onetab.tabsGroup.rename",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline"
+        },
+        {
+          "command": "onetab.tabsGroup.pin",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline"
         }
       ],
       "onetab.editor.title": [
-        {
-          "command": "onetab.test",
-          "group": "onetab"
-        },
         {
           "command": "onetab.send.thisTab",
           "group": "onetab"

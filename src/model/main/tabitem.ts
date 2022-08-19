@@ -9,6 +9,7 @@ import { Node } from "../interface/node";
 export class TabItem extends Node {
   public iconPath = new vscode.ThemeIcon("output-view-icon");
   public fileUri: vscode.Uri;
+  public valid: boolean;
   constructor(
     public readonly label: string,
     public readonly uri: vscode.Uri,
@@ -18,9 +19,10 @@ export class TabItem extends Node {
     super(label, collapsibleState);
     this.fileUri = uri;
     this.contextValue = "tab";
+    this.valid = true;
   }
 
   public getChildren(): Node[] {
     return [];
-  }
+  }  
 }
