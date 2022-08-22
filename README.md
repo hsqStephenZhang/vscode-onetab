@@ -12,10 +12,11 @@ in tab windows, and you may get lost in these tabs. Don't worry, this extension 
 
 1. You can send tab(s) to onetab extension in right click context.
 
-![demo1](https://github.com/hsqStephenZhang/vscode-onetab/blob/master/images/demo1.gif)
+![demo1](https://github.com/hsqStephenZhang/vscode-onetab/blob/main/images/demo1.png)
 
 2. You can rename, pin, remove or restore tab groups in onetab extension
-![demo2](https://github.com/hsqStephenZhang/vscode-onetab/blob/master/images/demo2.gif)
+
+![demo2](https://github.com/hsqStephenZhang/vscode-onetab/blob/main/images/demo2.png)
 
 ## 3. todo
 
