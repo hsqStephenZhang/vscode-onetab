@@ -1,12 +1,31 @@
 {
   "name": "vscode-onetab",
   "displayName": "vscode-onetab",
-  "description": "",
+  "description": "onetab for vscode",
+  "author": {
+    "name": "hsqStephenZhang",
+    "email": "2250015961@qq.com"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.69.0"
   },
   "license": "MIT",
+  "keywords": [
+    "onetab",
+    "vscode",
+    "efficiency"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hsqstephenZhang/vscode-onetab"
+  },
+  "bugs": {
+    "url": "https://github.com/hsqstephenZhang/vscode-onetab/issues"
+  },
+  "extensionKind": [
+    "workspace"
+  ],
   "categories": [
     "Other"
   ],
