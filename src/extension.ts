@@ -1,11 +1,10 @@
+import { OnetabPanel } from "./webview/onetab";
 import * as vscode from "vscode";
 import { TabsProvider } from "./provider/treeDataProvider";
 import { WorkState } from "./common/state";
 import { Global } from "./common/global";
-import { TabItem } from "./model/main/tabitem";
 import { TabsState } from "./model/main/tabstate";
-import { TabsGroup } from "./model/main/tabsgroup";
-import { TabInputText } from "vscode";
+import { FileWatchService } from "./service/fileWatchService";
 import {
   tabsGroupPin,
   tabsGroupRemove,
@@ -15,7 +14,7 @@ import {
 import { sendAllTabs, sendOtherTabs, sendThisTab } from "./commands/sendTab";
 
 // this method is called when your extension is activated
-// your extension is activated  the very first time the command is executed
+// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   Global.context = context;
 
@@ -50,25 +49,15 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
 
   // watch file delete of tab groups
-  const watcher = vscode.workspace.createFileSystemWatcher(
-    "**/*",
-    false,
-    false,
-    false
-  );
-  watcher.onDidCreate((uri) => {
-    Global.outputChannel.appendLine(uri.fsPath);
-  });
-  watcher.onDidDelete((uri) => {
-    Global.outputChannel.appendLine(uri.fsPath);
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get("tabsState", new TabsState())
-    );
-    state.removeTab(uri.fsPath);
-    WorkState.update("tabsState", state);
-    Global.tabsProvider.refresh();
-  });
+  let _fileWatchService = new FileWatchService();
+
+  if (vscode.window.registerWebviewPanelSerializer) {
+    vscode.window.registerWebviewPanelSerializer(OnetabPanel.viewType, {
+      async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: any) {
+        // panel.options=
+      },
+    });
+  }
 
   // refresh at the beginning
   Global.tabsProvider.refresh();

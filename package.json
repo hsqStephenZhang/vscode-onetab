@@ -45,7 +45,7 @@
       },
       {
         "command": "onetab.tabsGroup.remove",
-        "title": "close tabs group",
+        "title": "remove tabs group",
         "icon": "$(close)"
       }
     ],

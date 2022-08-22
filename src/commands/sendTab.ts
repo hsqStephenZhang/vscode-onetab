@@ -23,7 +23,6 @@ export async function sendAllTabs() {
     return new TabItem(
       tab.label,
       textFile.uri,
-      vscode.TreeItemCollapsibleState.Collapsed
     );
   });
   const group = new TabsGroup(tabItems);
@@ -52,7 +51,6 @@ export async function sendOtherTabs() {
     return new TabItem(
       tab.label,
       textFile.uri,
-      vscode.TreeItemCollapsibleState.Collapsed
     );
   });
   const group = new TabsGroup(tabItems);
@@ -73,7 +71,6 @@ export async function sendThisTab() {
       new TabItem(
         tab.label,
         tab.input.uri,
-        vscode.TreeItemCollapsibleState.None
       ),
     ]);
     const state = Object.assign(

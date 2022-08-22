@@ -50,7 +50,9 @@ export class TabsProvider implements vscode.TreeDataProvider<Node> {
     return element;
   }
 
-  async getChildren(element?: Node | undefined): Promise<Node[]> {
+  async getChildren(
+    element?: Node | undefined
+  ): Promise<Node[] | undefined | null> {
     return new Promise(async (res, rej) => {
       if (!element) {
         // if this is the root node (no parent), then return the list

@@ -13,16 +13,11 @@ export class TabItem extends Node {
   constructor(
     public readonly label: string,
     public readonly uri: vscode.Uri,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly command?: vscode.Command
   ) {
-    super(label, collapsibleState);
+    super(label, vscode.TreeItemCollapsibleState.None);
     this.fileUri = uri;
     this.contextValue = "tab";
     this.valid = true;
   }
-
-  public getChildren(): Node[] {
-    return [];
-  }  
 }
