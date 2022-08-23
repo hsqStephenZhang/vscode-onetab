@@ -23,7 +23,7 @@ export class OnetabPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
   }
 
-  public createOrShow(extensionUri: vscode.Uri) {
+  public static createOrShow(extensionUri: vscode.Uri) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -40,6 +40,8 @@ export class OnetabPanel {
       "onetabs",
       column || vscode.ViewColumn.One,
     );
+
+    OnetabPanel.instance = new OnetabPanel(panel, extensionUri);
   }
 
   private _update() {

@@ -88,6 +88,10 @@
         "command": "onetab.tabsGroup.remove",
         "title": "remove tabs group",
         "icon": "$(close)"
+      },
+      {
+        "command": "onetab.advanced.webPage",
+        "title": "onetab webpage"
       }
     ],
     "viewsContainers": {

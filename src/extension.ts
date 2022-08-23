@@ -69,6 +69,11 @@ export function activate(context: vscode.ExtensionContext) {
   // watch file delete of tab groups
   let _fileWatchService = new FileWatchService();
 
+  vscode.commands.registerCommand("onetab.advanced.webPage", () => {
+    OnetabPanel.createOrShow(context.extensionUri);
+  });
+
+  // todo: confirm serialize logic
   if (vscode.window.registerWebviewPanelSerializer) {
     vscode.window.registerWebviewPanelSerializer(OnetabPanel.viewType, {
       async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: any) {

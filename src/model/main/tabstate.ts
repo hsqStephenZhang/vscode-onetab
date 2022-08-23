@@ -9,6 +9,9 @@ import { TabsGroup } from "./tabsgroup";
 export class TabsState {
   public groups: Map<string, TabsGroup> = new Map();
 
+  // black list of file
+  public blackList: Set<string> = new Set();
+
   // map from uri.fsPath to group id list
   private reverseIndex: Map<string, TabsGroup[]> = new Map();
 
