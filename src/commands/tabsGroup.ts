@@ -15,7 +15,7 @@ export async function tabsGroupRestore(tabsGroup: TabsGroup) {
     vscode.window.showTextDocument(fileUri, { preview: false });
   }
   if (!tabsGroup.pinned) {
-    vscode.commands.executeCommand("onetab.tabsGroup.remove", tabsGroup);
+    removeInner(tabsGroup.id);
   }
 }
 
@@ -46,11 +46,31 @@ export async function tabsGroupPin(group: TabsGroup) {
 }
 
 export async function tabsGroupRemove(group: TabsGroup) {
+  if (group.pinned === true) {
+    vscode.window.showWarningMessage("Cannot remove pinned group");
+    return;
+  }
+
+  const choice = await vscode.window.showInputBox({
+    title:
+      "Are you sure to remove this group? Please input 'y' to confirm, 'n' to cancel",
+  });
+  if (
+    choice &&
+    (choice.toLowerCase() === "y" || choice.toLowerCase() === "yes")
+  ) {
+    removeInner(group.id);
+  } else {
+    vscode.window.showInformationMessage("cancel remove tabs group");
+  }
+}
+
+function removeInner(id: string) {
   const state = Object.assign(
     new TabsState(),
     WorkState.get("tabsState", new TabsState())
   );
-  state.removeTabsGroup(group.id);
+  state.removeTabsGroup(id);
   WorkState.update("tabsState", state);
   Global.tabsProvider.refresh();
 }

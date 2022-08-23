@@ -44,8 +44,30 @@
         "title": "%onetab.send.otherTabs%"
       },
       {
+        "command": "onetab.send.leftTabs",
+        "title": "%onetab.send.leftTabs%"
+      },
+      {
+        "command": "onetab.send.rightTabs",
+        "title": "%onetab.send.rightTabs%"
+      },
+      {
         "command": "onetab.send.allTabs",
         "title": "%onetab.send.allTabs%"
+      },
+      {
+        "command": "onetab.send.advanced.sendThisTab",
+        "title": "%onetab.send.advanced.sendThisTab%"
+      },
+      {
+        "command": "onetab.tab.restore",
+        "title": "restore one tab",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "onetab.tab.remove",
+        "title": "remove one tab",
+        "icon": "$(close)"
       },
       {
         "command": "onetab.tabsGroup.restore",
@@ -108,38 +130,60 @@
       ],
       "view/item/context": [
         {
-          "command": "onetab.tabsGroup.remove",
+          "command": "onetab.tabsGroup.pin",
           "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
-          "group": "inline"
-        },
-        {
-          "command": "onetab.tabsGroup.restore",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
-          "group": "inline"
+          "group": "inline@0"
         },
         {
           "command": "onetab.tabsGroup.rename",
           "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
-          "command": "onetab.tabsGroup.pin",
+          "command": "onetab.tabsGroup.restore",
           "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
-          "group": "inline"
+          "group": "inline@2"
+        },
+        {
+          "command": "onetab.tabsGroup.remove",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline@3"
+        },
+        {
+          "command": "onetab.tab.restore",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tab)$/",
+          "group": "inline@0"
+        },
+        {
+          "command": "onetab.tab.remove",
+          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tab)$/",
+          "group": "inline@1"
         }
       ],
       "onetab.editor.title": [
         {
           "command": "onetab.send.thisTab",
-          "group": "onetab"
+          "group": "onetab@0"
         },
         {
           "command": "onetab.send.otherTabs",
-          "group": "onetab"
+          "group": "onetab@1"
+        },
+        {
+          "command": "onetab.send.leftTabs",
+          "group": "onetab@2"
+        },
+        {
+          "command": "onetab.send.rightTabs",
+          "group": "onetab@3"
         },
         {
           "command": "onetab.send.allTabs",
-          "group": "onetab"
+          "group": "onetab@4"
+        },
+        {
+          "command": "onetab.send.advanced.sendThisTab",
+          "group": "onetab@5"
         }
       ]
     },

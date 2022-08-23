@@ -40,4 +40,16 @@ export class TabsGroup extends Node {
   public isUntitled(): boolean {
     return this.label === DEFAULT_LABEL;
   }
+
+  public pushTab(tab: TabItem) {
+    this.tabs.push(tab);
+  }
+
+  public extendTabs(tabs: TabItem[]) {
+    this.tabs.push(...tabs);
+  }
+
+  public getId(): string {
+    return this.id;
+  }
 }

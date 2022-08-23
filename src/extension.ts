@@ -11,7 +11,15 @@ import {
   tabsGroupRename,
   tabsGroupRestore,
 } from "./commands/tabsGroup";
-import { sendAllTabs, sendOtherTabs, sendThisTab } from "./commands/sendTab";
+import {
+  sendAllTabs,
+  sendLeftTabs,
+  sendOtherTabs,
+  sendRightTabs,
+  sendThisTab,
+} from "./commands/sendTab";
+import { sendTabToNamedGroup } from "./commands/advancedSend";
+import { tabRemove, tabRestore } from "./commands/tab";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -40,9 +48,19 @@ export function activate(context: vscode.ExtensionContext) {
   // send tab related commands
   vscode.commands.registerCommand("onetab.send.allTabs", sendAllTabs);
   vscode.commands.registerCommand("onetab.send.otherTabs", sendOtherTabs);
+  vscode.commands.registerCommand("onetab.send.leftTabs", sendLeftTabs);
+  vscode.commands.registerCommand("onetab.send.rightTabs", sendRightTabs);
   vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
 
+  vscode.commands.registerCommand(
+    "onetab.send.advanced.sendThisTab",
+    sendTabToNamedGroup
+  );
+
   // tabs group related commands
+  vscode.commands.registerCommand("onetab.tab.restore", tabRestore);
+  vscode.commands.registerCommand("onetab.tab.remove", tabRemove);
+
   vscode.commands.registerCommand("onetab.tabsGroup.restore", tabsGroupRestore);
   vscode.commands.registerCommand("onetab.tabsGroup.rename", tabsGroupRename);
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);

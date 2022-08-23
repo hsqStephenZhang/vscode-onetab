@@ -2,5 +2,8 @@
     "onetab.options": "onetab options",
     "onetab.send.thisTab": "send this tab into onetab",
     "onetab.send.otherTabs": "send other tabs into onetab",
-    "onetab.send.allTabs": "send all tabs into onetab"
+    "onetab.send.leftTabs": "send left tabs into onetab",
+    "onetab.send.rightTabs": "send right tabs into onetab",
+    "onetab.send.allTabs": "send all tabs into onetab",
+    "onetab.send.advanced.sendThisTab": "send this tab into specified tabs group"
 }

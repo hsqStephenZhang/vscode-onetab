@@ -27,7 +27,7 @@ export class FileWatchService {
         new TabsState(),
         WorkState.get("tabsState", new TabsState())
       );
-      state.removeTab(uri.fsPath);
+      state.removeTabFromAllGroups(uri.fsPath);
       WorkState.update("tabsState", state);
       Global.tabsProvider.refresh();
     });

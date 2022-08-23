@@ -14,12 +14,18 @@ export class TabsState {
 
   // getters
 
+  public getGroup(id: string): TabsGroup | undefined {
+    return this.groups.get(id);
+  }
+
   public getPinnedLists(): TabsGroup[] {
     return Array.from(this.groups.values()).filter((list) => list.pinned);
   }
 
   public getTitledLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter((list) => !list.isUntitled());
+    return Array.from(this.groups.values()).filter(
+      (list) => !list.isUntitled()
+    );
   }
 
   public getTaggedLists(): TabsGroup[] {
@@ -64,10 +70,35 @@ export class TabsState {
     }
   }
 
-  public setTabsOfGroup(id: string, tabs: TabItem[]) {
+  public setTabsOfGroup(id: string, newTabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
-      g.tabs = tabs;
+      let oldTabs = g.tabs;
+      g.tabs = newTabs;
+
+      // update for old
+      for (const tab of oldTabs) {
+        let fsPath = tab.fileUri.fsPath;
+        let includeTabGroups = this.reverseIndex.get(fsPath);
+        if (includeTabGroups === undefined) {
+          continue;
+        } else {
+          includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
+          this.reverseIndex.set(fsPath, includeTabGroups);
+        }
+      }
+
+      // update for new
+      for (const tab of newTabs) {
+        let fsPath = tab.fileUri.fsPath;
+        let includeTabGroups = this.reverseIndex.get(fsPath);
+        if (includeTabGroups === undefined) {
+          this.reverseIndex.set(fsPath, [g]);
+        } else {
+          includeTabGroups.push(g);
+          this.reverseIndex.set(fsPath, includeTabGroups);
+        }
+      }
     }
   }
 
@@ -75,6 +106,17 @@ export class TabsState {
     const g = this.groups.get(id);
     if (g) {
       g.tabs = g.tabs.concat(tabs);
+
+      for (const tab of tabs) {
+        let fsPath = tab.fileUri.fsPath;
+        let includeTabGroups = this.reverseIndex.get(fsPath);
+        if (includeTabGroups === undefined) {
+          this.reverseIndex.set(fsPath, [g]);
+        } else {
+          includeTabGroups.push(g);
+          this.reverseIndex.set(fsPath, includeTabGroups);
+        }
+      }
     }
   }
 
@@ -103,24 +145,42 @@ export class TabsState {
           continue;
         } else {
           includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
-          if (includeTabGroups.length === 0) {
-            this.reverseIndex.delete(fsPath);
-          } else {
-            this.reverseIndex.set(fsPath, includeTabGroups);
-          }
+          this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }
       this.groups.delete(id);
     }
   }
 
-  public removeTab(fsPath: string) {
+  public removeTabFromGroup(id: string, fsPath: string) {
+    const group = this.groups.get(id);
+    if (group) {
+      group.tabs = group.tabs.filter((t) => t.fileUri.fsPath !== fsPath);
+
+      let includeTabGroups = this.reverseIndex.get(fsPath);
+      if (includeTabGroups === undefined) {
+        return;
+      } else {
+        includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
+        this.reverseIndex.set(fsPath, includeTabGroups);
+      }
+
+      if (group.tabs.length === 0) {
+        this.groups.delete(id);
+      }
+    }
+  }
+
+  public removeTabFromAllGroups(fsPath: string) {
     let includeTabGroups = this.reverseIndex.get(fsPath);
     if (includeTabGroups === undefined) {
       return;
     } else {
       for (const group of includeTabGroups) {
         group.tabs = group.tabs.filter((t) => t.fileUri.fsPath !== fsPath);
+        if (group.tabs.length === 0) {
+          this.groups.delete(group.id);
+        }
       }
       this.reverseIndex.delete(fsPath);
     }
