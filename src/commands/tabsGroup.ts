@@ -19,6 +19,24 @@ export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   }
 }
 
+export async function tabsGroupTags(group: TabsGroup) {
+  const tags = group.tags.join(",");
+  const newTagsRaw = await vscode.window.showInputBox({
+    prompt: "New Tags, separated by comma",
+    value: tags,
+  });
+  if (newTagsRaw) {
+    const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
+    const state = Object.assign(
+      new TabsState(),
+      WorkState.get("tabsState", new TabsState())
+    );
+    state.setGroupTags(group.id, newTags);
+    WorkState.update("tabsState", state);
+    Global.tabsProvider.refresh();
+  }
+}
+
 export async function tabsGroupRename(group: TabsGroup) {
   const newName = await vscode.window.showInputBox({
     prompt: "New name",
@@ -29,7 +47,7 @@ export async function tabsGroupRename(group: TabsGroup) {
       new TabsState(),
       WorkState.get("tabsState", new TabsState())
     );
-    state.setLabelToGroup(group.id, newName);
+    state.setGroupLabel(group.id, newName);
     WorkState.update("tabsState", state);
     Global.tabsProvider.refresh();
   }

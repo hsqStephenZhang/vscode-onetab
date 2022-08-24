@@ -22,6 +22,10 @@ export class TabsGroup extends Node {
     this.tabs = tabs;
     this.contextValue = "tabsGroup";
     this.id = randomUUID();
+    this.tooltip =
+      this.label +
+      ", tags: " +
+      (this.tags.length === 0 ? "none" : this.tags.join(", "));
   }
 
   public getChildren(): Node[] | Promise<Node[]> {

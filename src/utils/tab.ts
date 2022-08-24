@@ -24,8 +24,8 @@ export function getAllTabs(): vscode.Tab[] | undefined {
   }
 }
 
-export function getOtherTabs(): vscode.Tab[] | undefined {
-  let currentTab = getCurrentTab();
+export function getOtherTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
+  let currentTab = getSelectedTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -39,8 +39,8 @@ export function getOtherTabs(): vscode.Tab[] | undefined {
   }
 }
 
-export function getLeftTabs(): vscode.Tab[] | undefined {
-  let currentTab = getCurrentTab();
+export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
+  let currentTab = getSelectedTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -60,8 +60,8 @@ export function getLeftTabs(): vscode.Tab[] | undefined {
   }
 }
 
-export function getRightTabs(): vscode.Tab[] | undefined {
-  let currentTab = getCurrentTab();
+export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
+  let currentTab = getSelectedTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -82,23 +82,58 @@ export function getRightTabs(): vscode.Tab[] | undefined {
 }
 
 // safety: getCurrentTab will only be called when at least one tab is opened
-export function getCurrentTab(): vscode.Tab {
+export function getActive(): vscode.Tab {
   return vscode.window.tabGroups.activeTabGroup.activeTab as vscode.Tab;
 }
 
+export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
+  const allTabs = getAllTabs();
+  if (allTabs) {
+    const tab = allTabs.find((tab) => {
+      return (
+        tab.input instanceof vscode.TabInputText &&
+        tab.input.uri.path === uri.path
+      );
+    });
+    if (tab) {
+      return tab;
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}
+
 // safety: for every item in tabs, item.input is instance of TabInputText
-export function sendTabs(tabs: vscode.Tab[]) {
+export function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
     return new TabItem(tab.label, textFile.uri);
   });
-  const group = new TabsGroup(tabItems);
+  let updated = false;
+  let group = null;
   const state = Object.assign(
     new TabsState(),
     WorkState.get("tabsState", new TabsState())
   );
-  state.addTabsGroup(group);
-  WorkState.update("tabsState", state);
-  vscode.window.tabGroups.close(tabs);
-  Global.tabsProvider.refresh();
+
+  if (groupId) {
+    group = state.getGroup(groupId);
+    if (group) {
+      state.addTabsToGroup(groupId, tabItems);
+      updated = true;
+    }
+  } else {
+    group = new TabsGroup(tabItems);
+    state.addTabsGroup(group);
+    updated = true;
+  }
+
+  // check if state are updated
+  if (updated) {
+    WorkState.update("tabsState", state);
+    vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
+    Global.tabsProvider.refresh();
+  }
 }

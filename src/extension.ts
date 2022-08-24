@@ -1,4 +1,4 @@
-import { OnetabPanel } from "./webview/onetab";
+import { OnetabPanel } from "./view/onetabPanel";
 import * as vscode from "vscode";
 import { TabsProvider } from "./provider/treeDataProvider";
 import { WorkState } from "./common/state";
@@ -10,6 +10,7 @@ import {
   tabsGroupRemove,
   tabsGroupRename,
   tabsGroupRestore,
+  tabsGroupTags,
 } from "./commands/tabsGroup";
 import {
   sendAllTabs,
@@ -18,7 +19,15 @@ import {
   sendRightTabs,
   sendThisTab,
 } from "./commands/sendTab";
-import { sendTabToNamedGroup } from "./commands/advancedSend";
+import {
+  advancedSendAllTabs,
+  advancedSendLeftTabs,
+  advancedSendOtherTabs,
+  advancedSendRightTabs,
+  advancedSendThisTab,
+  searchTab,
+  sendToBlackList,
+} from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
 
 // this method is called when your extension is activated
@@ -46,15 +55,22 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // send tab related commands
-  vscode.commands.registerCommand("onetab.send.allTabs", sendAllTabs);
+  vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
   vscode.commands.registerCommand("onetab.send.otherTabs", sendOtherTabs);
   vscode.commands.registerCommand("onetab.send.leftTabs", sendLeftTabs);
   vscode.commands.registerCommand("onetab.send.rightTabs", sendRightTabs);
-  vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
+  vscode.commands.registerCommand("onetab.send.allTabs", sendAllTabs);
 
-  vscode.commands.registerCommand(
-    "onetab.send.advanced.sendThisTab",
-    sendTabToNamedGroup
+  vscode.commands.registerCommand("onetab.send.blacklist", sendToBlackList);
+
+  vscode.commands.registerCommand("onetab.advanced.send.thisTab", advancedSendThisTab);
+  vscode.commands.registerCommand("onetab.advanced.send.otherTabs", advancedSendOtherTabs);
+  vscode.commands.registerCommand("onetab.advanced.send.leftTabs", advancedSendLeftTabs);
+  vscode.commands.registerCommand("onetab.advanced.send.rightTabs", advancedSendRightTabs);
+  vscode.commands.registerCommand("onetab.advanced.send.allTabs", advancedSendAllTabs);
+
+  vscode.commands.registerCommand("onetab.advanced.search", () =>
+    searchTab(context.extensionUri)
   );
 
   // tabs group related commands
@@ -65,11 +81,12 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.rename", tabsGroupRename);
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
+  vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
 
   // watch file delete of tab groups
   let _fileWatchService = new FileWatchService();
 
-  vscode.commands.registerCommand("onetab.advanced.webPage", () => {
+  vscode.commands.registerCommand("onetab.advanced.view", () => {
     OnetabPanel.createOrShow(context.extensionUri);
   });
 

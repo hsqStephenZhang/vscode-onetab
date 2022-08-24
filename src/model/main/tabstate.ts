@@ -7,13 +7,22 @@ import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 
 export class TabsState {
-  public groups: Map<string, TabsGroup> = new Map();
+  public groups: Map<string, TabsGroup>;
 
   // black list of file
-  public blackList: Set<string> = new Set();
+  public blackList: Set<string>;
 
   // map from uri.fsPath to group id list
-  private reverseIndex: Map<string, TabsGroup[]> = new Map();
+  private reverseIndex: Map<string, TabsGroup[]>;
+
+  public constructor() {
+    this.groups = new Map();
+    this.blackList = new Set();
+    this.reverseIndex = new Map();
+
+    this.blackList.add("for");
+    this.blackList.add("test");
+  }
 
   // getters
 
@@ -52,17 +61,21 @@ export class TabsState {
     }
   }
 
-  public setLabelToGroup(id: string, label: string) {
+  public setGroupLabel(id: string, label: string) {
     const g = this.groups.get(id);
     if (g) {
       g.label = label;
     }
   }
 
-  public setTagsToGroup(id: string, tags: string[]) {
+  public setGroupTags(id: string, tags: string[]) {
     const g = this.groups.get(id);
     if (g) {
       g.tags = tags;
+      g.tooltip =
+        g.label +
+        ", tags: " +
+        (g.tags.length === 0 ? "none" : g.tags.join(", "));
     }
   }
 
@@ -73,7 +86,7 @@ export class TabsState {
     }
   }
 
-  public setTabsOfGroup(id: string, newTabs: TabItem[]) {
+  public setGroupTabs(id: string, newTabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
       let oldTabs = g.tabs;
@@ -108,9 +121,12 @@ export class TabsState {
   public addTabsToGroup(id: string, tabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
-      g.tabs = g.tabs.concat(tabs);
+      let newTabs = tabs.filter((tab) => {
+        return !g.tabs.some((t) => t.fileUri.fsPath === tab.fileUri.fsPath);
+      });
+      g.tabs = g.tabs.concat(newTabs);
 
-      for (const tab of tabs) {
+      for (const tab of newTabs) {
         let fsPath = tab.fileUri.fsPath;
         let includeTabGroups = this.reverseIndex.get(fsPath);
         if (includeTabGroups === undefined) {

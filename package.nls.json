@@ -1,9 +1,15 @@
 {
-    "onetab.options": "onetab options",
+    "onetab.options.submenu": "onetab options",
+    "onetab.options.submenu.advanced": "advanced send",
     "onetab.send.thisTab": "send this tab into onetab",
     "onetab.send.otherTabs": "send other tabs into onetab",
     "onetab.send.leftTabs": "send left tabs into onetab",
     "onetab.send.rightTabs": "send right tabs into onetab",
     "onetab.send.allTabs": "send all tabs into onetab",
-    "onetab.send.advanced.sendThisTab": "send this tab into specified tabs group"
+    "onetab.advanced.send.thisTab": "send this tab into named onetab",
+    "onetab.advanced.send.otherTabs": "send other tabs into named onetab",
+    "onetab.advanced.send.leftTabs": "send left tabs into named onetab",
+    "onetab.advanced.send.rightTabs": "send right tabs into named onetab",
+    "onetab.advanced.send.allTabs": "send all tabs into named onetab",
+    "onetab.send.blacklist": "add file into onetab blacklist"
 }

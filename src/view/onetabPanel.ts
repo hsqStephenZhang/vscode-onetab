@@ -1,14 +1,22 @@
+import { Message } from './message';
 // Copyright (c) 2022 hsqStephenZhang
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+// Copyright (c) 2022 hsqStephenZhang
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
+import path = require("path");
 import * as vscode from "vscode";
+import { Global } from "../common/global";
 
 export class OnetabPanel {
   public static instance: OnetabPanel | undefined;
 
-  public static readonly viewType = "onetabs";
+  public static readonly viewType = "onetab app";
 
   private _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
@@ -21,6 +29,15 @@ export class OnetabPanel {
     this._update();
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+
+    this._panel.webview.onDidReceiveMessage((message) => {
+      Global.outputChannel.appendLine("message from webview"+message.text);
+
+      this._panel.webview.postMessage({
+        type: "pong",
+        text: "hello from extension",
+      });
+    });
   }
 
   public static createOrShow(extensionUri: vscode.Uri) {
@@ -37,8 +54,15 @@ export class OnetabPanel {
     // Otherwise, create a new panel.
     const panel = vscode.window.createWebviewPanel(
       OnetabPanel.viewType,
-      "onetabs",
+      "onetab app",
       column || vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(extensionUri.path, "out", "app")),
+        ],
+      }
     );
 
     OnetabPanel.instance = new OnetabPanel(panel, extensionUri);
@@ -61,21 +85,35 @@ export class OnetabPanel {
   }
 
   private _getHtml(): string {
-    return `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <!--
-            Use a content security policy to only allow loading images from https or from our extension directory,
-            and only allow scripts that have a specific nonce.
-        -->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cat Coding</title>
-    </head>
-    <body>
-    <h1 id="lines-of-code-counter">0</h1>
-    <h1 id="lines-of-code-counter">2</h1>
-    </body>
-    </html>`;
+    const bundleScriptPath = this._panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this._extensionUri.path, "out", "app", "bundle.js")
+      )
+    );
+
+    return `
+      <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>React App</title>
+        </head>
+    
+        <body>
+          <div id="root"></div>
+          <script src="${bundleScriptPath}"></script>
+        </body>
+      </html>
+    `;
+  }
+
+  // message
+
+  public static postMessage(uri: vscode.Uri, message: Message) {
+    OnetabPanel.createOrShow(uri);
+    if (OnetabPanel.instance) {
+      OnetabPanel.instance._panel.webview.postMessage(message);
+    }
   }
 }
