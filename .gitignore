@@ -27,7 +27,7 @@ node_modules
 # Ignore built ts files
 out/**/*
 
-**..vsix
+**.vsix
 
 # ignore lock file
 yarn.lock
