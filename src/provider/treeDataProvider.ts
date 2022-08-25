@@ -16,7 +16,7 @@ function filterByName(group: TabsGroup): boolean {
 }
 
 function filterByPinned(group: TabsGroup): boolean {
-  return group.pinned;
+  return group.isPinned();
 }
 
 function filterByTags(group: TabsGroup): boolean {

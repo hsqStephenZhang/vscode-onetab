@@ -5,25 +5,37 @@
 import * as vscode from "vscode";
 import { TabInputText } from "vscode";
 import {
-  getAllTabs,
+  getAllTabsWithBlackList,
+  getAllTabsWithoutBlackList,
   getLeftTabs,
-  getOtherTabs,
+  getOtherTabsWithBlacklist,
   getRightTabs,
   getSelectedTab,
   sendTabs,
 } from "../utils/tab";
 
-export async function sendAllTabs() {
-  let allTabs = getAllTabs();
-  if (allTabs) {
-    sendTabs(allTabs);
+export async function sendThisTab(uri: vscode.Uri) {
+  let tab = getSelectedTab(uri);
+  let blacklist = vscode.workspace
+    .getConfiguration()
+    .get("onetab.blacklist") as Array<string>;
+  if (
+    tab &&
+    tab.input instanceof TabInputText &&
+    blacklist.every((path) => {
+      return (tab?.input as TabInputText).uri.path !== path;
+    })
+  ) {
+    sendTabs([tab]);
   } else {
-    vscode.window.showInformationMessage("No tabs to send");
+    vscode.window.showInformationMessage(
+      "this is is not a text tab or in blacklist"
+    );
   }
 }
 
 export async function sendOtherTabs(uri: vscode.Uri) {
-  let otherTabs = getOtherTabs(uri);
+  let otherTabs = getOtherTabsWithBlacklist(uri);
   if (otherTabs) {
     sendTabs(otherTabs);
   } else {
@@ -49,22 +61,11 @@ export async function sendRightTabs(uri: vscode.Uri) {
   }
 }
 
-export async function sendThisTab(uri: vscode.Uri) {
-  let tab = getSelectedTab(uri);
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
-  if (
-    tab &&
-    tab.input instanceof TabInputText &&
-    blacklist.every((path) => {
-      return (tab?.input as TabInputText).uri.path !== path;
-    })
-  ) {
-    sendTabs([tab]);
+export async function sendAllTabs() {
+  let allTabs = getAllTabsWithBlackList();
+  if (allTabs) {
+    sendTabs(allTabs);
   } else {
-    vscode.window.showInformationMessage(
-      "this is is not a text tab or in blacklist"
-    );
+    vscode.window.showInformationMessage("No tabs to send");
   }
 }

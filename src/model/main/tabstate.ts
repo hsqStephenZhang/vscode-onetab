@@ -31,7 +31,7 @@ export class TabsState {
   }
 
   public getPinnedLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter((list) => list.pinned);
+    return Array.from(this.groups.values()).filter((list) => list.isPinned());
   }
 
   public getTitledLists(): TabsGroup[] {
@@ -42,7 +42,7 @@ export class TabsState {
 
   public getTaggedLists(): TabsGroup[] {
     return Array.from(this.groups.values()).filter(
-      (list) => list.tags.length !== 0
+      (list) => list.getTags().length !== 0
     );
   }
 
@@ -64,33 +64,31 @@ export class TabsState {
   public setGroupLabel(id: string, label: string) {
     const g = this.groups.get(id);
     if (g) {
-      g.label = label;
+      g.setLabel(label);
     }
   }
 
   public setGroupTags(id: string, tags: string[]) {
     const g = this.groups.get(id);
     if (g) {
-      g.tags = tags;
+      g.setTags(tags);
       g.tooltip =
-        g.label +
-        ", tags: " +
-        (g.tags.length === 0 ? "none" : g.tags.join(", "));
+        g.label + ", tags: " + (tags.length === 0 ? "none" : tags.join(", "));
     }
   }
 
   public addTagsToGroup(id: string, tags: string[]) {
     const g = this.groups.get(id);
     if (g) {
-      g.tags = g.tags.concat(tags);
+      g.extendTags(tags);
     }
   }
 
   public setGroupTabs(id: string, newTabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
-      let oldTabs = g.tabs;
-      g.tabs = newTabs;
+      let oldTabs = g.getTabs();
+      g.setTabs(newTabs);
 
       // update for old
       for (const tab of oldTabs) {
@@ -121,10 +119,11 @@ export class TabsState {
   public addTabsToGroup(id: string, tabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
+      let oldTabs = g.getTabs();
       let newTabs = tabs.filter((tab) => {
-        return !g.tabs.some((t) => t.fileUri.fsPath === tab.fileUri.fsPath);
+        return !oldTabs.some((t) => t.fileUri.fsPath === tab.fileUri.fsPath);
       });
-      g.tabs = g.tabs.concat(newTabs);
+      g.extendTabs(newTabs);
 
       for (const tab of newTabs) {
         let fsPath = tab.fileUri.fsPath;
@@ -142,7 +141,7 @@ export class TabsState {
   public addTabsGroup(group: TabsGroup) {
     this.groups.set(group.id, group);
 
-    for (const tab of group.tabs) {
+    for (const tab of group.getTabs()) {
       let fsPath = tab.fileUri.fsPath;
       let includeTabGroups = this.reverseIndex.get(fsPath);
       if (includeTabGroups === undefined) {
@@ -157,7 +156,7 @@ export class TabsState {
   public removeTabsGroup(id: string) {
     const group = this.groups.get(id);
     if (group) {
-      for (const tab of group.tabs) {
+      for (const tab of group.getTabs()) {
         let fsPath = tab.fileUri.fsPath;
         let includeTabGroups = this.reverseIndex.get(fsPath);
         if (includeTabGroups === undefined) {
@@ -174,8 +173,7 @@ export class TabsState {
   public removeTabFromGroup(id: string, fsPath: string) {
     const group = this.groups.get(id);
     if (group) {
-      group.tabs = group.tabs.filter((t) => t.fileUri.fsPath !== fsPath);
-
+      group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
       let includeTabGroups = this.reverseIndex.get(fsPath);
       if (includeTabGroups === undefined) {
         return;
@@ -184,7 +182,7 @@ export class TabsState {
         this.reverseIndex.set(fsPath, includeTabGroups);
       }
 
-      if (group.tabs.length === 0) {
+      if (group.getTabs().length === 0) {
         this.groups.delete(id);
       }
     }
@@ -196,8 +194,8 @@ export class TabsState {
       return;
     } else {
       for (const group of includeTabGroups) {
-        group.tabs = group.tabs.filter((t) => t.fileUri.fsPath !== fsPath);
-        if (group.tabs.length === 0) {
+        group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
+        if (group.getTabs().length === 0) {
           this.groups.delete(group.id);
         }
       }
@@ -208,7 +206,7 @@ export class TabsState {
   public getAllTabsGroupsSorted(): TabsGroup[] {
     let pinnedGroups = new Map(
       Array.from(this.groups.values())
-        .filter((item) => item.pinned)
+        .filter((item) => item.isPinned())
         .map((item) => [item.id, true])
     );
     let namedGroups = new Map(
@@ -218,9 +216,10 @@ export class TabsState {
     );
     let taggedGroups = new Map(
       Array.from(this.groups.values())
-        .filter((item) => item.tags.length !== 0)
+        .filter((item) => item.getTags().length !== 0)
         .map((item) => [item.id, true])
     );
+    // order by: 1. pinned, 2. named, 3. create time
     let sortedGroups = Array.from(this.groups.values())
       .map((item) => {
         let score = 0;
@@ -234,6 +233,9 @@ export class TabsState {
           score += 1;
         }
         return { group: item, score: score };
+      })
+      .sort((a, b) => {
+        return b.group.createTime - a.group.createTime;
       })
       .sort((a, b) => {
         return b.score - a.score;

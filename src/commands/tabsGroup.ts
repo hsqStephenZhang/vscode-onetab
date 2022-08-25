@@ -10,20 +10,20 @@ import { TabsGroup } from "../model/main/tabsgroup";
 import { TabsState } from "../model/main/tabstate";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
-  for (const tab of tabsGroup.tabs) {
+  for (const tab of tabsGroup.getTabs()) {
     const fileUri = tab.fileUri;
     vscode.window.showTextDocument(fileUri, { preview: false });
   }
-  if (!tabsGroup.pinned) {
+  if (!tabsGroup.isPinned()) {
     removeInner(tabsGroup.id);
   }
 }
 
 export async function tabsGroupTags(group: TabsGroup) {
-  const tags = group.tags.join(",");
+  const tagsRaw = group.getTags().join(",");
   const newTagsRaw = await vscode.window.showInputBox({
     prompt: "New Tags, separated by comma",
-    value: tags,
+    value: tagsRaw,
   });
   if (newTagsRaw) {
     const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
@@ -58,13 +58,13 @@ export async function tabsGroupPin(group: TabsGroup) {
     new TabsState(),
     WorkState.get("tabsState", new TabsState())
   );
-  state.setPinned(group.id, !group.pinned);
+  state.setPinned(group.id, !group.isPinned());
   WorkState.update("tabsState", state);
   Global.tabsProvider.refresh();
 }
 
 export async function tabsGroupRemove(group: TabsGroup) {
-  if (group.pinned === true) {
+  if (group.isPinned() === true) {
     vscode.window.showWarningMessage("Cannot remove pinned group");
     return;
   }

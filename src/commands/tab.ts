@@ -21,7 +21,7 @@ export async function tabRestore(tab: TabItem) {
     let g = state.getGroup(groupId);
 
     if (g) {
-      if (g.pinned) {
+      if (g.isPinned()) {
         vscode.window.showTextDocument(tab.fileUri, { preview: false });
         Global.tabsProvider.refresh();
       } else {
@@ -46,7 +46,7 @@ export async function tabRemove(tab: TabItem) {
     let g = state.getGroup(groupId);
 
     if (g) {
-      if (g.pinned) {
+      if (g.isPinned()) {
         vscode.window.showWarningMessage(
           "this tab has been pinned within a group, please unpin the group before removing this tab"
         );

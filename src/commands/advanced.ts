@@ -10,9 +10,10 @@ import { WorkState } from "../common/state";
 import { TabItem } from "../model/main/tabitem";
 import { TabsState } from "../model/main/tabstate";
 import {
-  getAllTabs,
+  getAllTabsWithBlackList,
+  getAllTabsWithoutBlackList,
   getLeftTabs,
-  getOtherTabs,
+  getOtherTabsWithBlacklist,
   getRightTabs,
   getSelectedTab,
   sendTabs,
@@ -33,7 +34,7 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   let items: vscode.QuickPickItem[] = groups.map((group) => {
     return {
       label: group.label,
-      description: group.tabs.map((tab) => tab.label).join(","),
+      description: group.getTabs().map((tab) => tab.label).join(","),
     };
   });
 
@@ -78,7 +79,7 @@ export async function advancedSendThisTab(uri: vscode.Uri) {
 }
 
 export async function advancedSendOtherTabs(uri: vscode.Uri) {
-  let otherTabs = getOtherTabs(uri);
+  let otherTabs = getOtherTabsWithBlacklist(uri);
   if (!otherTabs) {
     vscode.window.showWarningMessage("No tabs to be saved");
     return;
@@ -126,7 +127,7 @@ export async function advancedSendRightTabs(uri: vscode.Uri) {
 }
 
 export async function advancedSendAllTabs() {
-  let allTabs = getAllTabs();
+  let allTabs = getAllTabsWithBlackList();
   if (!allTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;

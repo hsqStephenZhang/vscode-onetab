@@ -12,10 +12,11 @@ export const DEFAULT_LABEL = "untitled tabs group";
 
 export class TabsGroup extends Node {
   public iconPath: vscode.ThemeIcon | undefined = undefined;
-  public pinned: boolean = false;
-  public tags: string[] = [];
-  public tabs: TabItem[] = [];
+  private pinned: boolean = false;
+  private tags: string[] = [];
+  private tabs: TabItem[] = [];
   public id;
+  public createTime: number;
 
   constructor(tabs: TabItem[]) {
     super(DEFAULT_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
@@ -26,10 +27,15 @@ export class TabsGroup extends Node {
       this.label +
       ", tags: " +
       (this.tags.length === 0 ? "none" : this.tags.join(", "));
+    this.createTime = Date.now();
   }
 
   public getChildren(): Node[] | Promise<Node[]> {
     return this.tabs;
+  }
+
+  public isPinned(): boolean {
+    return this.pinned;
   }
 
   public setPin(pin: boolean) {
@@ -41,8 +47,32 @@ export class TabsGroup extends Node {
     }
   }
 
+  public getTags(): string[] {
+    return this.tags;
+  }
+
+  public setTags(tags: string[]) {
+    this.tags = tags;
+  }
+
+  public extendTags(tags: string[]) {
+    this.tags.push(...tags);
+  }
+
+  public setLabel(label: string) {
+    this.label = label;
+  }
+
   public isUntitled(): boolean {
     return this.label === DEFAULT_LABEL;
+  }
+
+  public getTabs(): TabItem[] {
+    return this.tabs;
+  }
+
+  public setTabs(tabs: TabItem[]) {
+    this.tabs = tabs;
   }
 
   public pushTab(tab: TabItem) {
