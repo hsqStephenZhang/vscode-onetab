@@ -33,7 +33,7 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   let items: vscode.QuickPickItem[] = groups.map((group) => {
     return {
       label: group.label,
-      description: group.label,
+      description: group.tabs.map((tab) => tab.label).join(","),
     };
   });
 
@@ -53,7 +53,17 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
 
 export async function advancedSendThisTab(uri: vscode.Uri) {
   let tab = getSelectedTab(uri);
-  if (!tab || !(tab.input instanceof TabInputText)) {
+  let blacklist = vscode.workspace
+    .getConfiguration()
+    .get("onetab.blacklist") as Array<string>;
+  // check if this tab is in the blacklist
+  if (
+    !tab ||
+    !(tab.input instanceof TabInputText) ||
+    !blacklist.every((path) => {
+      return (tab?.input as TabInputText).uri.path !== path;
+    })
+  ) {
     vscode.window.showWarningMessage("No selected tab");
     return;
   }
@@ -131,8 +141,20 @@ export async function advancedSendAllTabs() {
   }
 }
 
-export async function sendToBlackList() {
-  vscode.window.showInformationMessage("todo");
+export async function sendToBlackList(uri: vscode.Uri) {
+  let conf = vscode.workspace.getConfiguration();
+  let blacklist = conf.get("onetab.blacklist") as Array<string>;
+  if (blacklist) {
+    blacklist.push(uri.path);
+    vscode.workspace
+      .getConfiguration()
+      .update("onetab.blacklist", blacklist, false);
+    Global.outputChannel.appendLine(
+      "blacklist:" + (blacklist as Array<string>).join(",\n\t")
+    );
+  } else {
+    Global.outputChannel.appendLine("No blacklist");
+  }
 }
 
 export async function searchTab(uri: vscode.Uri) {

@@ -34,6 +34,23 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+      {
+        "id": "onetab",
+        "title": "onetab",
+        "properties": {
+          "onetab.blacklist": {
+            "scope": "resource",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "The list of file to be excluded from onetab."
+          }
+        }
+      }
+    ],
     "commands": [
       {
         "command": "onetab.send.thisTab",
