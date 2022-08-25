@@ -11,7 +11,7 @@ in tab windows, and you may get lost in these tabs. Don't worry, this extension 
 
 ## 2. usage
 
-[usage doc](./docs/usage.md)
+Please follow the [usage](./docs/usage.md) to get the best experience.
 
 ## 3. todo
 
