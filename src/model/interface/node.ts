@@ -18,9 +18,10 @@ export abstract class Node extends vscode.TreeItem {
     public collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(label, collapsibleState);
+    this.id = label;
   }
 
   public getId(): string {
-    return "";
+    return this.label;
   }
 }

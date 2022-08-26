@@ -27,21 +27,33 @@ function filterByInnerTabs(group: TabsGroup): boolean {
   return true;
 }
 
-export class TabsProvider implements vscode.TreeDataProvider<Node> {
+export class TabsProvider
+  implements
+    vscode.TreeDataProvider<Node>
+{
   rootPath: string | undefined;
   filters: TabsGroupFilter[];
   filterArgs: any[];
-  constructor(rootPath: string | undefined) {
-    this.rootPath = rootPath;
-    this.filters = [];
-    this.filterArgs = [];
-  }
 
   private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
     new vscode.EventEmitter<Node | undefined | void>();
-  readonly onDidChangeTreeData: vscode.Event<Node | undefined | void> =
+  readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
     this._onDidChangeTreeData.event;
 
+  constructor(rootPath: string | undefined, context: vscode.ExtensionContext) {
+    this.rootPath = rootPath;
+    this.filters = [];
+    this.filterArgs = [];
+
+    context.subscriptions.push(
+      vscode.window.createTreeView("main", {
+        treeDataProvider: this,
+        showCollapseAll: true,
+        canSelectMany: true,
+      })
+    );
+  }
+  
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }

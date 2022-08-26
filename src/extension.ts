@@ -46,13 +46,9 @@ export function activate(context: vscode.ExtensionContext) {
       : undefined;
 
   let outputChannel = vscode.window.createOutputChannel("Onetab");
-  let tabsProvider = new TabsProvider(rootPath);
+  let tabsProvider = new TabsProvider(rootPath, context);
   Global.outputChannel = outputChannel;
   Global.tabsProvider = tabsProvider;
-
-  vscode.window.createTreeView("onetabs", {
-    treeDataProvider: tabsProvider,
-  });
 
   // send tab related commands
   vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
@@ -63,11 +59,26 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.commands.registerCommand("onetab.send.blacklist", sendToBlackList);
 
-  vscode.commands.registerCommand("onetab.advanced.send.thisTab", advancedSendThisTab);
-  vscode.commands.registerCommand("onetab.advanced.send.otherTabs", advancedSendOtherTabs);
-  vscode.commands.registerCommand("onetab.advanced.send.leftTabs", advancedSendLeftTabs);
-  vscode.commands.registerCommand("onetab.advanced.send.rightTabs", advancedSendRightTabs);
-  vscode.commands.registerCommand("onetab.advanced.send.allTabs", advancedSendAllTabs);
+  vscode.commands.registerCommand(
+    "onetab.advanced.send.thisTab",
+    advancedSendThisTab
+  );
+  vscode.commands.registerCommand(
+    "onetab.advanced.send.otherTabs",
+    advancedSendOtherTabs
+  );
+  vscode.commands.registerCommand(
+    "onetab.advanced.send.leftTabs",
+    advancedSendLeftTabs
+  );
+  vscode.commands.registerCommand(
+    "onetab.advanced.send.rightTabs",
+    advancedSendRightTabs
+  );
+  vscode.commands.registerCommand(
+    "onetab.advanced.send.allTabs",
+    advancedSendAllTabs
+  );
 
   vscode.commands.registerCommand("onetab.advanced.search", () =>
     searchTab(context.extensionUri)

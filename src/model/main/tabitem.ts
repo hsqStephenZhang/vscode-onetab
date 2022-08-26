@@ -3,6 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { randomUUID } from "crypto";
 import * as vscode from "vscode";
 import { Node } from "../interface/node";
 
@@ -19,5 +20,6 @@ export class TabItem extends Node {
     this.fileUri = uri;
     this.contextValue = "tab";
     this.valid = true;
+    this.id = randomUUID();
   }
 }

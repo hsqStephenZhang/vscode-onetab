@@ -156,7 +156,7 @@
     "views": {
       "onetab": [
         {
-          "id": "onetabs",
+          "id": "main",
           "name": "onetabs",
           "icon": "media/dep.svg",
           "contextualTitle": "Tabs"
