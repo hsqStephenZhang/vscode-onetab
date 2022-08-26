@@ -185,37 +185,37 @@
       "view/item/context": [
         {
           "command": "onetab.tabsGroup.pin",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@0"
         },
         {
           "command": "onetab.tabsGroup.rename",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@1"
         },
         {
           "command": "onetab.tabsGroup.tag",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@2"
         },
         {
           "command": "onetab.tabsGroup.restore",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@3"
         },
         {
           "command": "onetab.tabsGroup.remove",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tabsGroup)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@4"
         },
         {
           "command": "onetab.tab.restore",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tab)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@0"
         },
         {
           "command": "onetab.tab.remove",
-          "when": "view =~ /^(onetabs)$/ && viewItem =~ /^(tab)$/",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@1"
         }
       ],
