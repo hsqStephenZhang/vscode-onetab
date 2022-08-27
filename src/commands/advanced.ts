@@ -34,7 +34,10 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   let items: vscode.QuickPickItem[] = groups.map((group) => {
     return {
       label: group.label,
-      description: group.getTabs().map((tab) => tab.label).join(","),
+      description: group
+        .getTabs()
+        .map((tab) => tab.label)
+        .join(","),
     };
   });
 
@@ -145,6 +148,10 @@ export async function advancedSendAllTabs() {
 export async function sendToBlackList(uri: vscode.Uri) {
   let conf = vscode.workspace.getConfiguration();
   let blacklist = conf.get("onetab.blacklist") as Array<string>;
+  if (blacklist.includes(uri.path)) {
+    vscode.window.showWarningMessage("Tab already in the blacklist");
+    return;
+  }
   if (blacklist) {
     blacklist.push(uri.path);
     vscode.workspace

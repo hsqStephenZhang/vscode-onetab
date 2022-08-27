@@ -11,5 +11,6 @@
     "onetab.advanced.send.leftTabs": "send left tabs into named onetab",
     "onetab.advanced.send.rightTabs": "send right tabs into named onetab",
     "onetab.advanced.send.allTabs": "send all tabs into named onetab",
-    "onetab.send.blacklist": "add file into onetab blacklist"
+    "onetab.send.blacklist": "add this tab into onetab blacklist",
+    "onetab.edit.blacklist": "edit blacklist"
 }

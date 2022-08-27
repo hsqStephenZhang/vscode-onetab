@@ -97,6 +97,10 @@
         "title": "%onetab.send.blacklist%"
       },
       {
+        "command": "onetab.edit.blacklist",
+        "title": "%onetab.edit.blacklist%"
+      },
+      {
         "command": "onetab.tab.restore",
         "title": "restore one tab",
         "icon": "$(refresh)"
@@ -243,6 +247,10 @@
         {
           "command": "onetab.send.blacklist",
           "group": "2_onetab@0"
+        },
+        {
+          "command": "onetab.edit.blacklist",
+          "group": "2_onetab@1"
         },
         {
           "submenu": "onetab.title.context.submenu.submenu",
