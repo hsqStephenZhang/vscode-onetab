@@ -37,7 +37,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   // for debug
   // todo: remove it
-  WorkState.update("tabsState", new TabsState());
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
