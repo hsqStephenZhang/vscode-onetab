@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { TabsState } from "../model/main/tabstate";
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
+import { STORAGE_KEY } from "../constant";
 
 export class FileWatchService {
   private watcher: vscode.FileSystemWatcher;
@@ -25,10 +26,10 @@ export class FileWatchService {
       Global.outputChannel.appendLine(uri.fsPath);
       const state = Object.assign(
         new TabsState(),
-        WorkState.get("tabsState", new TabsState())
+        WorkState.get(STORAGE_KEY, new TabsState())
       );
       state.removeTabFromAllGroups(uri.fsPath);
-      WorkState.update("tabsState", state);
+      WorkState.update(STORAGE_KEY, state);
       Global.tabsProvider.refresh();
     });
   }

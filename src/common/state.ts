@@ -24,4 +24,8 @@ export class WorkState {
   public static get<T>(key: string, defaultValue: T): T {
     return Global.context.workspaceState.get(key, defaultValue);
   }
+
+  public static getOrUndefined<T>(key: string): T | undefined {
+    return Global.context.workspaceState.get(key);
+  }
 }

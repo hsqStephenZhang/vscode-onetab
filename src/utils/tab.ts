@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
+import { STORAGE_KEY } from "../constant";
 import { TabItem } from "../model/main/tabitem";
 import { TabsGroup } from "../model/main/tabsgroup";
 import { TabsState } from "../model/main/tabstate";
@@ -150,7 +151,7 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 }
 
 // safety: for every item in tabs, item.input is instance of TabInputText
-export function sendTabs(tabs: vscode.Tab[], groupId?: string) {
+export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
     return new TabItem(tab.label, textFile.uri);
@@ -159,7 +160,7 @@ export function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   let group = null;
   const state = Object.assign(
     new TabsState(),
-    WorkState.get("tabsState", new TabsState())
+    WorkState.get(STORAGE_KEY, new TabsState())
   );
 
   if (groupId) {
@@ -176,7 +177,8 @@ export function sendTabs(tabs: vscode.Tab[], groupId?: string) {
 
   // check if state are updated
   if (updated) {
-    WorkState.update("tabsState", state);
+    await WorkState.update(STORAGE_KEY, state);
+    Global.debugState();
     vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
     Global.tabsProvider.refresh();
   }

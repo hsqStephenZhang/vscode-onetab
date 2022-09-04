@@ -26,7 +26,7 @@ export async function sendThisTab(uri: vscode.Uri) {
       return (tab?.input as TabInputText).uri.path !== path;
     })
   ) {
-    sendTabs([tab]);
+    await sendTabs([tab]);
   } else {
     vscode.window.showInformationMessage(
       "this is is not a text tab or in blacklist"
@@ -37,7 +37,7 @@ export async function sendThisTab(uri: vscode.Uri) {
 export async function sendOtherTabs(uri: vscode.Uri) {
   let otherTabs = getOtherTabsWithBlacklist(uri);
   if (otherTabs) {
-    sendTabs(otherTabs);
+    await sendTabs(otherTabs);
   } else {
     vscode.window.showInformationMessage("No tabs to send");
   }
@@ -46,7 +46,7 @@ export async function sendOtherTabs(uri: vscode.Uri) {
 export async function sendLeftTabs(uri: vscode.Uri) {
   let leftTabs = getLeftTabs(uri);
   if (leftTabs) {
-    sendTabs(leftTabs);
+    await sendTabs(leftTabs);
   } else {
     vscode.window.showInformationMessage("No tabs to send");
   }
@@ -55,7 +55,7 @@ export async function sendLeftTabs(uri: vscode.Uri) {
 export async function sendRightTabs(uri: vscode.Uri) {
   let rightTabs = getRightTabs(uri);
   if (rightTabs) {
-    sendTabs(rightTabs);
+    await sendTabs(rightTabs);
   } else {
     vscode.window.showInformationMessage("No tabs to send");
   }
@@ -64,7 +64,7 @@ export async function sendRightTabs(uri: vscode.Uri) {
 export async function sendAllTabs() {
   let allTabs = getAllTabsWithBlackList();
   if (allTabs) {
-    sendTabs(allTabs);
+    await sendTabs(allTabs);
   } else {
     vscode.window.showInformationMessage("No tabs to send");
   }

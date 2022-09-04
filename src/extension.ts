@@ -29,14 +29,29 @@ import {
   sendToBlackList,
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
+import { STORAGE_KEY } from "./constant";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   Global.context = context;
 
+  let outputChannel = vscode.window.createOutputChannel("Onetab");
+  Global.outputChannel = outputChannel;
+  
+  Global.debugState();
   // for debug
-  // todo: remove it
+  const old = Object.assign(
+    new TabsState(),
+    WorkState.get(STORAGE_KEY, new TabsState())
+  );
+  if (old === undefined) {
+    vscode.window.showInformationMessage("old state found");
+    WorkState.update(STORAGE_KEY, old);
+  } else {
+    vscode.window.showInformationMessage("old state not found");
+    WorkState.update(STORAGE_KEY, new TabsState());
+  }
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
@@ -44,9 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
-  let outputChannel = vscode.window.createOutputChannel("Onetab");
   let tabsProvider = new TabsProvider(rootPath, context);
-  Global.outputChannel = outputChannel;
   Global.tabsProvider = tabsProvider;
 
   // send tab related commands

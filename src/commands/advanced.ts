@@ -1,9 +1,9 @@
-import { OnetabPanel } from "./../view/onetabPanel";
 // Copyright (c) 2022 hsqStephenZhang
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { OnetabPanel } from "./../view/onetabPanel";
 import * as vscode from "vscode";
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
@@ -20,11 +20,12 @@ import {
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/main/tabsgroup";
+import { STORAGE_KEY } from "../constant";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   const state = Object.assign(
     new TabsState(),
-    WorkState.get("tabsState", new TabsState())
+    WorkState.get(STORAGE_KEY, new TabsState())
   );
   let groups = state.getTitledLists();
   if (groups.length === 0) {
@@ -77,7 +78,7 @@ export async function advancedSendThisTab(uri: vscode.Uri) {
   } else if (group === undefined) {
     vscode.window.showInformationMessage("No chosen group");
   } else {
-    sendTabs([tab], group.id);
+    await sendTabs([tab], group.id);
   }
 }
 
@@ -93,7 +94,7 @@ export async function advancedSendOtherTabs(uri: vscode.Uri) {
   } else if (group === undefined) {
     vscode.window.showInformationMessage("No chosen group");
   } else {
-    sendTabs(otherTabs, group.id);
+    await sendTabs(otherTabs, group.id);
   }
 }
 
@@ -109,7 +110,7 @@ export async function advancedSendLeftTabs(uri: vscode.Uri) {
   } else if (group === undefined) {
     vscode.window.showInformationMessage("No chosen group");
   } else {
-    sendTabs(leftTabs, group.id);
+    await sendTabs(leftTabs, group.id);
   }
 }
 
@@ -125,7 +126,7 @@ export async function advancedSendRightTabs(uri: vscode.Uri) {
   } else if (group === undefined) {
     vscode.window.showInformationMessage("No chosen group");
   } else {
-    sendTabs(rightTabs, group.id);
+    await sendTabs(rightTabs, group.id);
   }
 }
 
@@ -141,7 +142,7 @@ export async function advancedSendAllTabs() {
   } else if (group === undefined) {
     vscode.window.showInformationMessage("No chosen group");
   } else {
-    sendTabs(allTabs, group.id);
+    await sendTabs(allTabs, group.id);
   }
 }
 
