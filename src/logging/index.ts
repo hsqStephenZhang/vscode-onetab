@@ -36,23 +36,23 @@ export class OutputChannelLogger implements Logger {
         this.logLevel = level;
     }
     info(message?: any, ...optionalParams: any[]): void {
-        if (this.logLevel >= LogLevel.INFO) {
-            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
+        if (this.logLevel <= LogLevel.INFO) {
+            this.outputChannel.appendLine(`[${DateFormat(new Date())}][INFO]: ${message}, ${optionalParams}`);
         }
     }
     debug(message?: any, ...optionalParams: any[]): void {
-        if (this.logLevel >= LogLevel.DEBUG) {
-            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
+        if (this.logLevel <= LogLevel.DEBUG) {
+            this.outputChannel.appendLine(`[${DateFormat(new Date())}][DEBUG]: ${message}, ${optionalParams}`);
         }
     }
     warn(message?: any, ...optionalParams: any[]): void {
-        if (this.logLevel >= LogLevel.WARN) {
-            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
+        if (this.logLevel <= LogLevel.WARN) {
+            this.outputChannel.appendLine(`[${DateFormat(new Date())}][WARN]: ${message}, ${optionalParams}`);
         }
     }
     error(message?: any, ...optionalParams: any[]): void {
-        if (this.logLevel >= LogLevel.ERROR) {
-            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
+        if (this.logLevel <= LogLevel.ERROR) {
+            this.outputChannel.appendLine(`[${DateFormat(new Date())}][ERROR]: ${message}, ${optionalParams}`);
         }
     }
 }

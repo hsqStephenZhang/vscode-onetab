@@ -20,10 +20,10 @@ export class FileWatchService {
       false
     );
     this.watcher.onDidCreate((uri) => {
-      Global.logger.info(uri.fsPath);
+      Global.logger.debug(uri.fsPath);
     });
     this.watcher.onDidDelete((uri) => {
-      Global.logger.info(uri.fsPath);
+      Global.logger.debug(uri.fsPath);
       const state = currentState();
       state.removeTabFromAllGroups(uri.fsPath);
       WorkState.update(STORAGE_KEY, state.toString());

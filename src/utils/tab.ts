@@ -180,7 +180,7 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
 
   // check if state are updated
   if (updated) {
-    Global.logger.info(`${JSON.stringify(state.groups)}`);
+    Global.logger.debug(`${JSON.stringify(state.groups)}`);
     await WorkState.update(STORAGE_KEY, state.toString());
     debugState();
     vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));

@@ -151,11 +151,11 @@ export async function sendToBlackList(uri: vscode.Uri) {
     vscode.workspace
       .getConfiguration()
       .update("onetab.blacklist", blacklist, false);
-    Global.logger.info(
+    Global.logger.debug(
       "blacklist:" + (blacklist as Array<string>).join(",\n\t")
     );
   } else {
-    Global.logger.info("No blacklist");
+    Global.logger.debug("No blacklist");
   }
 }
 

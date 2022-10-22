@@ -34,6 +34,25 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "vscode-onetab-output",
+        "mimetypes": [
+          "log",
+          "text/log",
+          "text/x-log",
+          "text/x-code-output",
+          "x-code-output"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vscode-onetab-output",
+        "scopeName": "vscode-onetab.output",
+        "path": "./syntaxes/log.tmLanguage.json"
+      }
+    ],
     "configuration": [
       {
         "id": "onetab",

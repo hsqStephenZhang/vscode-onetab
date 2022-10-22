@@ -8,10 +8,10 @@ import { WorkState } from "../common/state";
 
 export function debugState() {
     const keys = WorkState.keys();
-    Global.logger.info(`${keys}`);
+    Global.logger.debug(`${keys}`);
     for (const key of keys) {
         const obj = WorkState.get(key, undefined);
-        Global.logger.info(`${key} : ${JSON.stringify(obj)}`);
+        Global.logger.debug(`${key} is: ${JSON.stringify(obj)}`);
     }
 }
 

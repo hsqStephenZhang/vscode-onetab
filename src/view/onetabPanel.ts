@@ -31,7 +31,7 @@ export class OnetabPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
     this._panel.webview.onDidReceiveMessage((message) => {
-      Global.logger.info("message from webview"+message.text);
+      Global.logger.debug("message from webview"+message.text);
 
       this._panel.webview.postMessage({
         type: "pong",
