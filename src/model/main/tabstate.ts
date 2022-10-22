@@ -19,9 +19,6 @@ export class TabsState {
     this.groups = new Map();
     this.blackList = new Set();
     this.reverseIndex = new Map();
-
-    this.blackList.add("for");
-    this.blackList.add("test");
   }
 
   // getters

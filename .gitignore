@@ -32,3 +32,4 @@ out/**/*
 # ignore lock file
 yarn.lock
 package-lock.json
+.vscode-test/**
