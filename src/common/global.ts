@@ -5,7 +5,8 @@
 
 import { TabsState } from './../model/main/tabstate';
 import * as vscode from "vscode";
-import { GlobalState } from "./state";
+import { WorkState } from './state';
+
 import { TabsProvider } from "./../provider/treeDataProvider";
 
 export class Global {
@@ -15,22 +16,18 @@ export class Global {
   public static outputChannel: vscode.OutputChannel;
 
   public static debugState() {
-    const keys = GlobalState.keys();
+    const keys = WorkState.keys();
     Global.outputChannel.appendLine(`${keys}`);
     for (const key of keys) {
-      const obj = GlobalState.get(key, undefined);
+      const obj = WorkState.get(key, undefined);
       Global.outputChannel.appendLine(`${key} : ${JSON.stringify(obj)}`);
     }
   }
 
   public static clearState() {
-    const keys = GlobalState.keys();
+    const keys = WorkState.keys();
     for (const key of keys) {
-      GlobalState.update(key, undefined);
+      WorkState.update(key, undefined);
     }
-  }
-
-  public static init() {
-
   }
 }

@@ -1,5 +1,6 @@
-import { OnetabPanel } from "./view/onetabPanel";
+import "reflect-metadata";
 import * as vscode from "vscode";
+import { OnetabPanel } from "./view/onetabPanel";
 import { TabsProvider } from "./provider/treeDataProvider";
 import { WorkState } from "./common/state";
 import { Global } from "./common/global";
@@ -39,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
 
-  Global.clearState();
+  // Global.clearState();
   Global.debugState();
   const oldState = getStateFromStorage();
   Global.tabsState = oldState;

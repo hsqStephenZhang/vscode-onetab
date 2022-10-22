@@ -10,15 +10,16 @@ import * as vscode from "vscode";
 import { Node } from "../interface/node";
 import { TabItem } from "./tabitem";
 import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../../constant";
+import { Global } from '../../common/global';
 
 export class TabsGroup extends Node {
+  public id: string;
   private pinned: boolean = false;
   public tags: string[] = [];
-
+  public createTime: number;
   @Type(() => TabItem)
   public tabs: TabItem[] = [];
-  public id;
-  public createTime: number;
+
 
   constructor() {
     super(DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
@@ -42,7 +43,11 @@ export class TabsGroup extends Node {
   public setPin(pin: boolean) {
     this.pinned = pin;
     if (pin) {
-      this.iconPath = new vscode.ThemeIcon("extensions-star-full");
+      // this.iconPath = new vscode.ThemeIcon("extensions-star-full");
+      this.iconPath={
+        dark: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-dark.svg"),
+        light: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-light.svg"),
+      }; 
     } else {
       this.iconPath = undefined;
     }

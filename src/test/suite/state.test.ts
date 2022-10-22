@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { plainToClass, instanceToPlain, plainToInstance, Type, Transform } from "class-transformer";
+import { plainToClass, instanceToPlain, plainToInstance, Type, Transform, Expose } from "class-transformer";
 import 'reflect-metadata';
 
 class Item {
@@ -15,7 +15,12 @@ class Item {
 	}
 }
 
+class T {}
+
 class Todo {
+	
+	@Type(()=>T)
+	public inner: T | undefined;
 
 	public value: number = 0;
 
@@ -79,6 +84,15 @@ suite('Extension Test Suite', () => {
 		let m2 = new Map(JSON.parse(s));
 		assert.equal(m2.get('a'), 1);
 		assert.equal(m2.get('b'), 2);
+	});
+
+	test('Sample class-transformer0', ()=>{
+		let todo = new Todo();
+		todo.inner = new T();
+
+		let plain=instanceToPlain(todo);
+		let r = plainToInstance(Todo, plain);
+		assert.equal(r.inner instanceof T, true);
 	});
 
 	test('Sample class-transformer1', () => {

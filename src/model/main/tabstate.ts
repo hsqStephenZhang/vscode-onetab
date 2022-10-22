@@ -44,7 +44,14 @@ export class TabsState {
   }
 
   public static fromString(s: string): TabsState {
-    return plainToInstance(TabsState, JSON.parse(s));
+    let state=plainToInstance(TabsState, JSON.parse(s));
+    for(const [k, group] of state.groups){
+      group.setPin(group.isPinned());
+      for(const tab of group.getTabs()){
+        tab.setDefaultIcon();
+      }
+    }
+    return state;
   }
 
   // getters
@@ -121,7 +128,11 @@ export class TabsState {
           continue;
         } else {
           includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          this.reverseIndex.set(fsPath, includeTabGroups);
+          if (includeTabGroups.length === 0){
+            this.reverseIndex.delete(fsPath);
+          }else{
+            this.reverseIndex.set(fsPath, includeTabGroups);
+          }
         }
       }
 
@@ -186,7 +197,11 @@ export class TabsState {
           continue;
         } else {
           includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          this.reverseIndex.set(fsPath, includeTabGroups);
+          if (includeTabGroups.length === 0){
+            this.reverseIndex.delete(fsPath);
+          }else{
+            this.reverseIndex.set(fsPath, includeTabGroups);
+          }
         }
       }
       this.groups.delete(id);
@@ -202,7 +217,11 @@ export class TabsState {
         return;
       } else {
         includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-        this.reverseIndex.set(fsPath, includeTabGroups);
+        if (includeTabGroups.length === 0){
+          this.reverseIndex.delete(fsPath);
+        }else{
+          this.reverseIndex.set(fsPath, includeTabGroups);
+        }
       }
 
       if (group.getTabs().length === 0) {
