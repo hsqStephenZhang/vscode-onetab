@@ -1,12 +1,13 @@
 {
-  "name": "vscode-onetab",
-  "displayName": "vscode-onetab",
-  "description": "onetab for vscode",
+  "name": "better-vscode-onetab",
+  "displayName": "better-vscode-onetab",
+  "description": "better onetab for vscode",
+  "publisher": "hsqStephenZhang",
   "author": {
     "name": "hsqStephenZhang",
     "email": "2250015961@qq.com"
   },
-  "version": "0.0.3",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.69.0"
   },
