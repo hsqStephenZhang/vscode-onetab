@@ -15,4 +15,6 @@ Please follow the [usage](./docs/usage.md) to get the best experience.
 
 ## 3. todo
 
-add search feature(by group name or tags) in webview page, so that you can easily find the tab groups you want
+1. optimize icons
+2. optimize interaction experience, making it more ergonomic
+3. add search feature(by group name or tags) in webview page, so that you can easily find the tab groups you want
