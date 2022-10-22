@@ -350,6 +350,7 @@
     "@arco-design/web-react": "^2.39.1",
     "class-transformer": "^0.5.1",
     "jshint": "^2.13.5",
+    "moment": "^2.29.4",
     "reflect-metadata": "^0.1.13"
   }
 }

@@ -25,4 +25,3 @@ jobs:
           node-version: 16.x
       - run: npm install
       - run: npm run vscode:prepublish
-      - run: npm run tslint
