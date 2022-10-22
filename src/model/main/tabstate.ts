@@ -44,7 +44,14 @@ export class TabsState {
   }
 
   public static fromString(s: string): TabsState {
-    return plainToInstance(TabsState, JSON.parse(s));
+    let state=plainToInstance(TabsState, JSON.parse(s));
+    for(const [k, group] of state.groups){
+      group.setPin(group.isPinned());
+      for(const tab of group.getTabs()){
+        tab.setDefaultIcon();
+      }
+    }
+    return state;
   }
 
   // getters

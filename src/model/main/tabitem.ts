@@ -3,19 +3,22 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import "reflect-metadata";
+import { Type } from "class-transformer";
 import { randomUUID } from "crypto";
 import * as vscode from "vscode";
 import { DEFAULT_TAB_LABEL ,CONTEXT_TAB} from "../../constant";
 import { Node } from "../interface/node";
 
 export class TabItem extends Node {
+  @Type(()=>vscode.Uri)
   public fileUri: vscode.Uri ;
   constructor(
   ) {
     super(DEFAULT_TAB_LABEL, vscode.TreeItemCollapsibleState.None);
     this.contextValue = CONTEXT_TAB;
     // for deserialization
-    this.fileUri=vscode.Uri.parse("none");
+    this.fileUri = vscode.Uri.parse("none");
     this.id = randomUUID();
   }
 
