@@ -9,15 +9,13 @@ import { TabItem } from "../model/main/tabitem";
 import { TabsState } from "../model/main/tabstate";
 import * as vscode from "vscode";
 import { STORAGE_KEY } from "../constant";
+import { getState } from "../utils/state";
 
 export async function tabRestore(tab: TabItem) {
   let groupId = tab.parent?.getId();
 
   if (groupId) {
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get(STORAGE_KEY, new TabsState())
-    );
+    const state = getState();
 
     let g = state.getGroup(groupId);
 
@@ -39,10 +37,7 @@ export async function tabRemove(tab: TabItem) {
   let groupId = tab.parent?.getId();
 
   if (groupId) {
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get(STORAGE_KEY, new TabsState())
-    );
+    const state = getState();
 
     let g = state.getGroup(groupId);
 

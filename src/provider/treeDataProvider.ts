@@ -9,6 +9,7 @@ import { TabsState } from "../model/main/tabstate";
 import { TabsGroup } from "./../model/main/tabsgroup";
 import { WorkState } from "./../common/state";
 import { STORAGE_KEY } from "../constant";
+import { getState } from "../utils/state";
 
 type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
 
@@ -69,7 +70,7 @@ export class TabsProvider
     return new Promise(async (res, rej) => {
       if (!element) {
         // if this is the root node (no parent), then return the list
-        let tabsState: TabsState = WorkState.get(STORAGE_KEY, new TabsState());
+        let tabsState = getState();
         let sortedTabsGroups = tabsState.getAllTabsGroupsSorted();
         res(
           sortedTabsGroups.filter((item) => {

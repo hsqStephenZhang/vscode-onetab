@@ -20,13 +20,10 @@ import {
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { STORAGE_KEY } from "../constant";
+import { getState } from "../utils/state";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
-  const state = Object.assign(
-    new TabsState(),
-    WorkState.get(STORAGE_KEY, new TabsState())
-  );
+  const state = getState();
   let groups = state.getTitledLists();
   if (groups.length === 0) {
     return null;

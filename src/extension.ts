@@ -1,7 +1,7 @@
 import { OnetabPanel } from "./view/onetabPanel";
 import * as vscode from "vscode";
 import { TabsProvider } from "./provider/treeDataProvider";
-import { WorkState } from "./common/state";
+import { GlobalState, WorkState } from "./common/state";
 import { Global } from "./common/global";
 import { TabsState } from "./model/main/tabstate";
 import { FileWatchService } from "./service/fileWatchService";
@@ -30,6 +30,7 @@ import {
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
 import { STORAGE_KEY } from "./constant";
+import { getState } from "./utils/state";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -38,13 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
-  
+
+  // Global.clearState();
   Global.debugState();
   // for debug
-  const old = Object.assign(
-    new TabsState(),
-    WorkState.get(STORAGE_KEY, new TabsState())
-  );
+  const old = getState();
   if (old === undefined) {
     vscode.window.showInformationMessage("old state found");
     WorkState.update(STORAGE_KEY, old);
@@ -55,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
+      vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
@@ -133,4 +132,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

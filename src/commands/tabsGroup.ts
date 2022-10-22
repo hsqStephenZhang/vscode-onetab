@@ -9,6 +9,7 @@ import { WorkState } from "../common/state";
 import { STORAGE_KEY } from "../constant";
 import { TabsGroup } from "../model/main/tabsgroup";
 import { TabsState } from "../model/main/tabstate";
+import { getState } from "../utils/state";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   for (const tab of tabsGroup.getTabs()) {
@@ -28,10 +29,7 @@ export async function tabsGroupTags(group: TabsGroup) {
   });
   if (newTagsRaw) {
     const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get(STORAGE_KEY, new TabsState())
-    );
+    const state = getState();
     state.setGroupTags(group.id, newTags);
     WorkState.update(STORAGE_KEY, state);
     Global.tabsProvider.refresh();
@@ -44,10 +42,7 @@ export async function tabsGroupRename(group: TabsGroup) {
     value: group.label,
   });
   if (newName) {
-    const state = Object.assign(
-      new TabsState(),
-      WorkState.get(STORAGE_KEY, new TabsState())
-    );
+    const state = getState();
     state.setGroupLabel(group.id, newName);
     WorkState.update(STORAGE_KEY, state);
     Global.tabsProvider.refresh();
@@ -55,10 +50,7 @@ export async function tabsGroupRename(group: TabsGroup) {
 }
 
 export async function tabsGroupPin(group: TabsGroup) {
-  const state = Object.assign(
-    new TabsState(),
-    WorkState.get(STORAGE_KEY, new TabsState())
-  );
+  const state = getState();
   state.setPinned(group.id, !group.isPinned());
   WorkState.update(STORAGE_KEY, state);
   Global.tabsProvider.refresh();
@@ -85,10 +77,7 @@ export async function tabsGroupRemove(group: TabsGroup) {
 }
 
 function removeInner(id: string) {
-  const state = Object.assign(
-    new TabsState(),
-    WorkState.get(STORAGE_KEY, new TabsState())
-  );
+  const state = getState();
   state.removeTabsGroup(id);
   WorkState.update(STORAGE_KEY, state);
   Global.tabsProvider.refresh();
