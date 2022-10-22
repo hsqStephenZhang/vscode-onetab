@@ -6,7 +6,6 @@ import * as vscode from "vscode";
 import { TabInputText } from "vscode";
 import {
   getAllTabsWithBlackList,
-  getAllTabsWithoutBlackList,
   getLeftTabs,
   getOtherTabsWithBlacklist,
   getRightTabs,

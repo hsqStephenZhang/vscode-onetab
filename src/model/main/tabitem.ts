@@ -5,21 +5,33 @@
 
 import { randomUUID } from "crypto";
 import * as vscode from "vscode";
+import { DEFAULT_TAB_LABEL ,CONTEXT_TAB} from "../../constant";
 import { Node } from "../interface/node";
 
 export class TabItem extends Node {
-  public iconPath = new vscode.ThemeIcon("output-view-icon");
-  public fileUri: vscode.Uri;
-  public valid: boolean;
+  public fileUri: vscode.Uri ;
   constructor(
-    public readonly label: string,
-    public readonly uri: vscode.Uri,
-    public readonly command?: vscode.Command
   ) {
-    super(label, vscode.TreeItemCollapsibleState.None);
-    this.fileUri = uri;
-    this.contextValue = "tab";
-    this.valid = true;
+    super(DEFAULT_TAB_LABEL, vscode.TreeItemCollapsibleState.None);
+    this.contextValue = CONTEXT_TAB;
+    // for deserialization
+    this.fileUri=vscode.Uri.parse("none");
     this.id = randomUUID();
+  }
+
+  public setFileUri(uri: vscode.Uri){
+    this.fileUri=uri;
+  }
+
+  public setID(id:string){
+    this.id=id;
+  }
+
+  public setLabel(label:string){
+    this.label=label;
+  }
+
+  public setDefaultIcon(){
+    this.iconPath = new vscode.ThemeIcon("output-view-icon");
   }
 }

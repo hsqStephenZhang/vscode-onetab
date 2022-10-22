@@ -6,10 +6,9 @@
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
 import { TabItem } from "../model/main/tabitem";
-import { TabsState } from "../model/main/tabstate";
 import * as vscode from "vscode";
 import { STORAGE_KEY } from "../constant";
-import { currentState, getStateFromStorage } from "../utils/state";
+import { currentState } from "../utils/state";
 
 export async function tabRestore(tab: TabItem) {
   let groupId = tab.parentId;

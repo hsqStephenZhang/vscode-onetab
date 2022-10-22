@@ -6,6 +6,7 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { plainToClass, Transform } from "class-transformer";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
+import 'reflect-metadata';
 
 export class TabsState {
 

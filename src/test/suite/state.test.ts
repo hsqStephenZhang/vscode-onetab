@@ -5,14 +5,22 @@
 
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { plainToClass, classToPlain, instanceToPlain, plainToInstance, Type, Transform } from "class-transformer";
+import { plainToClass, instanceToPlain, plainToInstance, Type, Transform } from "class-transformer";
 import 'reflect-metadata';
-import { replacer, reviver } from '../../utils/serialize';
 
+class Item {
+
+	public demo() {
+
+	}
+}
 
 class Todo {
 
 	public value: number = 0;
+
+	@Type(() => Item)
+	public items: Item[] = [];
 
 	test1(): string {
 		return `t1, number is:${this.value}`;
@@ -24,12 +32,12 @@ class Todo {
 }
 
 class Todos {
+	@Transform(value => {
+		let map = new Map<string, Todo>();
+		for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Todo, entry[1])); }
+		return map;
+	}, { toClassOnly: true })
 	public children: Map<string, Todo> = new Map();
-	public unique: Set<string> = new Set();
-
-	test1() {
-
-	}
 }
 
 class MyObject {
@@ -73,29 +81,23 @@ suite('Extension Test Suite', () => {
 		assert.equal(m2.get('b'), 2);
 	});
 
-	test('Sample serializer', () => {
+	test('Sample class-transformer1', () => {
 
 		let t = new Todo();
+		t.items.push(new Item());
+		t.items.push(new Item());
 		let todos = new Todos();
-		todos.children.set('t1', t);
-		todos.unique = new Set(['a', 'b']);
+		todos.children.set("a", t);
 
-		let s = JSON.stringify(todos, replacer);
-		let r: Todos = JSON.parse(s, reviver);
-		assert.equal(Array.from(r.children.entries()).length, 1);
-		assert.equal(r.unique.has('a'), true);
-		assert.equal(r.unique.has('b'), true);
-		assert.equal(r.unique.has('c'), false);
-		for (const [_k, v] of r.children.entries()) {
-			Object.setPrototypeOf(v, Todo.prototype);
-		}
-		let c = r.children.get('t1');
-		if (c !== undefined) {
-			assert.equal(c.test1(), 't1, number is:0');
-		}
+		let plain = instanceToPlain(todos);
+		let r = plainToInstance(Todos, plain);
+		let children = r.children.get("a");
+
+		assert.equal(children instanceof Todo, true);
+		assert.equal(children instanceof Todo && children.items[0] instanceof Item, true);
 	});
 
-	test('Sample class-transformer', () => {
+	test('Sample class-transformer2', () => {
 		let t = new Todo();
 		let todos = new MyObject();
 		todos.todoMap.set('t1', t);

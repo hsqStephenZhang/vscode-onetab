@@ -3,25 +3,26 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import 'reflect-metadata';
+import { Type } from "class-transformer";
 import { randomUUID } from "crypto";
 import * as vscode from "vscode";
 import { Node } from "../interface/node";
 import { TabItem } from "./tabitem";
-
-export const DEFAULT_LABEL = "untitled tabs group";
+import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../../constant";
 
 export class TabsGroup extends Node {
-  public iconPath: vscode.ThemeIcon | undefined = undefined;
   private pinned: boolean = false;
   public tags: string[] = [];
+
+  @Type(() => TabItem)
   public tabs: TabItem[] = [];
   public id;
   public createTime: number;
 
-  constructor(tabs: TabItem[]) {
-    super(DEFAULT_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
-    this.tabs = tabs;
-    this.contextValue = "tabsGroup";
+  constructor() {
+    super(DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
+    this.contextValue = CONTEXT_TAB_GROUP;
     this.id = randomUUID();
     this.tooltip =
       this.label +
@@ -64,7 +65,7 @@ export class TabsGroup extends Node {
   }
 
   public isUntitled(): boolean {
-    return this.label === DEFAULT_LABEL;
+    return this.label === DEFAULT_TAB_GROUP_LABEL;
   }
 
   public getTabs(): TabItem[] {

@@ -19,8 +19,3 @@ export function currentState(): TabsState {
     const state = Global.tabsState;
     return state;
 }
-
-export function clone(origin: Object): Object {
-    let originProto = Object.getPrototypeOf(origin);
-    return Object.assign(Object.create(originProto), origin);
-}

@@ -6,12 +6,8 @@
 import { OnetabPanel } from "./../view/onetabPanel";
 import * as vscode from "vscode";
 import { Global } from "../common/global";
-import { WorkState } from "../common/state";
-import { TabItem } from "../model/main/tabitem";
-import { TabsState } from "../model/main/tabstate";
 import {
   getAllTabsWithBlackList,
-  getAllTabsWithoutBlackList,
   getLeftTabs,
   getOtherTabsWithBlacklist,
   getRightTabs,
@@ -20,7 +16,7 @@ import {
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { currentState, getStateFromStorage } from "../utils/state";
+import { currentState } from "../utils/state";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   const state = currentState();

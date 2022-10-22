@@ -1,4 +1,3 @@
-import { Memento } from "vscode";
 // Copyright (c) 2022 hsqStephenZhang
 //
 // This software is released under the MIT License.

@@ -3,7 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import * as vscode from "vscode";
 import { Global } from "./global";
 
 export class GlobalState {

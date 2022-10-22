@@ -8,8 +8,7 @@ import { Global } from "../common/global";
 import { WorkState } from "../common/state";
 import { STORAGE_KEY } from "../constant";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { TabsState } from "../model/main/tabstate";
-import { currentState, getStateFromStorage } from "../utils/state";
+import { currentState } from "../utils/state";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   for (const tab of tabsGroup.getTabs()) {

@@ -1,9 +1,9 @@
-import { TabsState } from './../model/main/tabstate';
 // Copyright (c) 2022 hsqStephenZhang
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { TabsState } from './../model/main/tabstate';
 import * as vscode from "vscode";
 import { GlobalState } from "./state";
 import { TabsProvider } from "./../provider/treeDataProvider";

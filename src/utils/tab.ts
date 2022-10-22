@@ -155,7 +155,10 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
-    return new TabItem(tab.label, textFile.uri);
+    let item=new TabItem();
+    item.setLabel(tab.label);
+    item.setFileUri(textFile.uri);
+    return new TabItem();
   });
   let updated = false;
   let group = null;
@@ -168,7 +171,8 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
       updated = true;
     }
   } else {
-    group = new TabsGroup(tabItems);
+    group = new TabsGroup();
+    group.setTabs(tabItems);
     state.addTabsGroup(group);
     updated = true;
   }
