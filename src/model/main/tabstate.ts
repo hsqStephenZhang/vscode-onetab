@@ -13,12 +13,56 @@ export class TabsState {
   public blackList: Set<string>;
 
   // map from uri.fsPath to group id list
-  private reverseIndex: Map<string, TabsGroup[]>;
+  private reverseIndex: Map<string, string[]>;
 
   public constructor() {
     this.groups = new Map();
     this.blackList = new Set();
     this.reverseIndex = new Map();
+  }
+
+  public toString(): string {
+    let groups = JSON.stringify(Array.from(this.groups.entries()));
+    let blacklist = JSON.stringify(Array.from(this.blackList));
+    let reverseIndex = JSON.stringify(Array.from(this.reverseIndex.entries()));
+
+    let obj = {
+      groups: groups,
+      blackList: blacklist,
+      reverseIndex: reverseIndex
+    };
+
+    let r = JSON.stringify(obj);
+    return r;
+  }
+
+  public static fromString(s: string): TabsState {
+    let obj: {
+      groups: string,
+      blackList: string,
+      reverseIndex: string
+    } = JSON.parse(s);
+
+    let groups = new Map<string, TabsGroup>(JSON.parse(obj.groups));
+    for (const [id, group] of groups) {
+      Object.setPrototypeOf(group, TabsGroup.prototype);
+      Object.setPrototypeOf(group.tabs, Array.prototype);
+      Object.setPrototypeOf(group.tags, Array.prototype);
+
+      for (const tab of group.getTabs()) {
+        Object.setPrototypeOf(tab, TabItem.prototype);
+      }
+    }
+
+    let blacklist = new Set<string>(JSON.parse(obj.blackList));
+    let reverseIndex = new Map<string, string[]>(JSON.parse(obj.reverseIndex));
+
+    let state = new TabsState();
+    state.groups = groups;
+    state.blackList = blacklist;
+    state.reverseIndex = reverseIndex;
+
+    return state;
   }
 
   // getters
@@ -94,7 +138,7 @@ export class TabsState {
         if (includeTabGroups === undefined) {
           continue;
         } else {
-          includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
+          includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
           this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }
@@ -104,9 +148,9 @@ export class TabsState {
         let fsPath = tab.fileUri.fsPath;
         let includeTabGroups = this.reverseIndex.get(fsPath);
         if (includeTabGroups === undefined) {
-          this.reverseIndex.set(fsPath, [g]);
+          this.reverseIndex.set(fsPath, [id]);
         } else {
-          includeTabGroups.push(g);
+          includeTabGroups.push(id);
           this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }
@@ -126,9 +170,9 @@ export class TabsState {
         let fsPath = tab.fileUri.fsPath;
         let includeTabGroups = this.reverseIndex.get(fsPath);
         if (includeTabGroups === undefined) {
-          this.reverseIndex.set(fsPath, [g]);
+          this.reverseIndex.set(fsPath, [id]);
         } else {
-          includeTabGroups.push(g);
+          includeTabGroups.push(id);
           this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }
@@ -142,9 +186,9 @@ export class TabsState {
       let fsPath = tab.fileUri.fsPath;
       let includeTabGroups = this.reverseIndex.get(fsPath);
       if (includeTabGroups === undefined) {
-        this.reverseIndex.set(fsPath, [group]);
+        this.reverseIndex.set(fsPath, [group.id]);
       } else {
-        includeTabGroups.push(group);
+        includeTabGroups.push(group.id);
         this.reverseIndex.set(fsPath, includeTabGroups);
       }
     }
@@ -159,7 +203,7 @@ export class TabsState {
         if (includeTabGroups === undefined) {
           continue;
         } else {
-          includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
+          includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
           this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }
@@ -175,7 +219,7 @@ export class TabsState {
       if (includeTabGroups === undefined) {
         return;
       } else {
-        includeTabGroups = includeTabGroups.filter((g) => g.id !== id);
+        includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
         this.reverseIndex.set(fsPath, includeTabGroups);
       }
 
@@ -190,10 +234,13 @@ export class TabsState {
     if (includeTabGroups === undefined) {
       return;
     } else {
-      for (const group of includeTabGroups) {
-        group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-        if (group.getTabs().length === 0) {
-          this.groups.delete(group.id);
+      for (const gid of includeTabGroups) {
+        const group = this.groups.get(gid);
+        if (group) {
+          group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
+          if (group.getTabs().length === 0) {
+            this.groups.delete(group.id);
+          }
         }
       }
       this.reverseIndex.delete(fsPath);

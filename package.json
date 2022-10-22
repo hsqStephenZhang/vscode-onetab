@@ -329,6 +329,8 @@
   },
   "dependencies": {
     "@arco-design/web-react": "^2.39.1",
-    "jshint": "^2.13.5"
+    "class-transformer": "^0.5.1",
+    "jshint": "^2.13.5",
+    "reflect-metadata": "^0.1.13"
   }
 }

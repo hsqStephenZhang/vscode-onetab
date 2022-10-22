@@ -9,7 +9,7 @@ import { TabsState } from "../model/main/tabstate";
 import { TabsGroup } from "./../model/main/tabsgroup";
 import { WorkState } from "./../common/state";
 import { STORAGE_KEY } from "../constant";
-import { getState } from "../utils/state";
+import { currentState, getStateFromStorage } from "../utils/state";
 
 type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
 
@@ -31,7 +31,7 @@ function filterByInnerTabs(group: TabsGroup): boolean {
 
 export class TabsProvider
   implements
-    vscode.TreeDataProvider<Node>
+  vscode.TreeDataProvider<Node>
 {
   rootPath: string | undefined;
   filters: TabsGroupFilter[];
@@ -55,7 +55,7 @@ export class TabsProvider
       })
     );
   }
-  
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
@@ -70,7 +70,7 @@ export class TabsProvider
     return new Promise(async (res, rej) => {
       if (!element) {
         // if this is the root node (no parent), then return the list
-        let tabsState = getState();
+        let tabsState = currentState();
         let sortedTabsGroups = tabsState.getAllTabsGroupsSorted();
         res(
           sortedTabsGroups.filter((item) => {
@@ -81,7 +81,7 @@ export class TabsProvider
         // else return the inner list
         const children = await element.getChildren();
         for (const child of children) {
-          child.parent = element;
+          child.parentId = element.id;
         }
         res(children);
       }

@@ -9,13 +9,13 @@ import { TabItem } from "../model/main/tabitem";
 import { TabsState } from "../model/main/tabstate";
 import * as vscode from "vscode";
 import { STORAGE_KEY } from "../constant";
-import { getState } from "../utils/state";
+import { currentState, getStateFromStorage } from "../utils/state";
 
 export async function tabRestore(tab: TabItem) {
-  let groupId = tab.parent?.getId();
+  let groupId = tab.parentId;
 
   if (groupId) {
-    const state = getState();
+    const state = currentState();
 
     let g = state.getGroup(groupId);
 
@@ -26,7 +26,7 @@ export async function tabRestore(tab: TabItem) {
       } else {
         vscode.window.showTextDocument(tab.fileUri, { preview: false });
         state.removeTabFromGroup(groupId, tab.fileUri.fsPath);
-        WorkState.update(STORAGE_KEY, state);
+        WorkState.update(STORAGE_KEY, state.toString());
         Global.tabsProvider.refresh();
       }
     }
@@ -34,10 +34,10 @@ export async function tabRestore(tab: TabItem) {
 }
 
 export async function tabRemove(tab: TabItem) {
-  let groupId = tab.parent?.getId();
+  let groupId = tab.parentId;
 
   if (groupId) {
-    const state = getState();
+    const state = currentState();
 
     let g = state.getGroup(groupId);
 
@@ -48,7 +48,7 @@ export async function tabRemove(tab: TabItem) {
         );
       } else {
         state.removeTabFromGroup(groupId, tab.fileUri.fsPath);
-        WorkState.update(STORAGE_KEY, state);
+        WorkState.update(STORAGE_KEY, state.toString());
         Global.tabsProvider.refresh();
       }
     }

@@ -13,8 +13,8 @@ export const DEFAULT_LABEL = "untitled tabs group";
 export class TabsGroup extends Node {
   public iconPath: vscode.ThemeIcon | undefined = undefined;
   private pinned: boolean = false;
-  private tags: string[] = [];
-  private tabs: TabItem[] = [];
+  public tags: string[] = [];
+  public tabs: TabItem[] = [];
   public id;
   public createTime: number;
 

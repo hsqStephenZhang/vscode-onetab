@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
 import { STORAGE_KEY } from "../constant";
-import { getState } from "../utils/state";
+import { currentState, getStateFromStorage } from "../utils/state";
 
 export class FileWatchService {
   private watcher: vscode.FileSystemWatcher;
@@ -24,9 +24,9 @@ export class FileWatchService {
     });
     this.watcher.onDidDelete((uri) => {
       Global.outputChannel.appendLine(uri.fsPath);
-      const state = getState();
+      const state = currentState();
       state.removeTabFromAllGroups(uri.fsPath);
-      WorkState.update(STORAGE_KEY, state);
+      WorkState.update(STORAGE_KEY, state.toString());
       Global.tabsProvider.refresh();
     });
   }

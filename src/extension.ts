@@ -30,7 +30,7 @@ import {
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
 import { STORAGE_KEY } from "./constant";
-import { getState } from "./utils/state";
+import { currentState, getStateFromStorage } from "./utils/state";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -43,14 +43,16 @@ export function activate(context: vscode.ExtensionContext) {
   // Global.clearState();
   Global.debugState();
   // for debug
-  const old = getState();
-  if (old === undefined) {
-    vscode.window.showInformationMessage("old state found");
-    WorkState.update(STORAGE_KEY, old);
-  } else {
-    vscode.window.showInformationMessage("old state not found");
-    WorkState.update(STORAGE_KEY, new TabsState());
-  }
+  const old = getStateFromStorage();
+  Global.tabsState = old;
+  WorkState.update(STORAGE_KEY, old.toString());
+  // if (old === undefined) {
+  //   vscode.window.showInformationMessage("old state found");
+  //   WorkState.update(STORAGE_KEY, old);
+  // } else {
+  //   vscode.window.showInformationMessage("old state not found");
+  //   WorkState.update(STORAGE_KEY, old.toString());
+  // }
 
   const rootPath =
     vscode.workspace.workspaceFolders &&

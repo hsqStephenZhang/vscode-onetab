@@ -7,7 +7,7 @@ import { Memento } from "vscode";
 import * as vscode from "vscode";
 
 export abstract class Node extends vscode.TreeItem {
-  public parent?: Node;
+  public parentId?: string;
 
   public getChildren(): Node[] | Promise<Node[]> {
     return [];
