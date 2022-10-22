@@ -9,8 +9,8 @@ import { WorkState } from "../common/state";
 import { STORAGE_KEY } from "../constant";
 import { TabItem } from "../model/main/tabitem";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { TabsState } from "../model/main/tabstate";
-import { currentState, getStateFromStorage } from "./state";
+import { debugState } from "./debug";
+import { currentState } from "./state";
 
 export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
   let blacklist = vscode.workspace
@@ -180,9 +180,9 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
 
   // check if state are updated
   if (updated) {
-    Global.outputChannel.appendLine(`${JSON.stringify(state.groups)}`);
+    Global.logger.info(`${JSON.stringify(state.groups)}`);
     await WorkState.update(STORAGE_KEY, state.toString());
-    Global.debugState();
+    debugState();
     vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
     Global.tabsProvider.refresh();
   }

@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { OnetabPanel } from "./../view/onetabPanel";
 import * as vscode from "vscode";
+import { OnetabPanel } from "./../view/onetabPanel";
 import { Global } from "../common/global";
 import {
   getAllTabsWithBlackList,
@@ -151,11 +151,11 @@ export async function sendToBlackList(uri: vscode.Uri) {
     vscode.workspace
       .getConfiguration()
       .update("onetab.blacklist", blacklist, false);
-    Global.outputChannel.appendLine(
+    Global.logger.info(
       "blacklist:" + (blacklist as Array<string>).join(",\n\t")
     );
   } else {
-    Global.outputChannel.appendLine("No blacklist");
+    Global.logger.info("No blacklist");
   }
 }
 

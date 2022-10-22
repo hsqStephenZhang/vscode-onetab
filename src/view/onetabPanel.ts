@@ -1,4 +1,3 @@
-import { Message } from './message';
 // Copyright (c) 2022 hsqStephenZhang
 //
 // This software is released under the MIT License.
@@ -9,9 +8,10 @@ import { Message } from './message';
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import path = require("path");
 import * as vscode from "vscode";
+import path = require("path");
 import { Global } from "../common/global";
+import { Message } from './message';
 
 export class OnetabPanel {
   public static instance: OnetabPanel | undefined;
@@ -31,7 +31,7 @@ export class OnetabPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
     this._panel.webview.onDidReceiveMessage((message) => {
-      Global.outputChannel.appendLine("message from webview"+message.text);
+      Global.logger.info("message from webview"+message.text);
 
       this._panel.webview.postMessage({
         type: "pong",

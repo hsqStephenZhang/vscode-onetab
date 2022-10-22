@@ -3,10 +3,10 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import * as vscode from "vscode";
 import { Global } from "../common/global";
 import { WorkState } from "../common/state";
 import { TabItem } from "../model/main/tabitem";
-import * as vscode from "vscode";
 import { STORAGE_KEY } from "../constant";
 import { currentState } from "../utils/state";
 

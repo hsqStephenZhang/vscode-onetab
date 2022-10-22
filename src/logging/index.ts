@@ -5,8 +5,9 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
+import * as moment from 'moment';
 
-enum LogLevel {
+export enum LogLevel {
     INFO = 1,
     DEBUG = 2,
     WARN = 3,
@@ -36,23 +37,26 @@ export class OutputChannelLogger implements Logger {
     }
     info(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.INFO) {
-            this.outputChannel.appendLine(`${new Date()}: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
         }
     }
     debug(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.DEBUG) {
-            this.outputChannel.appendLine(`${new Date()}: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
         }
     }
     warn(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.WARN) {
-            this.outputChannel.appendLine(`${new Date()}: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
         }
     }
     error(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel >= LogLevel.ERROR) {
-            this.outputChannel.appendLine(`${new Date()}: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(`${DateFormat(new Date())}: ${message}, ${optionalParams}`);
         }
     }
+}
 
+function DateFormat(date: Date){
+    return (moment(date)).format('DD-MMM-YYYY HH:mm:ss');
 }

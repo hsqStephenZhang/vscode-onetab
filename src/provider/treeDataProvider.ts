@@ -3,12 +3,10 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { instanceToPlain } from 'class-transformer';
 import * as vscode from "vscode";
 import { Node } from "../model/interface/node";
 import { TabsGroup } from "./../model/main/tabsgroup";
 import { currentState } from "../utils/state";
-import { Global } from '../common/global';
 
 type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
 
@@ -80,7 +78,6 @@ export class TabsProvider
         // else return the inner list
         const children = await element.getChildren();
         for (const child of children) {
-          Global.outputChannel.appendLine(`child: ${JSON.stringify(instanceToPlain(child))}`);
           child.parentId = element.id;
         }
         return res(children);

@@ -2,11 +2,11 @@
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
-import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { plainToClass, Transform } from "class-transformer";
+
+import 'reflect-metadata';
+import { instanceToPlain, plainToInstance, plainToClass, Transform } from 'class-transformer';
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
-import 'reflect-metadata';
 
 export class TabsState {
 
@@ -44,10 +44,10 @@ export class TabsState {
   }
 
   public static fromString(s: string): TabsState {
-    let state=plainToInstance(TabsState, JSON.parse(s));
-    for(const [k, group] of state.groups){
+    let state = plainToInstance(TabsState, JSON.parse(s));
+    for (const [k, group] of state.groups) {
       group.setPin(group.isPinned());
-      for(const tab of group.getTabs()){
+      for (const tab of group.getTabs()) {
         tab.setDefaultIcon();
       }
     }
@@ -128,9 +128,9 @@ export class TabsState {
           continue;
         } else {
           includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          if (includeTabGroups.length === 0){
+          if (includeTabGroups.length === 0) {
             this.reverseIndex.delete(fsPath);
-          }else{
+          } else {
             this.reverseIndex.set(fsPath, includeTabGroups);
           }
         }
@@ -197,9 +197,9 @@ export class TabsState {
           continue;
         } else {
           includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          if (includeTabGroups.length === 0){
+          if (includeTabGroups.length === 0) {
             this.reverseIndex.delete(fsPath);
-          }else{
+          } else {
             this.reverseIndex.set(fsPath, includeTabGroups);
           }
         }
@@ -217,9 +217,9 @@ export class TabsState {
         return;
       } else {
         includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-        if (includeTabGroups.length === 0){
+        if (includeTabGroups.length === 0) {
           this.reverseIndex.delete(fsPath);
-        }else{
+        } else {
           this.reverseIndex.set(fsPath, includeTabGroups);
         }
       }

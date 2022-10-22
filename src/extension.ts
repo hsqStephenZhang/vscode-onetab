@@ -1,5 +1,6 @@
-import "reflect-metadata";
+import { LogLevel, OutputChannelLogger } from './logging/index';
 import * as vscode from "vscode";
+import "reflect-metadata";
 import { OnetabPanel } from "./view/onetabPanel";
 import { TabsProvider } from "./provider/treeDataProvider";
 import { WorkState } from "./common/state";
@@ -31,6 +32,7 @@ import {
 import { tabRemove, tabRestore } from "./commands/tab";
 import { STORAGE_KEY } from "./constant";
 import { getStateFromStorage } from "./utils/state";
+import { debugState, clearState } from "./utils/debug";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -39,12 +41,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
+  Global.logger = new OutputChannelLogger(LogLevel.INFO,outputChannel);
 
-  // Global.clearState();
-  Global.debugState();
-  const oldState = getStateFromStorage();
-  Global.tabsState = oldState;
-  WorkState.update(STORAGE_KEY, oldState.toString());
+  // clearState();
+  debugState();
+  Global.tabsState = getStateFromStorage();
+  WorkState.update(STORAGE_KEY, Global.tabsState.toString());
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
@@ -54,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   let tabsProvider = new TabsProvider(rootPath, context);
   Global.tabsProvider = tabsProvider;
+
+  // initialization of `Global` is done here
 
   // send tab related commands
   vscode.commands.registerCommand("onetab.send.thisTab", sendThisTab);
@@ -105,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
 
-  // watch file delete of tab groups
+  // watch delete of files in order to update the state automatically
   let _fileWatchService = new FileWatchService();
 
   vscode.commands.registerCommand("onetab.advanced.view", () => {
@@ -115,8 +119,8 @@ export function activate(context: vscode.ExtensionContext) {
   // todo: confirm serialize logic
   if (vscode.window.registerWebviewPanelSerializer) {
     vscode.window.registerWebviewPanelSerializer(OnetabPanel.viewType, {
-      async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: any) {
-        // panel.options=
+      async deserializeWebviewPanel(_panel: vscode.WebviewPanel, _state: any) {
+
       },
     });
   }

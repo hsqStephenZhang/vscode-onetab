@@ -3,10 +3,10 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import * as vscode from "vscode";
 import 'reflect-metadata';
 import { Type } from "class-transformer";
 import { randomUUID } from "crypto";
-import * as vscode from "vscode";
 import { Node } from "../interface/node";
 import { TabItem } from "./tabitem";
 import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../../constant";
@@ -19,7 +19,6 @@ export class TabsGroup extends Node {
   public createTime: number;
   @Type(() => TabItem)
   public tabs: TabItem[] = [];
-
 
   constructor() {
     super(DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
@@ -44,10 +43,10 @@ export class TabsGroup extends Node {
     this.pinned = pin;
     if (pin) {
       // this.iconPath = new vscode.ThemeIcon("extensions-star-full");
-      this.iconPath={
+      this.iconPath = {
         dark: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-dark.svg"),
         light: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-light.svg"),
-      }; 
+      };
     } else {
       this.iconPath = undefined;
     }
