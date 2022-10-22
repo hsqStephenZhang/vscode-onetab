@@ -39,6 +39,20 @@ class MyObject {
 		return map;
 	}, { toClassOnly: true })
 	todoMap: Map<string, Todo> = new Map();
+
+	@Transform(value => {
+		let map = new Map<string, string[]>();
+		for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Array<string>, entry[1])); }
+		return map;
+	}, { toClassOnly: true })
+	otherMap: Map<string, string[]> = new Map();
+
+	@Transform(value => {
+		let set = new Set<string>();
+		for (let entry of Object.entries(value.value)) { set.add(entry[0]); }
+		return set;
+	}, { toClassOnly: true })
+	otherSet: Set<string> = new Set();
 }
 
 suite('Extension Test Suite', () => {
@@ -85,10 +99,18 @@ suite('Extension Test Suite', () => {
 		let t = new Todo();
 		let todos = new MyObject();
 		todos.todoMap.set('t1', t);
+		todos.otherMap.set('t1', ['a', 'b']);
+		todos.otherSet.add('a');
+		todos.otherSet.add('b');
 
 		let s = instanceToPlain(todos);
 		let r: MyObject = plainToInstance(MyObject, s);
 		assert.equal(Array.from(r.todoMap.entries()).length, 1);
+		let other = r.otherMap.get('t1');
+		assert.equal(other !== undefined && other instanceof Array && other.length === 2, true);
+
+		assert.equal(Array.from(r.otherSet.entries()).length, 2);
+		assert.equal(r.otherSet instanceof Set<string>, true);
 	});
 });
 

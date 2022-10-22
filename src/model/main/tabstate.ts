@@ -2,17 +2,34 @@
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
-
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { plainToClass, Transform } from "class-transformer";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 
 export class TabsState {
+
+  @Transform(value => {
+    let map = new Map<string, TabsGroup>();
+    for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(TabsGroup, entry[1])); }
+    return map;
+  }, { toClassOnly: true })
   public groups: Map<string, TabsGroup>;
 
   // black list of file
+  @Transform(value => {
+    let set = new Set<string>();
+    for (let entry of Object.entries(value.value)) { set.add(entry[0]); }
+    return set;
+  }, { toClassOnly: true })
   public blackList: Set<string>;
 
   // map from uri.fsPath to group id list
+  @Transform(value => {
+    let map = new Map<string, string[]>();
+    for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Array<string>, entry[1])); }
+    return map;
+  }, { toClassOnly: true })
   private reverseIndex: Map<string, string[]>;
 
   public constructor() {
@@ -22,47 +39,11 @@ export class TabsState {
   }
 
   public toString(): string {
-    let groups = JSON.stringify(Array.from(this.groups.entries()));
-    let blacklist = JSON.stringify(Array.from(this.blackList));
-    let reverseIndex = JSON.stringify(Array.from(this.reverseIndex.entries()));
-
-    let obj = {
-      groups: groups,
-      blackList: blacklist,
-      reverseIndex: reverseIndex
-    };
-
-    let r = JSON.stringify(obj);
-    return r;
+    return JSON.stringify(instanceToPlain(this));
   }
 
   public static fromString(s: string): TabsState {
-    let obj: {
-      groups: string,
-      blackList: string,
-      reverseIndex: string
-    } = JSON.parse(s);
-
-    let groups = new Map<string, TabsGroup>(JSON.parse(obj.groups));
-    for (const [id, group] of groups) {
-      Object.setPrototypeOf(group, TabsGroup.prototype);
-      Object.setPrototypeOf(group.tabs, Array.prototype);
-      Object.setPrototypeOf(group.tags, Array.prototype);
-
-      for (const tab of group.getTabs()) {
-        Object.setPrototypeOf(tab, TabItem.prototype);
-      }
-    }
-
-    let blacklist = new Set<string>(JSON.parse(obj.blackList));
-    let reverseIndex = new Map<string, string[]>(JSON.parse(obj.reverseIndex));
-
-    let state = new TabsState();
-    state.groups = groups;
-    state.blackList = blacklist;
-    state.reverseIndex = reverseIndex;
-
-    return state;
+    return plainToInstance(TabsState, JSON.parse(s));
   }
 
   // getters
