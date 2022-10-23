@@ -9,6 +9,7 @@ import { WorkState } from "../common/state";
 import { TabItem } from "../model/main/tabitem";
 import { STORAGE_KEY } from "../constant";
 import { currentState } from "../utils/state";
+import { openTabFile } from "../utils/tab";
 
 export async function tabRestore(tab: TabItem) {
   let groupId = tab.parentId;
@@ -19,15 +20,12 @@ export async function tabRestore(tab: TabItem) {
     let g = state.getGroup(groupId);
 
     if (g) {
-      if (g.isPinned()) {
-        vscode.window.showTextDocument(tab.fileUri, { preview: false });
-        Global.tabsProvider.refresh();
-      } else {
-        vscode.window.showTextDocument(tab.fileUri, { preview: false });
+      await openTabFile(tab.fileUri);
+      if (!g.isPinned()) {
         state.removeTabFromGroup(groupId, tab.fileUri.fsPath);
         WorkState.update(STORAGE_KEY, state.toString());
-        Global.tabsProvider.refresh();
       }
+      Global.tabsProvider.refresh();
     }
   }
 }

@@ -9,11 +9,11 @@ import { WorkState } from "../common/state";
 import { STORAGE_KEY } from "../constant";
 import { TabsGroup } from "../model/main/tabsgroup";
 import { currentState } from "../utils/state";
+import { openTabFile } from "../utils/tab";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   for (const tab of tabsGroup.getTabs()) {
-    const fileUri = tab.fileUri;
-    vscode.window.showTextDocument(fileUri, { preview: false });
+    await openTabFile(tab.fileUri);
   }
   if (!tabsGroup.isPinned()) {
     removeInner(tabsGroup.id);

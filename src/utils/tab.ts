@@ -155,7 +155,7 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
-    let item=new TabItem();
+    let item = new TabItem();
     item.setLabel(tab.label);
     item.setFileUri(textFile.uri);
     item.setDefaultIcon();
@@ -185,5 +185,17 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
     debugState();
     vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
     Global.tabsProvider.refresh();
+  }
+}
+
+
+export async function openTabFile(fileUri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(fileUri);
+    vscode.window.showTextDocument(fileUri, { preview: false });
+    return true;
+  } catch {
+    vscode.window.showInformationMessage(`${fileUri.fsPath} file does *not* exist`);
+    return false;
   }
 }
