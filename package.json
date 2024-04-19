@@ -173,19 +173,19 @@
       },
       {
         "command": "onetab.list",
-        "title": "list & search"
+        "title": "onetab list & search"
       },
       {
         "command": "onetab.advanced.search",
-        "title": "search tab"
+        "title": "onetab search tab"
       },
       {
         "command": "onetab.debug.GetState",
-        "title": "GetState"
+        "title": "onetab getState, only for debug"
       },
       {
         "command": "onetab.debug.clearState",
-        "title": "clearState"
+        "title": "onetab clearState, only for debug"
       }
     ],
     "viewsContainers": {
