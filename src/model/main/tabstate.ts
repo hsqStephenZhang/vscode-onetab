@@ -190,6 +190,17 @@ export class TabsState {
     }
   }
 
+  // try to removed the group, if the group is not pinnned
+  public tryRemoveTabsGroup(id: string) {
+    const group = this.groups.get(id);
+    if (group) {
+      if (!group.isPinned()) {
+        this.removeTabsGroup(id);
+      }
+    }
+  }
+
+  // force removing the 
   public removeTabsGroup(id: string) {
     const group = this.groups.get(id);
     if (group) {
@@ -211,15 +222,16 @@ export class TabsState {
     }
   }
 
-  public removeTabFromGroup(id: string, fsPath: string) {
-    const group = this.groups.get(id);
+  // TODO: fixme, use the tab's id instead of fsPath
+  public removeTabFromGroup(groupId: string, fsPath: string) {
+    const group = this.groups.get(groupId);
     if (group) {
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
       let includeTabGroups = this.reverseIndex.get(fsPath);
       if (includeTabGroups === undefined) {
         return;
       } else {
-        includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
+        includeTabGroups = includeTabGroups.filter((gid) => gid !== groupId);
         if (includeTabGroups.length === 0) {
           this.reverseIndex.delete(fsPath);
         } else {
@@ -228,7 +240,7 @@ export class TabsState {
       }
 
       if (group.getTabs().length === 0) {
-        this.groups.delete(id);
+        this.groups.delete(groupId);
       }
     }
   }
@@ -248,6 +260,37 @@ export class TabsState {
         }
       }
       this.reverseIndex.delete(fsPath);
+    }
+  }
+
+  public mergeTabsGroup(dst_id: string, src_ids: string[]) {
+    const dst = this.groups.get(dst_id);
+
+    if (dst) {
+      // let merged_labels = "";
+      let merged_labels: string[] = [];
+      for (const src_id of src_ids) {
+        const srcGroup = this.groups.get(src_id);
+        if (srcGroup) {
+          for (const tab of srcGroup.getTabs()) {
+            let fsPath = tab.fileUri.fsPath;
+            let includeTabGroups = this.reverseIndex.get(fsPath);
+            if (includeTabGroups === undefined) {
+              this.reverseIndex.set(fsPath, [dst_id]);
+            } else {
+              includeTabGroups.push(dst_id);
+              this.reverseIndex.set(fsPath, includeTabGroups);
+            }
+          }
+          dst.extendTabs(srcGroup.getTabs());
+          merged_labels.push(srcGroup.label);
+          this.tryRemoveTabsGroup(src_id);
+        }
+      }
+      dst.removeDuplicateTabs()
+      if (merged_labels.length > 0) {
+        dst.setLabel(dst.label + "(merged with:" + merged_labels.join(", ") + ")");
+      }
     }
   }
 

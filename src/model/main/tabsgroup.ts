@@ -21,7 +21,9 @@ export class TabsGroup extends Node {
 
   constructor() {
     const id = randomUUID();
-    super(id, DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
+    const defaultLabel = DEFAULT_TAB_GROUP_LABEL + Global.GroupCnt;
+    Global.GroupCnt++;
+    super(id, defaultLabel, vscode.TreeItemCollapsibleState.Collapsed);
     this.contextValue = CONTEXT_TAB_GROUP;
     this.tooltip =
       this.label +
@@ -68,10 +70,11 @@ export class TabsGroup extends Node {
 
   public setLabel(label: string) {
     this.label = label;
+    this.tooltip = this.label + ", tags: " + (this.tags.length === 0 ? "none" : this.tags.join(", "));
   }
 
   public isUntitled(): boolean {
-    return this.label === DEFAULT_TAB_GROUP_LABEL;
+    return this.label.indexOf(DEFAULT_TAB_GROUP_LABEL) !== -1;
   }
 
   public getTabs(): TabItem[] {
@@ -88,5 +91,16 @@ export class TabsGroup extends Node {
 
   public extendTabs(tabs: TabItem[]) {
     this.tabs.push(...tabs);
+  }
+
+  public removeDuplicateTabs() {
+    let all_tabs = this.tabs.map((tab) => tab.fileUri.fsPath);
+    let unique_tabs = new Set(all_tabs);
+    let new_tabs = this.tabs.filter((tab) => {
+      let res = unique_tabs.has(tab.fileUri.fsPath);
+      unique_tabs.delete(tab.fileUri.fsPath);
+      return res;
+    });
+    this.tabs = new_tabs;
   }
 }

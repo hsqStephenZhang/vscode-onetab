@@ -156,6 +156,7 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
     item.setLabel(tab.label);
     item.setFileUri(textFile.uri);
     item.setDefaultIcon();
+    item.parentId = groupId;
     return item;
   });
   let updated = false;
