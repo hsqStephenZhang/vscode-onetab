@@ -102,6 +102,10 @@ export class TabsProvider
     return element;
   }
 
+  getParent(element: Node): vscode.ProviderResult<Node> {
+    return element;
+  }
+
   async getChildren(
     element?: Node | undefined
   ): Promise<Node[] | undefined | null> {

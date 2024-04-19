@@ -31,7 +31,7 @@ export class TabsGroup extends Node {
   }
 
   public getText(): string {
-    return this.label + ", tags: " + this.tags.join(" ");
+    return "label: " + this.label + ", tags: " + (this.tags.length === 0 ? "empty" : this.tags.join(", "));
   }
 
   public getChildren(): Node[] | Promise<Node[]> {
