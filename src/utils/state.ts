@@ -1,5 +1,5 @@
 // Copyright (c) 2022 hsqStephenZhang
-// 
+//
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
@@ -11,11 +11,9 @@ import { TabsState } from "../model/main/tabstate";
 export function getStateFromStorage(): TabsState {
     const defaultState = new TabsState();
     const s = WorkState.get(STORAGE_KEY, defaultState.toString());
-    const state = TabsState.fromString(s);
-    return state;
+    return TabsState.fromString(s);
 }
 
 export function currentState(): TabsState {
-    const state = Global.tabsState;
-    return state;
+    return Global.tabsState;
 }

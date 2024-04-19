@@ -42,10 +42,9 @@ export class TabsGroup extends Node {
   public setPin(pin: boolean) {
     this.pinned = pin;
     if (pin) {
-      // this.iconPath = new vscode.ThemeIcon("extensions-star-full");
       this.iconPath = {
-        dark: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-dark.svg"),
-        light: vscode.Uri.joinPath(Global.context.extensionUri, "media", "icon-light.svg"),
+        dark: vscode.Uri.joinPath(Global.context.extensionUri, "media", "pin-light.svg"),
+        light: vscode.Uri.joinPath(Global.context.extensionUri, "media", "pin-dark.svg"),
       };
     } else {
       this.iconPath = undefined;

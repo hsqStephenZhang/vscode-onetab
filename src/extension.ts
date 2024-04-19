@@ -1,4 +1,4 @@
-import { LogLevel, OutputChannelLogger } from './logging/index';
+import { LogLevel, OutputChannelLogger } from "./logging/index";
 import * as vscode from "vscode";
 import "reflect-metadata";
 import { OnetabPanel } from "./view/onetabPanel";
@@ -33,6 +33,7 @@ import { tabRemove, tabRestore } from "./commands/tab";
 import { STORAGE_KEY } from "./constant";
 import { getStateFromStorage } from "./utils/state";
 import { debugState, clearState } from "./utils/debug";
+import { exportJsonData } from "./exporter";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -41,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
-  Global.logger = new OutputChannelLogger(LogLevel.INFO,outputChannel);
+  Global.logger = new OutputChannelLogger(LogLevel.INFO, outputChannel);
 
   // clearState();
   debugState();
@@ -50,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
+    vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
@@ -108,6 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
+  vscode.commands.registerCommand("onetab.export", exportJsonData);
 
   // watch delete of files in order to update the state automatically
   let _fileWatchService = new FileWatchService();
@@ -119,9 +121,10 @@ export function activate(context: vscode.ExtensionContext) {
   // todo: confirm serialize logic
   if (vscode.window.registerWebviewPanelSerializer) {
     vscode.window.registerWebviewPanelSerializer(OnetabPanel.viewType, {
-      async deserializeWebviewPanel(_panel: vscode.WebviewPanel, _state: any) {
-
-      },
+      async deserializeWebviewPanel(
+        _panel: vscode.WebviewPanel,
+        _state: any
+      ) {},
     });
   }
 
@@ -130,4 +133,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}

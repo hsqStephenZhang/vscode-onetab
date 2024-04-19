@@ -63,7 +63,7 @@ export async function tabsGroupRemove(group: TabsGroup) {
 
   const choice = await vscode.window.showInputBox({
     title:
-      "Are you sure to remove this group? Please input 'y' to confirm, 'n' to cancel",
+      "Are you sure to remove this group? Please input 'y/yes' to confirm, 'n' to cancel",
   });
   if (
     choice &&
