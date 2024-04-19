@@ -98,11 +98,11 @@ export class TabsProvider
       }
       if (dst_id) {
         // situation 1 & 3
-        const excludeSelfGroupIds = src.filter((node) => node instanceof TabsGroup).filter((node) => node.id !== dst_id).map((node) => node.id).filter((id) => id !== undefined);
+        const excludeSelfGroupIds = src.filter((node) => node instanceof TabsGroup).map((node) => node as TabsGroup).filter((node) => node.id !== dst_id).map((node) => node.id).filter((id) => id !== undefined);
         this.tabsState.mergeTabsGroup(dst_id, excludeSelfGroupIds)
 
         // situation 2
-        const excludeSelfTabs = src.filter((node) => node instanceof TabItem).filter((node) => node.parentId && node.parentId !== dst_id);
+        const excludeSelfTabs = src.filter((node) => node instanceof TabItem).map((node) => node as TabItem).filter((node) => node.parentId && node.parentId !== dst_id);
         for (const tabItem of excludeSelfTabs) {
           if (tabItem.parentId) {
             this.tabsState.removeTabFromGroup(tabItem.parentId, tabItem.fileUri.fsPath);
@@ -115,7 +115,7 @@ export class TabsProvider
       }
     } else if (dst === undefined) {
       // situation 4: item => undefined
-      let tabItems = src.filter((node) => node instanceof TabItem);
+      let tabItems = src.filter((node) => node instanceof TabItem).map(node => node as TabItem);
       if (tabItems.length === 0) {
         return;
       }
@@ -131,7 +131,7 @@ export class TabsProvider
       let group = new TabsGroup();
       let newTabItems = tabItems.map((item) => {
         item.parentId = group.id;
-        return item
+        return item as TabItem;
       });
       group.setTabs(newTabItems);
       this.tabsState.addTabsGroup(group);

@@ -263,13 +263,16 @@ export class TabsState {
     }
   }
 
-  public mergeTabsGroup(dst_id: string, src_ids: string[]) {
+  public mergeTabsGroup(dst_id: string, src_ids: (string | undefined)[]) {
     const dst = this.groups.get(dst_id);
 
     if (dst) {
       // let merged_labels = "";
       let merged_labels: string[] = [];
       for (const src_id of src_ids) {
+        if (src_id === undefined) {
+          continue;
+        }
         const srcGroup = this.groups.get(src_id);
         if (srcGroup) {
           for (const tab of srcGroup.getTabs()) {
