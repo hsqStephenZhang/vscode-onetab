@@ -13,14 +13,11 @@ export abstract class Node extends vscode.TreeItem {
   }
 
   constructor(
+    id: string,
     public label: string,
     public collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(label, collapsibleState);
-    this.id = label;
-  }
-
-  public getId(): string {
-    return this.label;
+    this.id = id;
   }
 }

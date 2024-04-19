@@ -13,7 +13,6 @@ import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../../constant";
 import { Global } from '../../common/global';
 
 export class TabsGroup extends Node {
-  public id: string;
   private pinned: boolean = false;
   public tags: string[] = [];
   public createTime: number;
@@ -21,14 +20,18 @@ export class TabsGroup extends Node {
   public tabs: TabItem[] = [];
 
   constructor() {
-    super(DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
+    const id = randomUUID();
+    super(id, DEFAULT_TAB_GROUP_LABEL, vscode.TreeItemCollapsibleState.Collapsed);
     this.contextValue = CONTEXT_TAB_GROUP;
-    this.id = randomUUID();
     this.tooltip =
       this.label +
       ", tags: " +
       (this.tags.length === 0 ? "none" : this.tags.join(", "));
     this.createTime = Date.now();
+  }
+
+  public getText(): string {
+    return this.label + ", tags: " + this.tags.join(" ");
   }
 
   public getChildren(): Node[] | Promise<Node[]> {
@@ -85,9 +88,5 @@ export class TabsGroup extends Node {
 
   public extendTabs(tabs: TabItem[]) {
     this.tabs.push(...tabs);
-  }
-
-  public getId(): string {
-    return this.id;
   }
 }

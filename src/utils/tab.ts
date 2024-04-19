@@ -5,12 +5,9 @@
 
 import * as vscode from "vscode";
 import { Global } from "../common/global";
-import { WorkState } from "../common/state";
-import { STORAGE_KEY } from "../constant";
 import { TabItem } from "../model/main/tabitem";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { debugState } from "./debug";
-import { currentState } from "./state";
+import { listAllKeys } from "./debug";
 
 export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
   let blacklist = vscode.workspace
@@ -155,7 +152,7 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
-    let item=new TabItem();
+    let item = new TabItem();
     item.setLabel(tab.label);
     item.setFileUri(textFile.uri);
     item.setDefaultIcon();
@@ -163,27 +160,27 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   });
   let updated = false;
   let group = null;
-  const state = currentState();
 
   if (groupId) {
-    group = state.getGroup(groupId);
-    if (group) {
-      state.addTabsToGroup(groupId, tabItems);
-      updated = true;
-    }
+    Global.tabsProvider.updateState((state) => {
+      group = state.getGroup(groupId);
+      if (group) {
+        state.addTabsToGroup(groupId, tabItems);
+        updated = true;
+      }
+    })
   } else {
-    group = new TabsGroup();
-    group.setTabs(tabItems);
-    state.addTabsGroup(group);
-    updated = true;
+    Global.tabsProvider.updateState((state) => {
+      group = new TabsGroup();
+      group.setTabs(tabItems);
+      state.addTabsGroup(group);
+      updated = true;
+    })
   }
 
   // check if state are updated
   if (updated) {
-    Global.logger.debug(`${JSON.stringify(state.groups)}`);
-    await WorkState.update(STORAGE_KEY, state.toString());
-    debugState();
+    listAllKeys();
     vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
-    Global.tabsProvider.refresh();
   }
 }

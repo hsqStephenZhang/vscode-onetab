@@ -172,8 +172,20 @@
         "title": "%onetab.advanced.send.thisTab%"
       },
       {
+        "command": "onetab.list",
+        "title": "list & search"
+      },
+      {
         "command": "onetab.advanced.search",
         "title": "search tab"
+      },
+      {
+        "command": "onetab.debug.GetState",
+        "title": "GetState"
+      },
+      {
+        "command": "onetab.debug.clearState",
+        "title": "clearState"
       }
     ],
     "viewsContainers": {

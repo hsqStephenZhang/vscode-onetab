@@ -5,12 +5,12 @@
 
 import * as vscode from "vscode";
 import { Global } from "../common/global";
-import { WorkState } from "../common/state";
-import { STORAGE_KEY } from "../constant";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { currentState } from "../utils/state";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
+  if (!tabsGroup.id) {
+    return;
+  }
   for (const tab of tabsGroup.getTabs()) {
     const fileUri = tab.fileUri;
     vscode.window.showTextDocument(fileUri, { preview: false });
@@ -21,41 +21,53 @@ export async function tabsGroupRestore(tabsGroup: TabsGroup) {
 }
 
 export async function tabsGroupTags(group: TabsGroup) {
+  if (!group.id) {
+    return;
+  }
+  const id = group.id;
   const tagsRaw = group.getTags().join(",");
   const newTagsRaw = await vscode.window.showInputBox({
     prompt: "New Tags, separated by comma",
     value: tagsRaw,
   });
   if (newTagsRaw) {
-    const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
-    const state = currentState();
-    state.setGroupTags(group.id, newTags);
-    WorkState.update(STORAGE_KEY, state.toString());
-    Global.tabsProvider.refresh();
+    Global.tabsProvider.updateState((state) => {
+      const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
+      state.setGroupTags(id, newTags);
+    })
   }
 }
 
 export async function tabsGroupRename(group: TabsGroup) {
+  if (!group.id) {
+    return;
+  }
+  const id = group.id;
   const newName = await vscode.window.showInputBox({
     prompt: "New name",
     value: group.label,
   });
   if (newName) {
-    const state = currentState();
-    state.setGroupLabel(group.id, newName);
-    WorkState.update(STORAGE_KEY, state.toString());
-    Global.tabsProvider.refresh();
+    Global.tabsProvider.updateState((state) => {
+      state.setGroupLabel(id, newName);
+    })
   }
 }
 
 export async function tabsGroupPin(group: TabsGroup) {
-  const state = currentState();
-  state.setPinned(group.id, !group.isPinned());
-  WorkState.update(STORAGE_KEY, state.toString());
-  Global.tabsProvider.refresh();
+  if (!group.id) {
+    return;
+  }
+  let id = group.id;
+  Global.tabsProvider.updateState((state) => {
+    state.setPinned(id, !group.isPinned())
+  })
 }
 
 export async function tabsGroupRemove(group: TabsGroup) {
+  if (!group.id) {
+    return;
+  }
   if (group.isPinned() === true) {
     vscode.window.showWarningMessage("Cannot remove pinned group");
     return;
@@ -76,8 +88,7 @@ export async function tabsGroupRemove(group: TabsGroup) {
 }
 
 function removeInner(id: string) {
-  const state = currentState();
-  state.removeTabsGroup(id);
-  WorkState.update(STORAGE_KEY, state.toString());
-  Global.tabsProvider.refresh();
+  Global.tabsProvider.updateState((state) => {
+    state.removeTabsGroup(id);
+  })
 }

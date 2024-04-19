@@ -12,7 +12,6 @@ import { TabsProvider } from "./../provider/treeDataProvider";
 export class Global {
   public static context: vscode.ExtensionContext;
   public static tabsProvider: TabsProvider;
-  public static tabsState: TabsState;
   public static outputChannel: vscode.OutputChannel;
   public static logger: Logger;
 }

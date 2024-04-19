@@ -16,10 +16,9 @@ import {
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/main/tabsgroup";
-import { currentState } from "../utils/state";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
-  const state = currentState();
+  const state = Global.tabsProvider.getState();
   let groups = state.getTitledLists();
   if (groups.length === 0) {
     return null;

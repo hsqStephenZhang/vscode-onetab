@@ -31,9 +31,9 @@ import {
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
 import { STORAGE_KEY } from "./constant";
-import { getStateFromStorage } from "./utils/state";
-import { debugState, clearState } from "./utils/debug";
+import { listAllKeys } from "./utils/debug";
 import { exportJsonData } from "./exporter";
+import { showFilterQuickPick } from "./commands/search";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -44,14 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
   Global.outputChannel = outputChannel;
   Global.logger = new OutputChannelLogger(LogLevel.INFO, outputChannel);
 
-  // clearState();
-  debugState();
-  Global.tabsState = getStateFromStorage();
-  WorkState.update(STORAGE_KEY, Global.tabsState.toString());
-
   const rootPath =
     vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
+      vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
@@ -96,6 +91,15 @@ export function activate(context: vscode.ExtensionContext) {
     advancedSendAllTabs
   );
 
+  vscode.commands.registerCommand("onetab.debug.GetState", listAllKeys);
+  vscode.commands.registerCommand("onetab.debug.clearState", () => {
+    Global.tabsProvider.clearState();
+  });
+
+  vscode.commands.registerCommand("onetab.list", async () => {
+    await showFilterQuickPick();
+  })
+
   vscode.commands.registerCommand("onetab.advanced.search", () =>
     searchTab(context.extensionUri)
   );
@@ -124,7 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
       async deserializeWebviewPanel(
         _panel: vscode.WebviewPanel,
         _state: any
-      ) {},
+      ) { },
     });
   }
 
@@ -133,4 +137,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

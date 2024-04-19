@@ -173,6 +173,9 @@ export class TabsState {
   }
 
   public addTabsGroup(group: TabsGroup) {
+    if (!group.id) {
+      return;
+    }
     this.groups.set(group.id, group);
 
     for (const tab of group.getTabs()) {
@@ -239,7 +242,7 @@ export class TabsState {
         const group = this.groups.get(gid);
         if (group) {
           group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-          if (group.getTabs().length === 0) {
+          if (group.getTabs().length === 0 && group.id) {
             this.groups.delete(group.id);
           }
         }
@@ -290,3 +293,5 @@ export class TabsState {
     return sortedGroups;
   }
 }
+
+export const EMPTY_STATE = new TabsState();

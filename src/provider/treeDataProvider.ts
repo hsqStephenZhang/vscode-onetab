@@ -6,7 +6,9 @@
 import * as vscode from "vscode";
 import { Node } from "../model/interface/node";
 import { TabsGroup } from "./../model/main/tabsgroup";
-import { currentState } from "../utils/state";
+import { TabsState } from "../model/main/tabstate";
+import { WorkState } from "../common/state";
+import { STORAGE_KEY } from "../constant";
 
 type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
 
@@ -28,29 +30,68 @@ function filterByInnerTabs(group: TabsGroup): boolean {
 
 export class TabsProvider
   implements
-  vscode.TreeDataProvider<Node>
-{
+  vscode.TreeDataProvider<Node> {
   rootPath: string | undefined;
   filters: TabsGroupFilter[];
   filterArgs: any[];
+  viewer: vscode.TreeView<Node> | undefined;
+  tabsState: TabsState;
 
   private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
     new vscode.EventEmitter<Node | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  constructor(rootPath: string | undefined, context: vscode.ExtensionContext) {
+  constructor(rootPath: string | undefined, context: vscode.ExtensionContext, tabsState?: TabsState) {
     this.rootPath = rootPath;
     this.filters = [];
     this.filterArgs = [];
+    if (!tabsState) {
+      // don't refresh
+      this.tabsState = new TabsState();
+      this.reloadState(false);
+    } else {
+      this.tabsState = tabsState;
+    }
+    this.viewer = vscode.window.createTreeView("main", {
+      treeDataProvider: this,
+      showCollapseAll: true,
+      canSelectMany: true,
+    });
 
     context.subscriptions.push(
-      vscode.window.createTreeView("main", {
-        treeDataProvider: this,
-        showCollapseAll: true,
-        canSelectMany: true,
-      })
+      this.viewer
     );
+  }
+
+  public getState(): TabsState {
+    return this.tabsState;
+  }
+
+  public clearState() {
+    this.tabsState = new TabsState();
+    WorkState.update(STORAGE_KEY, this.tabsState.toString());
+    this.refresh();
+  }
+
+  public reloadState(refresh: boolean = true) {
+    const defaultState = new TabsState();
+    const s = WorkState.get(STORAGE_KEY, defaultState.toString());
+    const newState = TabsState.fromString(s);
+    this.tabsState = newState;
+    if (refresh) {
+      this.refresh();
+    }
+  }
+
+  public updateState(updater: (state: TabsState) => void) {
+    updater(this.tabsState);
+    WorkState.update(STORAGE_KEY, this.tabsState.toString());
+    this.refresh();
+  }
+
+  public getTreeView(): vscode.TreeView<Node> | undefined {
+    return this.viewer;
   }
 
   refresh(): void {
@@ -67,8 +108,7 @@ export class TabsProvider
     return new Promise(async (res, rej) => {
       if (!element) {
         // if this is the root node (no parent), then return the list
-        let tabsState = currentState();
-        let sortedTabsGroups = tabsState.getAllTabsGroupsSorted();
+        let sortedTabsGroups = this.tabsState.getAllTabsGroupsSorted();
         return res(
           sortedTabsGroups.filter((item) => {
             return this.filters.every((f) => f(item));
