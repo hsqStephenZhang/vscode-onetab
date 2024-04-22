@@ -13,8 +13,18 @@ in tab windows, and you may get lost in these tabs. Don't worry, this extension 
 
 Please follow the [usage](./docs/usage.md) to get the best experience.
 
-## 3. todo
+## 3. todos
 
-1. optimize icons
-2. optimize interaction experience, making it more ergonomic
-3. add search feature(by group name or tags) in webview page, so that you can easily find the tab groups you want
+For users:
+
+1. optimize interaction experience, making it more ergonomic
+2. optimize package size, make it smaller 
+3. optimize icons, handle different themes(light/dark)
+4. add cloud syncing feature 
+5. add auto grouping feature based on LLM's API  
+
+For Developers:
+
+1. refactor the serialize/deserialize code, make it more readable
+2. github action to auto package the `better-vscode-onetab.vsix` file
+
