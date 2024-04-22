@@ -30,6 +30,9 @@
   "categories": [
     "Other"
   ],
+  "extensionDependencies": [
+		"vscode.git"
+	],
   "activationEvents": [
     "*"
   ],
@@ -176,6 +179,14 @@
         "title": "onetab list & search"
       },
       {
+        "command": "onetab.archive",
+        "title": "onetab archive active branch state"
+      },
+      {
+        "command": "onetab.migrate",
+        "title": "onetab migrate from non-active branch state"
+      },
+      {
         "command": "onetab.advanced.search",
         "title": "onetab search tab"
       },
@@ -204,6 +215,12 @@
           "name": "onetabs",
           "icon": "media/dep.svg",
           "contextualTitle": "Tabs"
+        },
+        {
+          "id": "branches",
+          "name": "onetab Branches",
+          "icon": "media/dep.svg",
+          "contextualTitle": "Branches"
         },
         {
           "id": "feedback",

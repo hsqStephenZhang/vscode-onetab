@@ -2,7 +2,7 @@ import { LogLevel, OutputChannelLogger } from "./logging/index";
 import * as vscode from "vscode";
 import "reflect-metadata";
 import { OnetabPanel } from "./view/onetabPanel";
-import { TabsProvider } from "./provider/treeDataProvider";
+import { BranchesProvider, TabsProvider } from "./provider/treeDataProvider";
 import { WorkState } from "./common/state";
 import { Global } from "./common/global";
 import { FileWatchService } from "./service/fileWatchService";
@@ -30,10 +30,11 @@ import {
   sendToBlackList,
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
-import { STORAGE_KEY } from "./constant";
-import { listAllKeys } from "./utils/debug";
+import { DEFAULT_BRANCH_NAME, STORAGE_KEY } from "./constant";
+import { deleteAllKeys, listAllKeys } from "./utils/debug";
 import { exportJsonData } from "./exporter";
 import { showFilterQuickPick } from "./commands/search";
+import { API, GitExtension } from "./typeings/git";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -50,8 +51,9 @@ export function activate(context: vscode.ExtensionContext) {
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
-  let tabsProvider = new TabsProvider(rootPath, context);
-  Global.tabsProvider = tabsProvider;
+  Global.branchName = DEFAULT_BRANCH_NAME;
+  Global.tabsProvider = new TabsProvider(rootPath, context);
+  Global.branchesProvider = new BranchesProvider(context);
 
   // initialization of `Global` is done here
 
@@ -93,7 +95,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.commands.registerCommand("onetab.debug.GetState", listAllKeys);
   vscode.commands.registerCommand("onetab.debug.clearState", () => {
+    deleteAllKeys();
     Global.tabsProvider.clearState();
+    Global.branchesProvider.clearState();
   });
 
   vscode.commands.registerCommand("onetab.list", async () => {
@@ -115,6 +119,35 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
   vscode.commands.registerCommand("onetab.export", exportJsonData);
 
+  // archive the active branch state, store it into the non-active branches
+  vscode.commands.registerCommand("onetab.archive", () => {
+    let activeState = Global.tabsProvider.getState();
+    let activeBranchName = Global.branchName;
+    Global.branchesProvider.insertOrUpdateBranch(activeBranchName, activeState);
+    Global.tabsProvider.clearState();
+  })
+
+
+  // migrate a non-active branch state to the current branch state
+  vscode.commands.registerCommand("onetab.migrate", () => {
+    let allBranchNames = Global.branchesProvider.allBranches();
+    let items: vscode.QuickPickItem[] = allBranchNames.map((branchName) => {
+      return {
+        label: branchName,
+      };
+    });
+    vscode.window.showQuickPick(items).then((selection) => {
+      if (selection) {
+        let branchName = selection.label;
+        let branchState = Global.branchesProvider.getBranchState(branchName);
+        if (branchState) {
+          let newBranchState = branchState.deepClone();
+          Global.tabsProvider.resetState(newBranchState);
+        }
+      }
+    })
+  });
+
   // watch delete of files in order to update the state automatically
   let _fileWatchService = new FileWatchService();
 
@@ -132,8 +165,53 @@ export function activate(context: vscode.ExtensionContext) {
     });
   }
 
+  const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
+  const git = gitExtension?.getAPI(1);
+  let repoOnDidChangeDisposable: vscode.Disposable | void;
+
+  if (git?.state === 'initialized') {
+    repoOnDidChangeDisposable = reinitGitBranchGroups(git);
+  }
+
+  git?.onDidChangeState(e => {
+    if (e === 'initialized') {
+      repoOnDidChangeDisposable = reinitGitBranchGroups(git);
+    } else {
+      if (repoOnDidChangeDisposable) {
+        repoOnDidChangeDisposable.dispose();
+      }
+    }
+  });
+
   // refresh at the beginning
   Global.tabsProvider.refresh();
+}
+
+function reinitGitBranchGroups(git: API): vscode.Disposable | void {
+  if (git.repositories.length === 0) { return; }
+
+  const repo = git.repositories[0];
+  let latestBranch = repo.state.HEAD?.name;
+  Global.branchName = latestBranch || DEFAULT_BRANCH_NAME;
+  // WorkState.update(STORAGE_KEY);
+  Global.logger.debug(`reinitGitBranchGroups, current Branch: ${latestBranch}`);
+  return repo.state.onDidChange(async () => {
+    if (repo.state.HEAD?.name !== Global.branchName) {
+      Global.logger.debug(`Branch changed, from: ${Global.branchName}, to: ${repo.state.HEAD?.name}`);
+
+      // do the state switch
+      let activeState = Global.tabsProvider.getState();
+      let activeBranchName = Global.branchName;
+      Global.branchName = repo.state.HEAD?.name || DEFAULT_BRANCH_NAME;
+      Global.branchesProvider.insertOrUpdateBranch(activeBranchName, activeState);
+      let newState = Global.branchesProvider.getBranchState(Global.branchName);
+      if (newState) {
+        Global.tabsProvider.resetState(newState);
+      } else {
+        Global.tabsProvider.clearState();
+      }
+    }
+  })
 }
 
 // this method is called when your extension is deactivated

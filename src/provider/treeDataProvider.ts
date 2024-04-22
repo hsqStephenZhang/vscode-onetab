@@ -8,10 +8,12 @@ import { Node } from "../model/interface/node";
 import { TabsGroup } from "./../model/main/tabsgroup";
 import { TabsState } from "../model/main/tabstate";
 import { WorkState } from "../common/state";
-import { STORAGE_KEY } from "../constant";
+import { BRANCHES_KEY, STORAGE_KEY } from "../constant";
 import { Global } from "../common/global";
 import { TabItem } from "../model/main/tabitem";
 import { sendTabs } from "../utils/tab";
+import { Branch, BranchStates } from "../model/main/branch";
+import { instanceToPlain, plainToInstance } from "class-transformer";
 
 type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
 
@@ -29,6 +31,111 @@ function filterByTags(group: TabsGroup): boolean {
 
 function filterByInnerTabs(group: TabsGroup): boolean {
   return true;
+}
+
+export class BranchesProvider implements vscode.TreeDataProvider<Node> {
+
+  private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
+    new vscode.EventEmitter<Node | undefined | void>();
+  readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
+    this._onDidChangeTreeData.event;
+
+  branchViewer: vscode.TreeView<Node> | undefined;
+  branchState: BranchStates;
+
+  constructor(context: vscode.ExtensionContext) {
+    this.branchState = new BranchStates();
+
+    this.branchViewer = vscode.window.createTreeView("branches", {
+      treeDataProvider: this,
+      showCollapseAll: true,
+      canSelectMany: true,
+    });
+
+    this.reloadState();
+
+    context.subscriptions.push(
+      this.branchViewer
+    );
+  }
+
+  public getStates(): BranchStates {
+    return this.branchState;
+  }
+
+  public clearState() {
+    this.branchState = new BranchStates();
+    WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
+    this.refresh();
+  }
+
+  // TODO: fixme 
+  reloadState() {
+    const defaultState = new BranchStates();
+    const s = WorkState.get(BRANCHES_KEY, JSON.stringify(instanceToPlain(defaultState)));
+    const newState = plainToInstance(BranchStates, JSON.parse(s));
+    // hot fix of the iconPath problem
+    for (const [branchName, state] of newState.branches.entries()) {
+      for (const [k, group] of state.groups) {
+        group.setPin(group.isPinned());
+        for (const tab of group.getTabs()) {
+          tab.setDefaultIcon();
+        }
+      }
+    }
+    this.branchState = newState;
+    this._onDidChangeTreeData.fire();
+  }
+
+  public allBranches(): string[] {
+    return Array.from(this.branchState.branches.keys());
+  }
+
+
+  public getBranchState(branchName: string): TabsState | undefined {
+    return this.branchState.branches.get(branchName);
+  }
+
+  public deleteBranch(branchName: string) {
+    if (this.branchState.branches.delete(branchName)) {
+      this.update();
+    }
+  }
+
+  public insertOrUpdateBranch(branchName: string, branchState: TabsState) {
+    this.branchState.branches.set(branchName, branchState);
+    this.update();
+  }
+
+  public update() {
+    WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
+    this._onDidChangeTreeData.fire();
+  }
+
+  getTreeItem(element: Node): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    return element;
+  }
+
+  getChildren(element?: Node | undefined): vscode.ProviderResult<Node[]> {
+    return new Promise(async (res, _rej) => {
+      if (!element) {
+        // if this is the root node (no parent), then return the list
+        let allBranches = [];
+        for (const [branchName, branch] of this.branchState.branches.entries()) {
+          allBranches.push(new Branch(branchName, branch))
+        };
+        return res(allBranches);
+      } else {
+        // else return the inner list
+        const children = await element.getChildren();
+        return res(children);
+      }
+    });
+  }
+
+  public refresh() {
+    this._onDidChangeTreeData.fire();
+  }
 }
 
 export class TabsProvider
@@ -161,6 +268,19 @@ export class TabsProvider
     }
   }
 
+  // TODO: fixme
+  public resetState(newState: TabsState) {
+    for (const [k, group] of newState.groups) {
+      group.setPin(group.isPinned());
+      for (const tab of group.getTabs()) {
+        tab.setDefaultIcon();
+      }
+    }
+    this.tabsState = newState;
+    WorkState.update(STORAGE_KEY, this.tabsState.toString());
+    this.refresh();
+  }
+
   public updateState(updater: (state: TabsState) => void) {
     updater(this.tabsState);
     WorkState.update(STORAGE_KEY, this.tabsState.toString());
@@ -198,11 +318,11 @@ export class TabsProvider
       } else {
         // else return the inner list
         const children = await element.getChildren();
-        for (const child of children) {
-          child.parentId = element.id;
-        }
         return res(children);
       }
     });
   }
 }
+
+
+// export function archiveCurrentBranch()

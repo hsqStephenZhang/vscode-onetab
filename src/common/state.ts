@@ -32,6 +32,10 @@ export class WorkState {
     return Global.context.workspaceState.get(key);
   }
 
+  public static delete(key: string): Thenable<void> {
+    return Global.context.workspaceState.update(key, undefined);
+  }
+
   public static keys(): readonly string[] {
     return Global.context.workspaceState.keys();
   }

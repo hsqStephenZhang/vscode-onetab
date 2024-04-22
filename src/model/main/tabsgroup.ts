@@ -32,6 +32,23 @@ export class TabsGroup extends Node {
     this.createTime = Date.now();
   }
 
+
+  public deepClone(): TabsGroup {
+    let newGroup = new TabsGroup();
+    newGroup.label = this.label;
+    newGroup.tooltip = this.tooltip;
+    newGroup.iconPath = this.iconPath;
+    newGroup.pinned = this.pinned;
+    newGroup.tags = this.tags.slice();
+    newGroup.createTime = this.createTime;
+    newGroup.tabs = this.tabs.map((tab) => {
+      let newTab = tab.deepClone();
+      newTab.parentId = newGroup.id;
+      return newTab;
+    });
+    return newGroup;
+  }
+
   public getText(): string {
     return "label: " + this.label + ", tags: " + (this.tags.length === 0 ? "empty" : this.tags.join(", "));
   }
@@ -82,14 +99,21 @@ export class TabsGroup extends Node {
   }
 
   public setTabs(tabs: TabItem[]) {
+    for (let tab of tabs) {
+      tab.parentId = this.id;
+    }
     this.tabs = tabs;
   }
 
   public pushTab(tab: TabItem) {
+    tab.parentId = this.id;
     this.tabs.push(tab);
   }
 
   public extendTabs(tabs: TabItem[]) {
+    for (let tab of tabs) {
+      tab.parentId = this.id;
+    }
     this.tabs.push(...tabs);
   }
 

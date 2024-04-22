@@ -14,3 +14,13 @@ export function listAllKeys() {
         Global.logger.debug(`${key} is: ${JSON.stringify(obj)}`);
     }
 }
+
+
+export function deleteAllKeys() {
+    Global.logger.debug(`Deleting all keys.`);
+    const keys = WorkState.keys();
+    for (const key of keys) {
+        WorkState.delete(key);
+    }
+    Global.logger.debug(`All keys are deleted.`);
+}

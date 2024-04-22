@@ -9,7 +9,6 @@ import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 
 export class TabsState {
-
   @Transform(value => {
     let map = new Map<string, TabsGroup>();
     for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(TabsGroup, entry[1])); }
@@ -39,10 +38,50 @@ export class TabsState {
     this.reverseIndex = new Map();
   }
 
+  // deep copy the state, change the inner ids
+  public deepClone(): TabsState {
+    let newState = new TabsState();
+    let groupIdDiff = new Map<string, string>();
+    for (const [k, group] of this.groups) {
+      let newGroup = group.deepClone();
+      if (group.id && newGroup.id) {
+        groupIdDiff.set(group.id, newGroup.id);
+      }
+      newState.groups.set(k, newGroup);
+    }
+    for (const k of this.blackList) {
+      newState.blackList.add(k);
+    }
+    // update the reverseIndex, which is a map from fsPath to group ids
+    for (const [k, groupIds] of this.reverseIndex) {
+      let newGroupids = groupIds.map((gid) => {
+        let newId = groupIdDiff.get(gid);
+        if (newId) {
+          return newId;
+        } else {
+          return gid;
+        }
+      });
+      newState.reverseIndex.set(k, newGroupids);
+    }
+    // update the groups 
+    let newGroupEntries = Array.from(newState.groups.entries());
+    for (const [k, group] of newGroupEntries) {
+      let newGroupId = groupIdDiff.get(k);
+      if (newGroupId) {
+        newState.groups.delete(k);
+        newState.groups.set(newGroupId, group);
+      }
+    }
+    return newState;
+  }
+
+
   public toString(): string {
     return JSON.stringify(instanceToPlain(this));
   }
 
+  // TODO: fixme
   public static fromString(s: string): TabsState {
     let state = plainToInstance(TabsState, JSON.parse(s));
     for (const [k, group] of state.groups) {

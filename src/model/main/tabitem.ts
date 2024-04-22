@@ -20,6 +20,16 @@ export class TabItem extends Node {
     this.contextValue = CONTEXT_TAB;
     // for deserialization
     this.fileUri = vscode.Uri.parse("none");
+    this.iconPath = new vscode.ThemeIcon("output-view-icon");
+  }
+
+  public deepClone(): TabItem {
+    let newTab = new TabItem();
+    newTab.label = this.label;
+    newTab.tooltip = this.tooltip;
+    newTab.iconPath = this.iconPath;
+    newTab.fileUri = this.fileUri;
+    return newTab;
   }
 
   public setFileUri(uri: vscode.Uri) {
