@@ -35,6 +35,7 @@ import { deleteAllKeys, listAllKeys } from "./utils/debug";
 import { exportJsonData } from "./exporter";
 import { showFilterQuickPick } from "./commands/search";
 import { API, GitExtension } from "./typeings/git";
+import { FeedbackProvider, ReportIssueLink, SupportLink } from "./provider/feedbackProvider";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -52,8 +53,16 @@ export function activate(context: vscode.ExtensionContext) {
       : undefined;
 
   Global.branchName = DEFAULT_BRANCH_NAME;
+
+  // register providers: tabsProvider, branchesProvider, feedbackProvider(need not to save the state, since it's a read-only view)
+
   Global.tabsProvider = new TabsProvider(rootPath, context);
   Global.branchesProvider = new BranchesProvider(context);
+  const feedbackItems = [
+    new ReportIssueLink("https://github.com/hsqStephenZhang/vscode-onetab/issues/new"),
+    new SupportLink("https://github.com/hsqStephenZhang/vscode-onetab")
+  ]
+  new FeedbackProvider(context, "oneTabFeedback", feedbackItems);
 
   // initialization of `Global` is done here
 

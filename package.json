@@ -7,7 +7,7 @@
     "name": "hsqStephenZhang",
     "email": "2250015961@qq.com"
   },
-  "version": "0.2.1",
+  "version": "0.2.2",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -31,10 +31,10 @@
     "Other"
   ],
   "extensionDependencies": [
-		"vscode.git"
-	],
+    "vscode.git"
+  ],
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -197,6 +197,10 @@
       {
         "command": "onetab.debug.clearState",
         "title": "onetab clearState, only for debug"
+      },
+      {
+        "command": "oneTabFeedback.openHelpLink",
+        "title": "open help link"
       }
     ],
     "viewsContainers": {
@@ -223,7 +227,7 @@
           "contextualTitle": "Branches"
         },
         {
-          "id": "feedback",
+          "id": "oneTabFeedback",
           "name": "feedback",
           "icon": "media/dep.svg",
           "contextualTitle": "FeedBack"
