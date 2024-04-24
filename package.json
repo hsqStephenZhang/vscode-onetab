@@ -203,7 +203,7 @@
       },
       {
         "command": "oneTabFeedback.openHelpLink",
-        "title": "%onetab.feedback.openHelpLink%"
+        "title": "%oneTabFeedback.openHelpLink%"
       }
     ],
     "viewsContainers": {
