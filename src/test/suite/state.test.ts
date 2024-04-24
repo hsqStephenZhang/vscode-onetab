@@ -5,128 +5,31 @@
 
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { plainToClass, instanceToPlain, plainToInstance, Type, Transform, Expose } from "class-transformer";
+import { plainToClass } from "class-transformer";
 import 'reflect-metadata';
+import { TabsState } from '../../model/tabstate';
 
-class Item {
+const testJson = `{"groups":{"fb7cd278-ee69-4088-8e32-51af3ca3fc34":{"collapsibleState":1,"label":"alice1","id":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","pinned":true,"tags":[],"createTime":1713951298453,"tabs":[{"collapsibleState":0,"label":"CODE_OF_CONDUCT.md","parentId":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","id":"ffe7cf35-f1e4-4f84-acb0-608829bf58a7","fileUri":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/minisearch/CODE_OF_CONDUCT.md","query":"","fragment":"","_formatted":"file:///Users/zc/codespace/js/minisearch/CODE_OF_CONDUCT.md","_fsPath":"/Users/zc/codespace/js/minisearch/CODE_OF_CONDUCT.md"},"contextValue":"tab","iconPath":{"id":"output-view-icon"}},{"collapsibleState":0,"label":"package.json","parentId":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","id":"1e58f095-53d4-4480-a2b2-d24e9132fe19","fileUri":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/minisearch/package.json","query":"","fragment":"","_formatted":"file:///Users/zc/codespace/js/minisearch/package.json","_fsPath":"/Users/zc/codespace/js/minisearch/package.json"},"contextValue":"tab","iconPath":{"id":"output-view-icon"}},{"collapsibleState":0,"label":"tsconfig.json","parentId":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","id":"a13e4ba2-f750-4429-89b6-98adf9bccc4e","fileUri":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/minisearch/tsconfig.json","query":"","fragment":"","_formatted":"file:///Users/zc/codespace/js/minisearch/tsconfig.json","_fsPath":"/Users/zc/codespace/js/minisearch/tsconfig.json"},"contextValue":"tab","iconPath":{"id":"output-view-icon"}},{"collapsibleState":0,"label":"MiniSearch.svg","parentId":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","id":"133900a3-1af7-449a-bed3-5c92ee948249","fileUri":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/minisearch/MiniSearch.svg","query":"","fragment":"","_formatted":"file:///Users/zc/codespace/js/minisearch/MiniSearch.svg","_fsPath":"/Users/zc/codespace/js/minisearch/MiniSearch.svg"},"contextValue":"tab","iconPath":{"id":"output-view-icon"}},{"collapsibleState":0,"label":"yarn.lock","parentId":"fb7cd278-ee69-4088-8e32-51af3ca3fc34","id":"aca7af9e-1595-4beb-918d-e36df928a7e4","fileUri":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/minisearch/yarn.lock","query":"","fragment":"","_formatted":"file:///Users/zc/codespace/js/minisearch/yarn.lock","_fsPath":"/Users/zc/codespace/js/minisearch/yarn.lock"},"contextValue":"tab","iconPath":{"id":"output-view-icon"}}],"contextValue":"tabsGroup","tooltip":"alice1, tags: none","iconPath":{"dark":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/vscode-onetab/media/pin-light.svg","query":"","fragment":"","_formatted":null,"_fsPath":null},"light":{"scheme":"file","authority":"","path":"/Users/zc/codespace/js/vscode-onetab/media/pin-dark.svg","query":"","fragment":"","_formatted":null,"_fsPath":null}}}},"blackList":[],"reverseIndex":{"/Users/zc/codespace/js/minisearch/CODE_OF_CONDUCT.md":["fb7cd278-ee69-4088-8e32-51af3ca3fc34"],"/Users/zc/codespace/js/minisearch/package.json":["fb7cd278-ee69-4088-8e32-51af3ca3fc34"],"/Users/zc/codespace/js/minisearch/tsconfig.json":["fb7cd278-ee69-4088-8e32-51af3ca3fc34"],"/Users/zc/codespace/js/minisearch/MiniSearch.svg":["fb7cd278-ee69-4088-8e32-51af3ca3fc34"],"/Users/zc/codespace/js/minisearch/yarn.lock":["fb7cd278-ee69-4088-8e32-51af3ca3fc34"]}}`
 
-	public demo() {
-
-	}
-}
-
-class T {}
-
-class Todo {
-	
-	@Type(()=>T)
-	public inner: T | undefined;
-
-	public value: number = 0;
-
-	@Type(() => Item)
-	public items: Item[] = [];
-
-	test1(): string {
-		return `t1, number is:${this.value}`;
-	}
-
-	test2(): string {
-		return `t2, number is:${this.value}`;
-	}
-}
-
-class Todos {
-	@Transform(value => {
-		let map = new Map<string, Todo>();
-		for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Todo, entry[1])); }
-		return map;
-	}, { toClassOnly: true })
-	public children: Map<string, Todo> = new Map();
-}
-
-class MyObject {
-	@Transform(value => {
-		let map = new Map<string, Todo>();
-		for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Todo, entry[1])); }
-		return map;
-	}, { toClassOnly: true })
-	todoMap: Map<string, Todo> = new Map();
-
-	@Transform(value => {
-		let map = new Map<string, string[]>();
-		for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Array<string>, entry[1])); }
-		return map;
-	}, { toClassOnly: true })
-	otherMap: Map<string, string[]> = new Map();
-
-	@Transform(value => {
-		let set = new Set<string>();
-		for (let entry of Object.entries(value.value)) { set.add(entry[0]); }
-		return set;
-	}, { toClassOnly: true })
-	otherSet: Set<string> = new Set();
+interface IconPath {
+	id: string
 }
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
-	test('Sample json', () => {
+	test('', () => {
 
-		let m = new Map();
-		m.set("a", 1);
-		m.set("b", 2);
+		let tabsState = plainToClass(TabsState, JSON.parse(testJson));
 
-		assert.strictEqual(JSON.stringify(m), '{}');
-		assert.strictEqual(JSON.stringify(Array.from(m.entries())), '[["a",1],["b",2]]');
+		for (const [gropuId, group] of tabsState.groups.entries()) {
+			console.log(gropuId);
 
-		let s = '[["a",1],["b",2]]';
-		let m2 = new Map(JSON.parse(s));
-		assert.equal(m2.get('a'), 1);
-		assert.equal(m2.get('b'), 2);
-	});
-
-	test('Sample class-transformer0', ()=>{
-		let todo = new Todo();
-		todo.inner = new T();
-
-		let plain=instanceToPlain(todo);
-		let r = plainToInstance(Todo, plain);
-		assert.equal(r.inner instanceof T, true);
-	});
-
-	test('Sample class-transformer1', () => {
-
-		let t = new Todo();
-		t.items.push(new Item());
-		t.items.push(new Item());
-		let todos = new Todos();
-		todos.children.set("a", t);
-
-		let plain = instanceToPlain(todos);
-		let r = plainToInstance(Todos, plain);
-		let children = r.children.get("a");
-
-		assert.equal(children instanceof Todo, true);
-		assert.equal(children instanceof Todo && children.items[0] instanceof Item, true);
-	});
-
-	test('Sample class-transformer2', () => {
-		let t = new Todo();
-		let todos = new MyObject();
-		todos.todoMap.set('t1', t);
-		todos.otherMap.set('t1', ['a', 'b']);
-		todos.otherSet.add('a');
-		todos.otherSet.add('b');
-
-		let s = instanceToPlain(todos);
-		let r: MyObject = plainToInstance(MyObject, s);
-		assert.equal(Array.from(r.todoMap.entries()).length, 1);
-		let other = r.otherMap.get('t1');
-		assert.equal(other !== undefined && other instanceof Array && other.length === 2, true);
-
-		assert.equal(Array.from(r.otherSet.entries()).length, 2);
-		assert.equal(r.otherSet instanceof Set<string>, true);
+			for (const tab of group.tabs) {
+				console.log(tab.label, tab.iconPath);
+				assert(tab.iconPath instanceof vscode.ThemeIcon === false);
+			}
+		}
 	});
 });
 

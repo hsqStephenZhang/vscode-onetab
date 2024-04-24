@@ -131,27 +131,27 @@
       },
       {
         "command": "onetab.tab.restore",
-        "title": "restore one tab",
+        "title": "%onetab.tab.restore%",
         "icon": "$(refresh)"
       },
       {
         "command": "onetab.tab.remove",
-        "title": "remove one tab",
+        "title": "%onetab.tab.remove%",
         "icon": "$(close)"
       },
       {
         "command": "onetab.tabsGroup.restore",
-        "title": "restore tabs",
+        "title": "%onetab.tabsGroup.restore%",
         "icon": "$(refresh)"
       },
       {
         "command": "onetab.tabsGroup.rename",
-        "title": "rename tabs group",
+        "title": "%onetab.tabsGroup.rename%",
         "icon": "$(pencil)"
       },
       {
         "command": "onetab.tabsGroup.pin",
-        "title": "pin tabs group",
+        "title": "%onetab.tabsGroup.pin%",
         "icon": {
           "light": "media/pin-dark.svg",
           "dark": "media/pin-light.svg"
@@ -159,17 +159,17 @@
       },
       {
         "command": "onetab.tabsGroup.remove",
-        "title": "remove tabs group",
+        "title": "%onetab.tabsGroup.remove%",
         "icon": "$(close)"
       },
       {
         "command": "onetab.tabsGroup.tag",
-        "title": "set tags of tabs group",
+        "title": "%onetab.tabsGroup.tag%",
         "icon": "$(tag)"
       },
       {
         "command": "onetab.export",
-        "title": "export current database",
+        "title": "%onetab.export%",
         "icon": "$(tag)"
       },
       {
@@ -178,36 +178,32 @@
       },
       {
         "command": "onetab.search",
-        "title": "onetab list & search"
+        "title": "%onetab.search%"
       },
       {
         "command": "onetab.branches.archive",
-        "title": "onetab archive active branch state"
+        "title": "%onetab.branches.archive%"
       },
       {
         "command": "onetab.branches.pickandrestore",
-        "title": "onetab pick one branch's staet, and migrate from it"
+        "title": "%onetab.branches.pickandrestore%"
       },
       {
         "command": "onetab.branches.restorebranch",
-        "title": "onetab migrate from non-active branch state",
+        "title": "%onetab.branches.restorebranch%",
         "icon": "$(refresh)"
       },
       {
-        "command": "onetab.advanced.search",
-        "title": "onetab search tab"
-      },
-      {
         "command": "onetab.debug.GetState",
-        "title": "onetab getState, only for debug"
+        "title": "%onetab.debug.GetState%"
       },
       {
         "command": "onetab.debug.clearState",
-        "title": "onetab clearState, only for debug"
+        "title": "%onetab.debug.clearState%"
       },
       {
         "command": "oneTabFeedback.openHelpLink",
-        "title": "open help link"
+        "title": "%onetab.feedback.openHelpLink%"
       }
     ],
     "viewsContainers": {
@@ -246,12 +242,6 @@
         {
           "group": "1_onetab",
           "submenu": "onetab.title.context.submenu"
-        }
-      ],
-      "view/title": [
-        {
-          "command": "onetab.advanced.search",
-          "group": "1_onetab"
         }
       ],
       "view/item/context": [
