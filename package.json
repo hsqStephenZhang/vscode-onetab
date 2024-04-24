@@ -70,6 +70,12 @@
             },
             "default": [],
             "description": "The list of file to be excluded from onetab."
+          },
+          "onetab.autoclean": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to remove the deleted tabs from tabsGroup"
           }
         }
       }
@@ -179,12 +185,17 @@
         "title": "onetab list & search"
       },
       {
-        "command": "onetab.archive",
+        "command": "onetab.branches.archive",
         "title": "onetab archive active branch state"
       },
       {
-        "command": "onetab.migrate",
-        "title": "onetab migrate from non-active branch state"
+        "command": "onetab.branches.pickandrestore",
+        "title": "onetab pick one branch's staet, and migrate from it"
+      },
+      {
+        "command": "onetab.branches.restorebranch",
+        "title": "onetab migrate from non-active branch state",
+        "icon": "$(refresh)"
       },
       {
         "command": "onetab.advanced.search",
@@ -282,6 +293,11 @@
           "command": "onetab.tab.remove",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@1"
+        },
+        {
+          "command": "onetab.branches.restorebranch",
+          "when": "view =~ /^(branches)$/ && viewItem =~ /^(branch)$/",
+          "group": "inline@0"
         }
       ],
       "onetab.title.context.submenu": [

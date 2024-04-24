@@ -3,6 +3,7 @@ import { plainToClass, Transform } from "class-transformer";
 import { TabsState } from "./tabstate";
 import { Node } from "../interface/node";
 import { randomUUID } from "crypto";
+import { CONTEXT_BRANCH } from "../../constant";
 
 export class BranchStates {
     @Transform(value => {
@@ -23,6 +24,7 @@ export class Branch extends Node {
     constructor(branchName: string, TabsState: TabsState) {
         const id = randomUUID();
         super(id, branchName, vscode.TreeItemCollapsibleState.Collapsed);
+        this.contextValue = CONTEXT_BRANCH;
         this.tabsState = TabsState;
     }
 
