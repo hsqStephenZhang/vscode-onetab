@@ -7,7 +7,7 @@
     "name": "hsqStephenZhang",
     "email": "2250015961@qq.com"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -369,9 +369,7 @@
     "compile": "npm-run-all compile:*",
     "watch": "npm-run-all watch:*",
     "compile:extension": "tsc -p ./",
-    "compile:views": "webpack --mode development",
     "watch:extension": "tsc -watch -p ./",
-    "watch:views": "webpack watch --mode development",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
