@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 
+// Node class is a abstract class that extends vscode.TreeItem
+// used to represent a node our treeviews(activeGroups & nonActiveBranches)
 export abstract class Node extends vscode.TreeItem {
   public parentId?: string;
 

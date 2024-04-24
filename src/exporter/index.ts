@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import { Global } from "../common/global";
+import { Global } from "../global";
 import { instanceToPlain, serialize } from "class-transformer";
 
 export async function exportJsonData() {

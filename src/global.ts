@@ -4,9 +4,9 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { Logger } from "../logging";
-import { TabsState } from './../model/main/tabstate';
-import { BranchesProvider, TabsProvider } from "./../provider/treeDataProvider";
+import { Logger } from "./logging";
+import { TabsProvider } from "./providers/activeGroupsProvider";
+import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 
 // global is a singleton, can be used after initialization at the beginning of the extension
 export class Global {

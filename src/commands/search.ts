@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Global } from '../common/global';
+import { Global } from '../global';
 
 let globalFilters: Set<string> = new Set();
 
@@ -7,7 +7,7 @@ interface FilterQuickPickItem extends vscode.QuickPickItem {
     groupID: string;
 };
 
-export async function showFilterQuickPick() {
+export async function searchGroup() {
     const items = Array.from(Global.tabsProvider.getState().groups.entries(), entry => {
         return {
             groupID: entry[0],

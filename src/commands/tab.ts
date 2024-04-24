@@ -4,8 +4,8 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { Global } from "../common/global";
-import { TabItem } from "../model/main/tabitem";
+import { Global } from "../global";
+import { TabItem } from "../model/tabitem";
 
 export async function tabRestore(tab: TabItem) {
   if (!tab.parentId) {

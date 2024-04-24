@@ -173,15 +173,11 @@
         "icon": "$(tag)"
       },
       {
-        "command": "onetab.advanced.view",
-        "title": "onetab webpage"
-      },
-      {
         "command": "onetab.advanced.send.thisTab",
         "title": "%onetab.advanced.send.thisTab%"
       },
       {
-        "command": "onetab.list",
+        "command": "onetab.search",
         "title": "onetab list & search"
       },
       {

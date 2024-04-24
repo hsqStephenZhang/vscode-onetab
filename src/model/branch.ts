@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { plainToClass, Transform } from "class-transformer";
 import { TabsState } from "./tabstate";
-import { Node } from "../interface/node";
+import { Node } from "./node";
 import { randomUUID } from "crypto";
-import { CONTEXT_BRANCH } from "../../constant";
+import { CONTEXT_BRANCH } from "../constant";
 
 export class BranchStates {
     @Transform(value => {

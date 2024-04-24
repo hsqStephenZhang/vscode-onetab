@@ -37,26 +37,34 @@ export class OutputChannelLogger implements Logger {
     }
     info(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.INFO) {
-            this.outputChannel.appendLine(`[${DateFormat(new Date())}][INFO]: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(format("INFO", message, optionalParams));
         }
     }
     debug(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.DEBUG) {
-            this.outputChannel.appendLine(`[${DateFormat(new Date())}][DEBUG]: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(format("DEBUG", message, optionalParams));
         }
     }
     warn(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.WARN) {
-            this.outputChannel.appendLine(`[${DateFormat(new Date())}][WARN]: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(format("WARN", message, optionalParams));
         }
     }
     error(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.ERROR) {
-            this.outputChannel.appendLine(`[${DateFormat(new Date())}][ERROR]: ${message}, ${optionalParams}`);
+            this.outputChannel.appendLine(format("ERROR", message, optionalParams));
         }
     }
 }
 
-function DateFormat(date: Date){
+function DateFormat(date: Date) {
     return (moment(date)).format('DD-MMM-YYYY HH:mm:ss');
+}
+
+function format(level: string, message?: any, ...optionalParams: any[]) {
+    if (optionalParams.length > 0) {
+        return `[${DateFormat(new Date())}][${level}]: ${message}, ${optionalParams}`;
+    } else {
+        return `[${DateFormat(new Date())}][${level}]: ${message}`;
+    }
 }

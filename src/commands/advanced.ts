@@ -4,8 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { OnetabPanel } from "./../view/onetabPanel";
-import { Global } from "../common/global";
+import { Global } from "../global";
 import {
   getAllTabsWithBlackList,
   getLeftTabs,
@@ -15,7 +14,7 @@ import {
   sendTabs,
 } from "../utils/tab";
 import { TabInputText } from "vscode";
-import { TabsGroup } from "../model/main/tabsgroup";
+import { TabsGroup } from "../model/tabsgroup";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   const state = Global.tabsProvider.getState();
@@ -156,11 +155,4 @@ export async function sendToBlackList(uri: vscode.Uri) {
   } else {
     Global.logger.debug("No blacklist");
   }
-}
-
-export async function searchTab(uri: vscode.Uri) {
-  OnetabPanel.postMessage(uri, {
-    cmd: "search",
-    data: "",
-  });
 }

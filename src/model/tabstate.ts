@@ -8,6 +8,10 @@ import { instanceToPlain, plainToInstance, plainToClass, Transform } from 'class
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 
+/// tabs state 
+///     => groups: Map<string, TabsGroup>
+///          => TabItem[]
+
 export class TabsState {
   @Transform(value => {
     let map = new Map<string, TabsGroup>();

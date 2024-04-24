@@ -4,145 +4,19 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { Node } from "../model/interface/node";
-import { TabsGroup } from "./../model/main/tabsgroup";
-import { TabsState } from "../model/main/tabstate";
+import { Node } from "../model/node";
+import { TabsGroup } from "../model/tabsgroup";
+import { TabsState } from "../model/tabstate";
 import { WorkState } from "../common/state";
-import { BRANCHES_KEY, STORAGE_KEY } from "../constant";
-import { Global } from "../common/global";
-import { TabItem } from "../model/main/tabitem";
-import { sendTabs } from "../utils/tab";
-import { Branch, BranchStates } from "../model/main/branch";
-import { instanceToPlain, plainToInstance } from "class-transformer";
+import { STORAGE_KEY } from "../constant";
+import { Global } from "../global";
+import { TabItem } from "../model/tabitem";
 
-type TabsGroupFilter = (tabsGroup: TabsGroup, ...args: any) => boolean;
-
-function filterByName(group: TabsGroup): boolean {
-  return true;
-}
-
-function filterByPinned(group: TabsGroup): boolean {
-  return group.isPinned();
-}
-
-function filterByTags(group: TabsGroup): boolean {
-  return true;
-}
-
-function filterByInnerTabs(group: TabsGroup): boolean {
-  return true;
-}
-
-export class BranchesProvider implements vscode.TreeDataProvider<Node> {
-
-  private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
-    new vscode.EventEmitter<Node | undefined | void>();
-  readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
-    this._onDidChangeTreeData.event;
-
-  branchViewer: vscode.TreeView<Node> | undefined;
-  branchState: BranchStates;
-
-  constructor(context: vscode.ExtensionContext) {
-    this.branchState = new BranchStates();
-
-    this.branchViewer = vscode.window.createTreeView("branches", {
-      treeDataProvider: this,
-      showCollapseAll: true,
-      canSelectMany: true,
-    });
-
-    this.reloadState();
-
-    context.subscriptions.push(
-      this.branchViewer
-    );
-  }
-
-  public getStates(): BranchStates {
-    return this.branchState;
-  }
-
-  public clearState() {
-    this.branchState = new BranchStates();
-    WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
-    this.refresh();
-  }
-
-  // TODO: fixme 
-  reloadState() {
-    const defaultState = new BranchStates();
-    const s = WorkState.get(BRANCHES_KEY, JSON.stringify(instanceToPlain(defaultState)));
-    const newState = plainToInstance(BranchStates, JSON.parse(s));
-    // hot fix of the iconPath problem
-    for (const [branchName, state] of newState.branches.entries()) {
-      for (const [k, group] of state.groups) {
-        group.setPin(group.isPinned());
-        for (const tab of group.getTabs()) {
-          tab.setDefaultIcon();
-        }
-      }
-    }
-    this.branchState = newState;
-    this._onDidChangeTreeData.fire();
-  }
-
-  public allBranches(): string[] {
-    return Array.from(this.branchState.branches.keys());
-  }
-
-
-  public getBranchState(branchName: string): TabsState | undefined {
-    return this.branchState.branches.get(branchName);
-  }
-
-  public deleteBranch(branchName: string) {
-    if (this.branchState.branches.delete(branchName)) {
-      this.update();
-    }
-  }
-
-  public insertOrUpdateBranch(branchName: string, branchState: TabsState) {
-    this.branchState.branches.set(branchName, branchState);
-    this.update();
-  }
-
-  public update() {
-    WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
-    this._onDidChangeTreeData.fire();
-  }
-
-  getTreeItem(element: Node): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    return element;
-  }
-
-  getChildren(element?: Node | undefined): vscode.ProviderResult<Node[]> {
-    return new Promise(async (res, _rej) => {
-      if (!element) {
-        // if this is the root node (no parent), then return the list
-        let allBranches = [];
-        for (const [branchName, branch] of this.branchState.branches.entries()) {
-          allBranches.push(new Branch(branchName, branch))
-        };
-        return res(allBranches);
-      } else {
-        // else return the inner list
-        const children = await element.getChildren();
-        return res(children);
-      }
-    });
-  }
-
-  public refresh() {
-    this._onDidChangeTreeData.fire();
-  }
-}
-
+/// TreeDataProvider for `ONETAB` treeview in the sidebar
 export class TabsProvider
   implements
   vscode.TreeDataProvider<Node>, vscode.TreeDragAndDropController<Node> {
   rootPath: string | undefined;
-  filters: TabsGroupFilter[];
   filterArgs: any[];
   viewer: vscode.TreeView<Node> | undefined;
   tabsState: TabsState;
@@ -154,7 +28,6 @@ export class TabsProvider
 
   constructor(rootPath: string | undefined, context: vscode.ExtensionContext, tabsState?: TabsState) {
     this.rootPath = rootPath;
-    this.filters = [];
     this.filterArgs = [];
     if (!tabsState) {
       // don't refresh
@@ -174,6 +47,30 @@ export class TabsProvider
       this.viewer
     );
   }
+
+  // methods in `TreeDataProvider`
+
+  getTreeItem(element: Node): vscode.TreeItem {
+    return element;
+  }
+
+  getParent(element: Node): vscode.ProviderResult<Node> {
+    return element;
+  }
+
+  async getChildren(
+    element?: Node | undefined
+  ): Promise<Node[] | undefined | null> {
+    return new Promise(async (res, rej) => {
+      if (!element) {
+        return res(this.tabsState.getAllTabsGroupsSorted());
+      } else {
+        const children = await element.getChildren();
+        return res(children);
+      }
+    });
+  }
+  // methods in `TreeDragAndDropController`
 
   dropMimeTypes: readonly string[] = ["text/plain"];
   dragMimeTypes: readonly string[] = ["text/plain"];
@@ -248,6 +145,8 @@ export class TabsProvider
     }
   }
 
+  // our methods
+
   public getState(): TabsState {
     return this.tabsState;
   }
@@ -293,34 +192,6 @@ export class TabsProvider
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
-  }
-
-  getTreeItem(element: Node): vscode.TreeItem {
-    return element;
-  }
-
-  getParent(element: Node): vscode.ProviderResult<Node> {
-    return element;
-  }
-
-  async getChildren(
-    element?: Node | undefined
-  ): Promise<Node[] | undefined | null> {
-    return new Promise(async (res, rej) => {
-      if (!element) {
-        // if this is the root node (no parent), then return the list
-        let sortedTabsGroups = this.tabsState.getAllTabsGroupsSorted();
-        return res(
-          sortedTabsGroups.filter((item) => {
-            return this.filters.every((f) => f(item));
-          })
-        );
-      } else {
-        // else return the inner list
-        const children = await element.getChildren();
-        return res(children);
-      }
-    });
   }
 }
 

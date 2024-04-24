@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Global } from "../common/global";
-import { Branch } from "../model/main/branch";
+import { Global } from "../global";
+import { Branch } from "../model/branch";
 
 export function archieve() {
     let activeState = Global.tabsProvider.getState();

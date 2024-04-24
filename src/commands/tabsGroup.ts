@@ -4,8 +4,8 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { Global } from "../common/global";
-import { TabsGroup } from "../model/main/tabsgroup";
+import { Global } from "../global";
+import { TabsGroup } from "../model/tabsgroup";
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   if (!tabsGroup.id) {

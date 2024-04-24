@@ -7,10 +7,10 @@ import * as vscode from "vscode";
 import 'reflect-metadata';
 import { Type } from "class-transformer";
 import { randomUUID } from "crypto";
-import { Node } from "../interface/node";
+import { Node } from "./node";
 import { TabItem } from "./tabitem";
-import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../../constant";
-import { Global } from '../../common/global';
+import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../constant";
+import { Global } from '../global';
 
 export class TabsGroup extends Node {
   private pinned: boolean = false;
@@ -32,6 +32,11 @@ export class TabsGroup extends Node {
     this.createTime = Date.now();
   }
 
+  public getChildren(): Node[] | Promise<Node[]> {
+    return this.tabs;
+  }
+
+  // our methods
 
   public deepClone(): TabsGroup {
     let newGroup = new TabsGroup();
@@ -51,10 +56,6 @@ export class TabsGroup extends Node {
 
   public getText(): string {
     return "label: " + this.label + ", tags: " + (this.tags.length === 0 ? "empty" : this.tags.join(", "));
-  }
-
-  public getChildren(): Node[] | Promise<Node[]> {
-    return this.tabs;
   }
 
   public isPinned(): boolean {

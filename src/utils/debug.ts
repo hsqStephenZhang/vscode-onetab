@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Global } from "../common/global";
+import { Global } from "../global";
 import { WorkState } from "../common/state";
 
 export function listAllKeys() {

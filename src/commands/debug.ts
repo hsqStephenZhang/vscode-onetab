@@ -1,4 +1,4 @@
-import { Global } from "../common/global";
+import { Global } from "../global";
 import { deleteAllKeys, listAllKeys } from "../utils/debug";
 
 export function debugState() {

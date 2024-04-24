@@ -4,9 +4,9 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import { Global } from "../common/global";
-import { TabItem } from "../model/main/tabitem";
-import { TabsGroup } from "../model/main/tabsgroup";
+import { Global } from "../global";
+import { TabItem } from "../model/tabitem";
+import { TabsGroup } from "../model/tabsgroup";
 import { listAllKeys } from "./debug";
 
 export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {

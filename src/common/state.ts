@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Global } from "./global";
+import { Global } from "../global";
 
 export class GlobalState {
   public static update(key: string, value: any): Thenable<void> {

@@ -7,8 +7,8 @@ import * as vscode from "vscode";
 import "reflect-metadata";
 import { Type } from "class-transformer";
 import { randomUUID } from "crypto";
-import { DEFAULT_TAB_LABEL, CONTEXT_TAB } from "../../constant";
-import { Node } from "../interface/node";
+import { DEFAULT_TAB_LABEL, CONTEXT_TAB } from "../constant";
+import { Node } from "./node";
 
 export class TabItem extends Node {
   @Type(() => vscode.Uri)
