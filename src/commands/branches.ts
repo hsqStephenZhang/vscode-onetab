@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { Global } from "../global";
 import { Branch } from "../model/branch";
 
-export function archieve() {
+export function archive() {
     let activeState = Global.tabsProvider.getState();
     let activeBranchName = Global.branchName;
     Global.branchesProvider.insertOrUpdateBranch(activeBranchName, activeState);

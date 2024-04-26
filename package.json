@@ -7,7 +7,7 @@
     "name": "hsqStephenZhang",
     "email": "2250015961@qq.com"
   },
-  "version": "0.3.1",
+  "version": "0.3.2",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -36,7 +36,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "languages": [
       {
@@ -355,12 +355,11 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "npm-run-all compile:*",
-    "watch": "npm-run-all watch:*",
-    "compile:extension": "tsc -p ./",
-    "watch:extension": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "vscode:prepublish": "rm -rf dist && webpack --mode production",
+    "publish": "vsce publish && npm publish",
+    "compile": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "pretest": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
@@ -368,8 +367,6 @@
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "16.x",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
     "@types/vscode": "^1.69.0",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
@@ -379,8 +376,6 @@
     "glob": "^8.0.3",
     "mocha": "^10.0.0",
     "npm-run-all": "^4.1.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.3.1",
     "typescript": "^4.7.4",
@@ -389,7 +384,6 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@arco-design/web-react": "^2.39.1",
     "class-transformer": "^0.5.1",
     "jshint": "^2.13.5",
     "moment": "^2.29.4",

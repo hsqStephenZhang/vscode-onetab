@@ -28,6 +28,8 @@ suite('Extension Test Suite', () => {
 			for (const tab of group.tabs) {
 				console.log(tab.label, tab.iconPath);
 				assert(tab.iconPath instanceof vscode.ThemeIcon === false);
+				tab.setDefaultIcon();
+				assert(tab.iconPath instanceof vscode.ThemeIcon === true);
 			}
 		}
 	});

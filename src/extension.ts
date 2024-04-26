@@ -33,7 +33,7 @@ import { GitExtension } from "./typeings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
 import { GitFileWatcher, reinitGitBranchGroups } from "./git-utils";
 import { clearState, debugState } from "./commands/debug";
-import { archieve, cloneBranch, pickAndClone } from "./commands/branches";
+import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
 
@@ -124,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // archive: the active state, store it into the non-active branches
   // migrate: clone  a non-active branch state to the current active state
-  vscode.commands.registerCommand("onetab.branches.archive", archieve);
+  vscode.commands.registerCommand("onetab.branches.archive", archive);
   vscode.commands.registerCommand("onetab.branches.pickandrestore", pickAndClone);
   vscode.commands.registerCommand("onetab.branches.restorebranch", cloneBranch);
 
