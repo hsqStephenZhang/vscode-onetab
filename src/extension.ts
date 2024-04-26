@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
   Global.branchesProvider = new BranchesProvider(context);
   const feedbackItems = [
     new ReportIssueLink("https://github.com/hsqStephenZhang/vscode-onetab/issues/new"),
-    new SupportLink("https://github.com/hsqStephenZhang/vscode-onetab")
+    new SupportLink("https://ko-fi.com/babystepping")
   ]
   new FeedbackProvider(context, "oneTabFeedback", feedbackItems);
 
