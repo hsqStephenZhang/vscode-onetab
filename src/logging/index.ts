@@ -8,8 +8,8 @@ import * as vscode from "vscode";
 import * as moment from 'moment';
 
 export enum LogLevel {
-    INFO = 1,
-    DEBUG = 2,
+    DEBUG = 1,
+    INFO = 2,
     WARN = 3,
     ERROR = 4,
 }
@@ -35,21 +35,25 @@ export class OutputChannelLogger implements Logger {
     setLevel(level: LogLevel): void {
         this.logLevel = level;
     }
+
     info(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.INFO) {
             this.outputChannel.appendLine(format("INFO", message, optionalParams));
         }
     }
+
     debug(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.DEBUG) {
             this.outputChannel.appendLine(format("DEBUG", message, optionalParams));
         }
     }
+
     warn(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.WARN) {
             this.outputChannel.appendLine(format("WARN", message, optionalParams));
         }
     }
+
     error(message?: any, ...optionalParams: any[]): void {
         if (this.logLevel <= LogLevel.ERROR) {
             this.outputChannel.appendLine(format("ERROR", message, optionalParams));

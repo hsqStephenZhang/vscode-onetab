@@ -41,10 +41,15 @@ import { ReportIssueLink, SupportLink } from "./model/feedback";
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   Global.context = context;
+  let level = LogLevel.INFO;
+  if (context.extensionMode == vscode.ExtensionMode.Development) {
+    console.log("debug mode is on");
+    level = LogLevel.DEBUG;
+  }
 
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
-  Global.logger = new OutputChannelLogger(LogLevel.INFO, outputChannel);
+  Global.logger = new OutputChannelLogger(level, outputChannel);
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
