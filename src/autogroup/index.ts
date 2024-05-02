@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import Anthropic from '@anthropic-ai/sdk';
 import { getAllTabsWithBlackList, sendTabs } from '../utils/tab';
-import { Global } from '../../dist/extension';
+import { Global } from '../global';
 
 const schema = "{group_name: [file_names]}"
 

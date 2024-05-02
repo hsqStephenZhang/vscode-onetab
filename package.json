@@ -78,11 +78,14 @@
             "default": false,
             "description": "Whether to remove the deleted tabs from tabsGroup"
           },
-          "onetab.autogroup.apikeys":{
+          "onetab.autogroup.apikeys": {
             "scope": "resource",
-            "type":"object",
+            "type": "object",
             "properties": {
-              "claude":{ "type":"string","default":""}
+              "claude": {
+                "type": "string",
+                "default": ""
+              }
             }
           }
         }
@@ -398,6 +401,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.8",
     "class-transformer": "^0.5.1",
     "jshint": "^2.13.5",
     "moment": "^2.29.4",
