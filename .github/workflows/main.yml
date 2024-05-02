@@ -1,10 +1,12 @@
 on:
   push:
     branches:
-    - main
+      - main
+    tags:
+      - 'v*.*.*'
   release:
     types:
-    - created
+      - created
 
 jobs:
   build:
