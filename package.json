@@ -377,7 +377,7 @@
     "pretest": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish --yarn"
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
