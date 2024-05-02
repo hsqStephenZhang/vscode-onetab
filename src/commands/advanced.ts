@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { Global } from "../global";
 import {
+  blacklistFilter,
   getAllTabsWithBlackList,
   getLeftTabs,
   getOtherTabsWithBlacklist,
@@ -47,18 +48,14 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   return undefined;
 }
 
+// TODO: fix blacklist logic
 export async function advancedSendThisTab(uri: vscode.Uri) {
   let tab = getSelectedTab(uri);
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
-  // check if this tab is in the blacklist
+  let filter = blacklistFilter();
   if (
     !tab ||
     !(tab.input instanceof TabInputText) ||
-    !blacklist.every((path) => {
-      return (tab?.input as TabInputText).uri.path !== path;
-    })
+    filter(tab)
   ) {
     vscode.window.showWarningMessage("No selected tab");
     return;

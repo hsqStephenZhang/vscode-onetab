@@ -8,7 +8,7 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -70,7 +70,7 @@
               "type": "string"
             },
             "default": [],
-            "description": "The list of file to be excluded from onetab."
+            "description": "The list of file to be excluded from onetab. Will match by regex"
           },
           "onetab.autoclean": {
             "scope": "resource",

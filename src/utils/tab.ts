@@ -9,21 +9,30 @@ import { TabItem } from "../model/tabitem";
 import { TabsGroup } from "../model/tabsgroup";
 import { listAllKeys } from "./debug";
 
-export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
+
+export function blacklistFilter() {
   let blacklist = vscode.workspace
     .getConfiguration()
     .get("onetab.blacklist") as Array<string>;
+  let regexes = blacklist.map((pattern) => {
+    return new RegExp(pattern);
+  });
+  return (tab: vscode.Tab) => {
+    let path = (tab.input as vscode.TabInputText).uri.path;
+    return regexes.every((re) => {
+      return path.match(re) === null;
+    });
+  }
+}
+
+export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
     .filter((tab) => {
       return tab.input instanceof vscode.TabInputText;
     })
-    .filter((tab) => {
-      return blacklist.every((path) => {
-        return (tab.input as vscode.TabInputText).uri.path !== path;
-      });
-    });
+    .filter(blacklistFilter());
   if (tabs.length === 0) {
     return undefined;
   } else {
@@ -47,20 +56,13 @@ export function getAllTabsWithoutBlackList(): vscode.Tab[] | undefined {
 
 export function getOtherTabsWithBlacklist(uri: vscode.Uri): vscode.Tab[] | undefined {
   let currentTab = getSelectedTab(uri);
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
     .filter((tab) => {
       return tab !== currentTab && tab.input instanceof vscode.TabInputText;
     })
-    .filter((tab) => {
-      return blacklist.every((path) => {
-        return (tab.input as vscode.TabInputText).uri.path !== path;
-      });
-    });
+    .filter(blacklistFilter());
   if (tabs.length === 0) {
     return undefined;
   } else {
@@ -70,9 +72,6 @@ export function getOtherTabsWithBlacklist(uri: vscode.Uri): vscode.Tab[] | undef
 
 export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
   let currentTab = getSelectedTab(uri);
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -81,11 +80,7 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const leftTabs = tabs.slice(0, currentIdx).filter((tab) => {
-      return blacklist.every((path) => {
-        return (tab.input as vscode.TabInputText).uri.path !== path;
-      });
-    });
+    const leftTabs = tabs.slice(0, currentIdx).filter(blacklistFilter());
     if (leftTabs.length === 0) {
       return undefined;
     } else {
@@ -98,9 +93,6 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
 
 export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
   let currentTab = getSelectedTab(uri);
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -109,11 +101,7 @@ export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const rightTabs = tabs.slice(currentIdx + 1, tabs.length).filter((tab) => {
-      return blacklist.every((path) => {
-        return (tab.input as vscode.TabInputText).uri.path !== path;
-      });
-    });
+    const rightTabs = tabs.slice(currentIdx + 1, tabs.length).filter(blacklistFilter());
     if (rightTabs.length === 0) {
       return undefined;
     } else {
