@@ -137,7 +137,7 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 }
 
 // safety: for every item in tabs, item.input is instance of TabInputText
-export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
+export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName? : string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
     let item = new TabItem();
@@ -161,6 +161,9 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string) {
   } else {
     Global.tabsProvider.updateState((state) => {
       group = new TabsGroup();
+      if (groupName){
+        group.setLabel(groupName);
+      }
       group.setTabs(tabItems);
       state.addTabsGroup(group);
       updated = true;

@@ -36,6 +36,7 @@ import { clearState, debugState } from "./commands/debug";
 import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
+import { autoGroup } from "./autogroup";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -127,6 +128,8 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.branches.archive", archive);
   vscode.commands.registerCommand("onetab.branches.pickandrestore", pickAndClone);
   vscode.commands.registerCommand("onetab.branches.restorebranch", cloneBranch);
+  
+  vscode.commands.registerCommand("onetab.autogroup", autoGroup);
 
   const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
   const git = gitExtension?.getAPI(1);

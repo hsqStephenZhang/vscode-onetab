@@ -27,5 +27,6 @@
   "onetab.branches.restorebranch": "onetab: migrate from non-active branch state",
   "onetab.debug.GetState": "onetab: get current storage KVs, only for debug",
   "onetab.debug.clearState": "onetab: clear all KVs, only for debug",
-  "oneTabFeedback.openHelpLink": "onetab: open help link"
+  "oneTabFeedback.openHelpLink": "onetab: open help link",
+  "onetab.autogroup": "onetab: auto group tabs by llm"
 }
