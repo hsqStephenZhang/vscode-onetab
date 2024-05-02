@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { Global } from '../global';
-import { API } from '../typeings/git';
+import { API } from '../typings/git';
 import { DEFAULT_BRANCH_NAME } from '../constant';
-import { GitExtension } from "../typeings/git";
+import { GitExtension } from "../typings/git";
 
 const pattern = "/.git";
 

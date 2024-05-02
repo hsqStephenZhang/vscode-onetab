@@ -29,7 +29,7 @@ import { tabRemove, tabRestore } from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
 import { exportJsonData } from "./exporter";
 import { searchGroup } from "./commands/search";
-import { GitExtension } from "./typeings/git";
+import { GitExtension } from "./typings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
 import { GitFileWatcher, reinitGitBranchGroups } from "./git-utils";
 import { clearState, debugState } from "./commands/debug";
