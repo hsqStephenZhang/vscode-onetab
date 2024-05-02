@@ -8,7 +8,7 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "engines": {
     "vscode": "^1.69.0"
   },
@@ -77,6 +77,13 @@
             "type": "boolean",
             "default": false,
             "description": "Whether to remove the deleted tabs from tabsGroup"
+          },
+          "onetab.autogroup.apikeys":{
+            "scope": "resource",
+            "type":"object",
+            "properties": {
+              "claude":{ "type":"string","default":""}
+            }
           }
         }
       }
@@ -205,6 +212,10 @@
       {
         "command": "oneTabFeedback.openHelpLink",
         "title": "%oneTabFeedback.openHelpLink%"
+      },
+      {
+        "command": "onetab.autogroup",
+        "title": "%onetab.autogroup%"
       }
     ],
     "viewsContainers": {
