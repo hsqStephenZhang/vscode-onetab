@@ -5,22 +5,21 @@
 import * as vscode from "vscode";
 import { TabInputText } from "vscode";
 import {
-  blacklistFilter,
+  notInBlackList,
   getAllTabsWithBlackList,
   getLeftTabs,
   getOtherTabsWithBlacklist,
   getRightTabs,
-  getSelectedTab,
+  getActiveTab,
   sendTabs,
 } from "../utils/tab";
 
 export async function sendThisTab(uri: vscode.Uri) {
-  let tab = getSelectedTab(uri);
-  let filter = blacklistFilter();
+  let tab = getActiveTab(uri);
   if (
     tab &&
     tab.input instanceof TabInputText &&
-    filter(tab)
+    notInBlackList(tab)
   ) {
     await sendTabs([tab]);
   } else {

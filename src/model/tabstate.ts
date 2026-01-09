@@ -3,37 +3,20 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import 'reflect-metadata';
-import { instanceToPlain, plainToInstance, plainToClass, Transform } from 'class-transformer';
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 
-/// tabs state 
-///     => groups: Map<string, TabsGroup>
-///          => TabItem[]
+// JSON Data Transfer Object
+interface TabsStateDTO {
+  groups: { [key: string]: any }; 
+  blackList: string[];            
+}
 
 export class TabsState {
-  @Transform(value => {
-    let map = new Map<string, TabsGroup>();
-    for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(TabsGroup, entry[1])); }
-    return map;
-  }, { toClassOnly: true })
   public groups: Map<string, TabsGroup>;
-
-  // black list of file
-  @Transform(value => {
-    let set = new Set<string>();
-    for (let entry of Object.entries(value.value)) { set.add(entry[0]); }
-    return set;
-  }, { toClassOnly: true })
   public blackList: Set<string>;
-
-  // map from uri.fsPath to group id list
-  @Transform(value => {
-    let map = new Map<string, string[]>();
-    for (let entry of Object.entries(value.value)) { map.set(entry[0], plainToClass(Array<string>, entry[1])); }
-    return map;
-  }, { toClassOnly: true })
+  
+  // Cache: Map from file path -> list of group IDs
   private reverseIndex: Map<string, string[]>;
 
   public constructor() {
@@ -42,81 +25,169 @@ export class TabsState {
     this.reverseIndex = new Map();
   }
 
-  // deep copy the state, change the inner ids
-  public deepClone(): TabsState {
-    let newState = new TabsState();
-    let groupIdDiff = new Map<string, string>();
-    for (const [k, group] of this.groups) {
-      let newGroup = group.deepClone();
-      if (group.id && newGroup.id) {
-        groupIdDiff.set(group.id, newGroup.id);
-      }
-      newState.groups.set(k, newGroup);
-    }
-    for (const k of this.blackList) {
-      newState.blackList.add(k);
-    }
-    // update the reverseIndex, which is a map from fsPath to group ids
-    for (const [k, groupIds] of this.reverseIndex) {
-      let newGroupids = groupIds.map((gid) => {
-        let newId = groupIdDiff.get(gid);
-        if (newId) {
-          return newId;
-        } else {
-          return gid;
-        }
-      });
-      newState.reverseIndex.set(k, newGroupids);
-    }
-    // update the groups 
-    let newGroupEntries = Array.from(newState.groups.entries());
-    for (const [k, group] of newGroupEntries) {
-      let newGroupId = groupIdDiff.get(k);
-      if (newGroupId) {
-        newState.groups.delete(k);
-        newState.groups.set(newGroupId, group);
+  // --- SERIALIZATION ---
+  public toJSON(): TabsStateDTO {
+    const groupsObj: { [key: string]: any } = {};
+    for (const [id, group] of this.groups) {
+      if (id) {
+        groupsObj[id] = group.toJSON();
       }
     }
-    return newState;
-  }
 
+    return {
+      groups: groupsObj,
+      blackList: Array.from(this.blackList),
+    };
+  }
 
   public toString(): string {
-    return JSON.stringify(instanceToPlain(this));
+    return JSON.stringify(this.toJSON());
   }
 
-  // TODO: fixme
+  // --- DESERIALIZATION ---
   public static fromString(s: string): TabsState {
-    let state = plainToInstance(TabsState, JSON.parse(s));
-    for (const [k, group] of state.groups) {
-      group.setPin(group.isPinned());
-      for (const tab of group.getTabs()) {
-        tab.setDefaultIcon();
+    try {
+      const json = JSON.parse(s) as TabsStateDTO;
+      return TabsState.fromJSON(json);
+    } catch (e) {
+      console.error("Failed to parse TabsState", e);
+      return new TabsState();
+    }
+  }
+
+  public static fromJSON(json: TabsStateDTO): TabsState {
+    const state = new TabsState();
+
+    if (Array.isArray(json.blackList)) {
+      state.blackList = new Set(json.blackList);
+    }
+
+    if (json.groups) {
+      for (const key of Object.keys(json.groups)) {
+        const groupDTO = json.groups[key];
+        const group = TabsGroup.fromJSON(groupDTO);
+        
+        // SAFETY CHECK: Ensure ID exists before setting in Map
+        if (group.id) {
+            state.groups.set(group.id, group);
+        }
       }
     }
+
+    state.rebuildReverseIndex();
     return state;
   }
 
-  // getters
+  // --- DEEP CLONE ---
+  public deepClone(): TabsState {
+    const newState = new TabsState();
+    
+    // 1. Clone Groups
+    for (const group of this.groups.values()) {
+      const newGroup = group.deepClone();
+      
+      // SAFETY CHECK: Ensure new group has an ID
+      if (newGroup.id) {
+        newState.groups.set(newGroup.id, newGroup);
+      }
+    }
+
+    // 2. Clone Blacklist
+    for (const item of this.blackList) {
+      newState.blackList.add(item);
+    }
+
+    // 3. Rebuild Index
+    newState.rebuildReverseIndex();
+
+    return newState;
+  }
+
+  // --- INDEX MANAGEMENT ---
+
+  private rebuildReverseIndex() {
+    this.reverseIndex.clear();
+    for (const group of this.groups.values()) {
+      // Skip groups without valid IDs
+      if (!group.id) continue;
+
+      for (const tab of group.getTabs()) {
+        this.addToReverseIndex(tab.fileUri.fsPath, group.id);
+      }
+    }
+  }
+
+  private addToReverseIndex(fsPath: string, groupId: string) {
+    let list = this.reverseIndex.get(fsPath);
+    if (!list) {
+      list = [];
+      this.reverseIndex.set(fsPath, list);
+    }
+    if (!list.includes(groupId)) {
+      list.push(groupId);
+    }
+  }
+
+  private removeFromReverseIndex(fsPath: string, groupId: string) {
+    const list = this.reverseIndex.get(fsPath);
+    if (list) {
+      const newList = list.filter(id => id !== groupId);
+      if (newList.length === 0) {
+        this.reverseIndex.delete(fsPath);
+      } else {
+        this.reverseIndex.set(fsPath, newList);
+      }
+    }
+  }
+
+  // --- METHODS ---
 
   public getGroup(id: string): TabsGroup | undefined {
     return this.groups.get(id);
   }
+
+  public addTabsGroup(group: TabsGroup) {
+    // SAFETY CHECK: Return early if ID is undefined
+    if (!group.id) {
+      return;
+    }
+    
+    this.groups.set(group.id, group);
+
+    for (const tab of group.getTabs()) {
+      this.addToReverseIndex(tab.fileUri.fsPath, group.id);
+    }
+  }
+
+  public removeTabsGroup(id: string) {
+    const group = this.groups.get(id);
+    if (group) {
+      for (const tab of group.getTabs()) {
+        this.removeFromReverseIndex(tab.fileUri.fsPath, id);
+      }
+      this.groups.delete(id);
+    }
+  }
+
+  public tryRemoveTabsGroup(id: string) {
+    const group = this.groups.get(id);
+    if (group && !group.isPinned()) {
+      this.removeTabsGroup(id);
+    }
+  }
+
+  // ... (Getters/Setters below remain mostly the same, ensuring 'id' usage is safe) ...
 
   public getPinnedLists(): TabsGroup[] {
     return Array.from(this.groups.values()).filter((list) => list.isPinned());
   }
 
   public getTitledLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter(
-      (list) => !list.isUntitled()
-    );
+    return Array.from(this.groups.values()).filter((list) => !list.isUntitled());
   }
 
   public getTaggedLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter(
-      (list) => list.getTags().length !== 0
-    );
+    return Array.from(this.groups.values()).filter((list) => list.getTags().length !== 0);
   }
 
   public filter(filters: ((list: TabsGroup) => boolean)[]): TabsGroup[] {
@@ -125,70 +196,36 @@ export class TabsState {
     );
   }
 
-  // setters
-
   public setPinned(id: string, pinned: boolean = true) {
     const g = this.groups.get(id);
-    if (g) {
-      g.setPin(pinned);
-    }
+    if (g) g.setPin(pinned);
   }
 
   public setGroupLabel(id: string, label: string) {
     const g = this.groups.get(id);
-    if (g) {
-      g.setLabel(label);
-    }
+    if (g) g.setLabel(label);
   }
 
   public setGroupTags(id: string, tags: string[]) {
     const g = this.groups.get(id);
-    if (g) {
-      g.setTags(tags);
-      g.tooltip =
-        g.label + ", tags: " + (tags.length === 0 ? "none" : tags.join(", "));
-    }
+    if (g) g.setTags(tags);
   }
 
   public addTagsToGroup(id: string, tags: string[]) {
     const g = this.groups.get(id);
-    if (g) {
-      g.extendTags(tags);
-    }
+    if (g) g.extendTags(tags);
   }
 
   public setGroupTabs(id: string, newTabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
-      let oldTabs = g.getTabs();
-      g.setTabs(newTabs);
-
-      // update for old
+      const oldTabs = g.getTabs();
       for (const tab of oldTabs) {
-        let fsPath = tab.fileUri.fsPath;
-        let includeTabGroups = this.reverseIndex.get(fsPath);
-        if (includeTabGroups === undefined) {
-          continue;
-        } else {
-          includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          if (includeTabGroups.length === 0) {
-            this.reverseIndex.delete(fsPath);
-          } else {
-            this.reverseIndex.set(fsPath, includeTabGroups);
-          }
-        }
+        this.removeFromReverseIndex(tab.fileUri.fsPath, id);
       }
-
-      // update for new
+      g.setTabs(newTabs);
       for (const tab of newTabs) {
-        let fsPath = tab.fileUri.fsPath;
-        let includeTabGroups = this.reverseIndex.get(fsPath);
-        if (includeTabGroups === undefined) {
-          this.reverseIndex.set(fsPath, [id]);
-        } else {
-          includeTabGroups.push(id);
-          this.reverseIndex.set(fsPath, includeTabGroups);
-        }
+        this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
     }
   }
@@ -196,90 +233,25 @@ export class TabsState {
   public addTabsToGroup(id: string, tabs: TabItem[]) {
     const g = this.groups.get(id);
     if (g) {
-      let oldTabs = g.getTabs();
-      let newTabs = tabs.filter((tab) => {
+      const oldTabs = g.getTabs();
+      const newTabs = tabs.filter((tab) => {
         return !oldTabs.some((t) => t.fileUri.fsPath === tab.fileUri.fsPath);
       });
       g.extendTabs(newTabs);
-
       for (const tab of newTabs) {
-        let fsPath = tab.fileUri.fsPath;
-        let includeTabGroups = this.reverseIndex.get(fsPath);
-        if (includeTabGroups === undefined) {
-          this.reverseIndex.set(fsPath, [id]);
-        } else {
-          includeTabGroups.push(id);
-          this.reverseIndex.set(fsPath, includeTabGroups);
-        }
+        this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
     }
   }
 
-  public addTabsGroup(group: TabsGroup) {
-    if (!group.id) {
-      return;
-    }
-    this.groups.set(group.id, group);
-
-    for (const tab of group.getTabs()) {
-      let fsPath = tab.fileUri.fsPath;
-      let includeTabGroups = this.reverseIndex.get(fsPath);
-      if (includeTabGroups === undefined) {
-        this.reverseIndex.set(fsPath, [group.id]);
-      } else {
-        includeTabGroups.push(group.id);
-        this.reverseIndex.set(fsPath, includeTabGroups);
-      }
-    }
-  }
-
-  // try to removed the group, if the group is not pinnned
-  public tryRemoveTabsGroup(id: string) {
-    const group = this.groups.get(id);
-    if (group) {
-      if (!group.isPinned()) {
-        this.removeTabsGroup(id);
-      }
-    }
-  }
-
-  // force removing the 
-  public removeTabsGroup(id: string) {
-    const group = this.groups.get(id);
-    if (group) {
-      for (const tab of group.getTabs()) {
-        let fsPath = tab.fileUri.fsPath;
-        let includeTabGroups = this.reverseIndex.get(fsPath);
-        if (includeTabGroups === undefined) {
-          continue;
-        } else {
-          includeTabGroups = includeTabGroups.filter((gid) => gid !== id);
-          if (includeTabGroups.length === 0) {
-            this.reverseIndex.delete(fsPath);
-          } else {
-            this.reverseIndex.set(fsPath, includeTabGroups);
-          }
-        }
-      }
-      this.groups.delete(id);
-    }
-  }
-
-  // TODO: fixme, use the tab's id instead of fsPath
   public removeTabFromGroup(groupId: string, fsPath: string) {
     const group = this.groups.get(groupId);
     if (group) {
+      const originalLength = group.getTabs().length;
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-      let includeTabGroups = this.reverseIndex.get(fsPath);
-      if (includeTabGroups === undefined) {
-        return;
-      } else {
-        includeTabGroups = includeTabGroups.filter((gid) => gid !== groupId);
-        if (includeTabGroups.length === 0) {
-          this.reverseIndex.delete(fsPath);
-        } else {
-          this.reverseIndex.set(fsPath, includeTabGroups);
-        }
+      
+      if (group.getTabs().length < originalLength) {
+        this.removeFromReverseIndex(fsPath, groupId);
       }
 
       if (group.getTabs().length === 0) {
@@ -289,97 +261,77 @@ export class TabsState {
   }
 
   public removeTabFromAllGroups(fsPath: string) {
-    let includeTabGroups = this.reverseIndex.get(fsPath);
-    if (includeTabGroups === undefined) {
-      return;
-    } else {
-      for (const gid of includeTabGroups) {
-        const group = this.groups.get(gid);
-        if (group) {
-          group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-          if (group.getTabs().length === 0 && group.id) {
-            this.groups.delete(group.id);
-          }
+    const includeTabGroups = this.reverseIndex.get(fsPath);
+    if (!includeTabGroups) return;
+
+    const groupsToRemove = [...includeTabGroups];
+
+    for (const gid of groupsToRemove) {
+      const group = this.groups.get(gid);
+      if (group) {
+        group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
+        this.removeFromReverseIndex(fsPath, gid);
+        if (group.getTabs().length === 0 && group.id) {
+          this.groups.delete(group.id);
         }
       }
-      this.reverseIndex.delete(fsPath);
     }
   }
 
   public mergeTabsGroup(dst_id: string, src_ids: (string | undefined)[]) {
     const dst = this.groups.get(dst_id);
+    if (!dst) return;
 
-    if (dst) {
-      // let merged_labels = "";
-      let merged_labels: string[] = [];
-      for (const src_id of src_ids) {
-        if (src_id === undefined) {
-          continue;
+    const merged_labels: string[] = [];
+
+    for (const src_id of src_ids) {
+      if (!src_id || src_id === dst_id) continue;
+      
+      const srcGroup = this.groups.get(src_id);
+      if (srcGroup) {
+        dst.extendTabs(srcGroup.getTabs());
+        for (const tab of srcGroup.getTabs()) {
+          this.addToReverseIndex(tab.fileUri.fsPath, dst_id);
         }
-        const srcGroup = this.groups.get(src_id);
-        if (srcGroup) {
-          for (const tab of srcGroup.getTabs()) {
-            let fsPath = tab.fileUri.fsPath;
-            let includeTabGroups = this.reverseIndex.get(fsPath);
-            if (includeTabGroups === undefined) {
-              this.reverseIndex.set(fsPath, [dst_id]);
-            } else {
-              includeTabGroups.push(dst_id);
-              this.reverseIndex.set(fsPath, includeTabGroups);
-            }
-          }
-          dst.extendTabs(srcGroup.getTabs());
-          merged_labels.push(srcGroup.label);
-          this.tryRemoveTabsGroup(src_id);
-        }
+        merged_labels.push(srcGroup.label as string);
+        this.tryRemoveTabsGroup(src_id);
       }
-      dst.removeDuplicateTabs()
-      if (merged_labels.length > 0) {
-        dst.setLabel(dst.label + "(merged with:" + merged_labels.join(", ") + ")");
-      }
+    }
+
+    dst.removeDuplicateTabs();
+    
+    if (merged_labels.length > 0) {
+      dst.setLabel(dst.label + " (merged with: " + merged_labels.join(", ") + ")");
     }
   }
 
   public getAllTabsGroupsSorted(): TabsGroup[] {
-    let pinnedGroups = new Map(
-      Array.from(this.groups.values())
-        .filter((item) => item.isPinned())
-        .map((item) => [item.id, true])
-    );
-    let namedGroups = new Map(
-      Array.from(this.groups.values())
-        .filter((item) => !item.isUntitled())
-        .map((item) => [item.id, true])
-    );
-    let taggedGroups = new Map(
-      Array.from(this.groups.values())
-        .filter((item) => item.getTags().length !== 0)
-        .map((item) => [item.id, true])
-    );
-    // order by: 1. pinned, 2. named, 3. create time
-    let sortedGroups = Array.from(this.groups.values())
-      .map((item) => {
+    const pinnedIds = new Set<string>();
+    const namedIds = new Set<string>();
+    const taggedIds = new Set<string>();
+
+    for (const group of this.groups.values()) {
+      if (!group.id) continue;
+      if (group.isPinned()) pinnedIds.add(group.id);
+      if (!group.isUntitled()) namedIds.add(group.id);
+      if (group.getTags().length > 0) taggedIds.add(group.id);
+    }
+
+    return Array.from(this.groups.values())
+      .map((group) => {
         let score = 0;
-        if (pinnedGroups.has(item.id)) {
-          score += 100;
+        if (group.id) {
+            if (pinnedIds.has(group.id)) score += 100;
+            if (namedIds.has(group.id)) score += 10;
+            if (taggedIds.has(group.id)) score += 1;
         }
-        if (namedGroups.has(item.id)) {
-          score += 10;
-        }
-        if (taggedGroups.has(item.id)) {
-          score += 1;
-        }
-        return { group: item, score: score };
+        return { group, score };
       })
       .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
         return b.group.createTime - a.group.createTime;
       })
-      .sort((a, b) => {
-        return b.score - a.score;
-      })
       .map((item) => item.group);
-
-    return sortedGroups;
   }
 }
 

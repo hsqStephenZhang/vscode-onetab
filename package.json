@@ -98,6 +98,11 @@
         "category": "Onetab"
       },
       {
+        "command": "onetab.send.selectedTabs",
+        "title": "selectedTabs",
+        "category": "Onetab"
+      },
+      {
         "command": "onetab.send.otherTabs",
         "title": "%onetab.send.otherTabs%",
         "category": "Onetab"
@@ -432,9 +437,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.9",
-    "class-transformer": "^0.5.1",
     "jshint": "^2.13.6",
-    "moment": "^2.30.1",
-    "reflect-metadata": "^0.1.14"
+    "moment": "^2.30.1"
   }
 }

@@ -4,7 +4,7 @@ import { TabsState } from "../model/tabstate";
 import { WorkState } from "../common/state";
 import { BRANCHES_KEY } from "../constant";
 import { Branch, BranchStates } from "../model/branch";
-import { instanceToPlain, plainToInstance } from "class-transformer";
+import { randomUUID } from "crypto";
 
 // TreeDataProvider for `branches` treeview in the sidebar
 export class BranchesProvider implements vscode.TreeDataProvider<Node> {
@@ -42,10 +42,14 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
         return new Promise(async (res, _rej) => {
             if (!element) {
                 // if this is the root node (no parent), then return the list
-                let allBranches = [];
-                for (const [branchName, branch] of this.branchState.branches.entries()) {
-                    allBranches.push(new Branch(branchName, branch))
-                };
+                let allBranches: Branch[] = [];
+                // Sort branches? (Optional: alphabetical)
+                const sortedEntries = Array.from(this.branchState.branches.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                
+                for (const [branchName, branch] of sortedEntries) {
+                    let id = randomUUID();
+                    allBranches.push(new Branch(id, branchName, branch));
+                }
                 return res(allBranches);
             } else {
                 // else return the inner list
@@ -63,32 +67,47 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
 
     public clearState() {
         this.branchState = new BranchStates();
-        WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
-        this.refresh();
+        // Clear storage
+        this.update();
     }
 
-    // TODO: fixme 
     reloadState() {
-        const defaultState = new BranchStates();
-        const s = WorkState.get(BRANCHES_KEY, JSON.stringify(instanceToPlain(defaultState)));
-        const newState = plainToInstance(BranchStates, JSON.parse(s));
-        // hot fix of the iconPath problem
-        for (const [branchName, state] of newState.branches.entries()) {
-            for (const [k, group] of state.groups) {
-                group.setPin(group.isPinned());
-                for (const tab of group.getTabs()) {
-                    tab.setDefaultIcon();
+        // 1. Get raw string
+        const s = WorkState.get(BRANCHES_KEY, "");
+        
+        if (!s) {
+            this.branchState = new BranchStates();
+            return;
+        }
+
+        try {
+            // 2. Parse JSON
+            const rawObj = JSON.parse(s);
+            const newState = new BranchStates();
+
+            // 3. Rehydrate (Manually map Object -> Map<string, TabsState>)
+            // We assume the saved JSON structure is { branches: { "name": TabsStateDTO, ... } }
+            if (rawObj && rawObj.branches) {
+                for (const [name, rawTabState] of Object.entries(rawObj.branches)) {
+                    // Use the static factory we created in TabsState
+                    // This handles re-creating the Maps, Sets, and Icons automatically
+                    const tabState = TabsState.fromJSON(rawTabState as any);
+                    newState.branches.set(name, tabState);
                 }
             }
+
+            this.branchState = newState;
+            this._onDidChangeTreeData.fire();
+
+        } catch (e) {
+            console.error("Failed to reload branches state", e);
+            this.branchState = new BranchStates();
         }
-        this.branchState = newState;
-        this._onDidChangeTreeData.fire();
     }
 
     public allBranches(): string[] {
         return Array.from(this.branchState.branches.keys());
     }
-
 
     public getBranchState(branchName: string): TabsState | undefined {
         return this.branchState.branches.get(branchName);
@@ -106,7 +125,20 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
     }
 
     public update() {
-        WorkState.update(BRANCHES_KEY, JSON.stringify(instanceToPlain(this.branchState)));
+        // 1. Serialize Map -> Object
+        // We cannot just stringify `this.branchState` because Maps don't serialize to JSON automatically.
+        const branchesObj: Record<string, any> = {};
+        
+        for (const [name, state] of this.branchState.branches) {
+            branchesObj[name] = state.toJSON(); // Delegate to TabsState.toJSON()
+        }
+
+        const dataToSave = {
+            branches: branchesObj
+        };
+
+        // 2. Save
+        WorkState.update(BRANCHES_KEY, JSON.stringify(dataToSave));
         this._onDidChangeTreeData.fire();
     }
 

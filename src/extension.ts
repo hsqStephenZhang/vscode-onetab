@@ -1,6 +1,5 @@
 import { LogLevel, OutputChannelLogger } from "./logging/index";
 import * as vscode from "vscode";
-import "reflect-metadata";
 import { TabsProvider } from "./providers/activeGroupsProvider";
 import { Global } from "./global";
 import {

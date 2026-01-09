@@ -10,19 +10,22 @@ import { TabsGroup } from "../model/tabsgroup";
 import { listAllKeys } from "./debug";
 
 
-export function blacklistFilter() {
+export function tabIsTextInput(tab: vscode.Tab): boolean {
+  return tab.input instanceof vscode.TabInputText;
+}
+
+export function notInBlackList(tab: vscode.Tab): boolean {
   let blacklist = vscode.workspace
     .getConfiguration()
     .get("onetab.blacklist") as Array<string>;
   let regexes = blacklist.map((pattern) => {
     return new RegExp(pattern);
   });
-  return (tab: vscode.Tab) => {
-    let path = (tab.input as vscode.TabInputText).uri.path;
-    return regexes.every((re) => {
-      return path.match(re) === null;
-    });
-  }
+  let path = (tab.input as vscode.TabInputText).uri.path;
+  // no blacklist item matches
+  return !regexes.some((re) => {
+    return path.match(re) !== null;
+  });
 }
 
 export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
@@ -32,7 +35,7 @@ export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
     .filter((tab) => {
       return tab.input instanceof vscode.TabInputText;
     })
-    .filter(blacklistFilter());
+    .filter(notInBlackList);
   if (tabs.length === 0) {
     return undefined;
   } else {
@@ -55,14 +58,14 @@ export function getAllTabsWithoutBlackList(): vscode.Tab[] | undefined {
 }
 
 export function getOtherTabsWithBlacklist(uri: vscode.Uri): vscode.Tab[] | undefined {
-  let currentTab = getSelectedTab(uri);
+  let currentTab = getActiveTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
     .filter((tab) => {
       return tab !== currentTab && tab.input instanceof vscode.TabInputText;
     })
-    .filter(blacklistFilter());
+    .filter(notInBlackList);
   if (tabs.length === 0) {
     return undefined;
   } else {
@@ -71,7 +74,7 @@ export function getOtherTabsWithBlacklist(uri: vscode.Uri): vscode.Tab[] | undef
 }
 
 export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
-  let currentTab = getSelectedTab(uri);
+  let currentTab = getActiveTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -80,7 +83,7 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const leftTabs = tabs.slice(0, currentIdx).filter(blacklistFilter());
+    const leftTabs = tabs.slice(0, currentIdx).filter(notInBlackList);
     if (leftTabs.length === 0) {
       return undefined;
     } else {
@@ -92,7 +95,7 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
 }
 
 export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
-  let currentTab = getSelectedTab(uri);
+  let currentTab = getActiveTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
     .flat(1)
@@ -101,7 +104,7 @@ export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const rightTabs = tabs.slice(currentIdx + 1, tabs.length).filter(blacklistFilter());
+    const rightTabs = tabs.slice(currentIdx + 1, tabs.length).filter(notInBlackList);
     if (rightTabs.length === 0) {
       return undefined;
     } else {
@@ -117,7 +120,7 @@ export function getActive(): vscode.Tab {
   return vscode.window.tabGroups.activeTabGroup.activeTab as vscode.Tab;
 }
 
-export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
+export function getActiveTab(uri: vscode.Uri): vscode.Tab | undefined {
   const allTabs = getAllTabsWithoutBlackList();
   if (allTabs) {
     const tab = allTabs.find((tab) => {
@@ -137,7 +140,7 @@ export function getSelectedTab(uri: vscode.Uri): vscode.Tab | undefined {
 }
 
 // safety: for every item in tabs, item.input is instance of TabInputText
-export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName? : string) {
+export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
     let item = new TabItem();
@@ -161,7 +164,7 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName? 
   } else {
     Global.tabsProvider.updateState((state) => {
       group = new TabsGroup();
-      if (groupName){
+      if (groupName) {
         group.setLabel(groupName);
       }
       group.setTabs(tabItems);
