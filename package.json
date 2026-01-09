@@ -259,6 +259,12 @@
           "submenu": "onetab.title.context.submenu"
         }
       ],
+      "explorer/context": [
+        {
+          "group": "1_onetab",
+          "submenu": "onetab.title.context.submenu"
+        }
+      ],
       "view/item/context": [
         {
           "command": "onetab.tabsGroup.pin",
