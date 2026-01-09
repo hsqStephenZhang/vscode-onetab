@@ -245,6 +245,19 @@
         "category": "Onetab"
       }
     ],
+    "keybindings": [
+      {
+        "command": "onetab.send.thisTab",
+        "key": "cmd+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "onetab.send.allTabs",
+        "key": "cmd+shift+a",
+        "mac": "cmd+shift+a"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
