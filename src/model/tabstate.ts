@@ -8,14 +8,14 @@ import { TabsGroup } from "./tabsgroup";
 
 // JSON Data Transfer Object
 interface TabsStateDTO {
-  groups: { [key: string]: any }; 
-  blackList: string[];            
+  groups: { [key: string]: any };
+  blackList: string[];
 }
 
 export class TabsState {
   public groups: Map<string, TabsGroup>;
   public blackList: Set<string>;
-  
+
   // Cache: Map from file path -> list of group IDs
   private reverseIndex: Map<string, string[]>;
 
@@ -66,10 +66,10 @@ export class TabsState {
       for (const key of Object.keys(json.groups)) {
         const groupDTO = json.groups[key];
         const group = TabsGroup.fromJSON(groupDTO);
-        
+
         // SAFETY CHECK: Ensure ID exists before setting in Map
         if (group.id) {
-            state.groups.set(group.id, group);
+          state.groups.set(group.id, group);
         }
       }
     }
@@ -81,11 +81,11 @@ export class TabsState {
   // --- DEEP CLONE ---
   public deepClone(): TabsState {
     const newState = new TabsState();
-    
+
     // 1. Clone Groups
     for (const group of this.groups.values()) {
       const newGroup = group.deepClone();
-      
+
       // SAFETY CHECK: Ensure new group has an ID
       if (newGroup.id) {
         newState.groups.set(newGroup.id, newGroup);
@@ -151,7 +151,7 @@ export class TabsState {
     if (!group.id) {
       return;
     }
-    
+
     this.groups.set(group.id, group);
 
     for (const tab of group.getTabs()) {
@@ -249,7 +249,7 @@ export class TabsState {
     if (group) {
       const originalLength = group.getTabs().length;
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-      
+
       if (group.getTabs().length < originalLength) {
         this.removeFromReverseIndex(fsPath, groupId);
       }
@@ -286,10 +286,17 @@ export class TabsState {
 
     for (const src_id of src_ids) {
       if (!src_id || src_id === dst_id) continue;
-      
+
       const srcGroup = this.groups.get(src_id);
       if (srcGroup) {
-        dst.extendTabs(srcGroup.getTabs());
+
+        const clonedTabs = srcGroup.getTabs().map(t => {
+          const nt = t.deepClone();     // new UUID id
+          nt.parentId = dst_id;         // re-parent
+          return nt;
+        });
+
+        dst.extendTabs(clonedTabs);
         for (const tab of srcGroup.getTabs()) {
           this.addToReverseIndex(tab.fileUri.fsPath, dst_id);
         }
@@ -299,7 +306,7 @@ export class TabsState {
     }
 
     dst.removeDuplicateTabs();
-    
+
     if (merged_labels.length > 0) {
       dst.setLabel(dst.label + " (merged with: " + merged_labels.join(", ") + ")");
     }
@@ -321,9 +328,9 @@ export class TabsState {
       .map((group) => {
         let score = 0;
         if (group.id) {
-            if (pinnedIds.has(group.id)) score += 100;
-            if (namedIds.has(group.id)) score += 10;
-            if (taggedIds.has(group.id)) score += 1;
+          if (pinnedIds.has(group.id)) score += 100;
+          if (namedIds.has(group.id)) score += 10;
+          if (taggedIds.has(group.id)) score += 1;
         }
         return { group, score };
       })
