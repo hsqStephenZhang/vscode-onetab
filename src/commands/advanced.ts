@@ -137,19 +137,32 @@ export async function advancedSendAllTabs() {
 export async function sendToBlackList(uri: vscode.Uri) {
   let conf = vscode.workspace.getConfiguration();
   let blacklist = conf.get("onetab.blacklist") as Array<string>;
-  if (blacklist.includes(uri.path)) {
-    vscode.window.showWarningMessage("Tab already in the blacklist");
+  
+  if (!blacklist) {
+    Global.logger.debug("No blacklist found");
     return;
   }
-  if (blacklist) {
-    blacklist.push(uri.path);
-    vscode.workspace
-      .getConfiguration()
-      .update("onetab.blacklist", blacklist, false);
-    Global.logger.debug(
-      "blacklist:" + (blacklist as Array<string>).join(",\n\t")
-    );
-  } else {
-    Global.logger.debug("No blacklist");
+
+  // Determine if the URI is a file or directory
+  const stat = await vscode.workspace.fs.stat(uri);
+  const isDirectory = (stat.type & vscode.FileType.Directory) !== 0;
+  
+  // Format the pattern: use "dir/**" for directories, plain path for files
+  const pattern = isDirectory ? uri.path.replace(/\/$/, "") + "/**" : uri.path;
+  
+  // Check if pattern already exists in blacklist
+  if (blacklist.includes(pattern)) {
+    vscode.window.showWarningMessage(`${isDirectory ? "Directory" : "File"} already in the blacklist`);
+    return;
   }
+  
+  // Add pattern to blacklist
+  blacklist.push(pattern);
+  await vscode.workspace
+    .getConfiguration()
+    .update("onetab.blacklist", blacklist, false);
+  
+  Global.logger.debug(
+    "blacklist:" + (blacklist as Array<string>).join(",\n\t")
+  );
 }

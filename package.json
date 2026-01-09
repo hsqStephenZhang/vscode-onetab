@@ -94,75 +94,92 @@
     "commands": [
       {
         "command": "onetab.send.thisTab",
-        "title": "%onetab.send.thisTab%"
+        "title": "%onetab.send.thisTab%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.send.otherTabs",
-        "title": "%onetab.send.otherTabs%"
+        "title": "%onetab.send.otherTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.send.leftTabs",
-        "title": "%onetab.send.leftTabs%"
+        "title": "%onetab.send.leftTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.send.rightTabs",
-        "title": "%onetab.send.rightTabs%"
+        "title": "%onetab.send.rightTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.send.allTabs",
-        "title": "%onetab.send.allTabs%"
+        "title": "%onetab.send.allTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.advanced.send.thisTab",
-        "title": "%onetab.advanced.send.thisTab%"
+        "title": "%onetab.advanced.send.thisTab%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.advanced.send.otherTabs",
-        "title": "%onetab.advanced.send.otherTabs%"
+        "title": "%onetab.advanced.send.otherTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.advanced.send.leftTabs",
-        "title": "%onetab.advanced.send.leftTabs%"
+        "title": "%onetab.advanced.send.leftTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.advanced.send.rightTabs",
-        "title": "%onetab.advanced.send.rightTabs%"
+        "title": "%onetab.advanced.send.rightTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.advanced.send.allTabs",
-        "title": "%onetab.advanced.send.allTabs%"
+        "title": "%onetab.advanced.send.allTabs%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.send.blacklist",
-        "title": "%onetab.send.blacklist%"
+        "title": "%onetab.send.blacklist%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.edit.blacklist",
-        "title": "%onetab.edit.blacklist%"
+        "title": "%onetab.edit.blacklist%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.tab.restore",
         "title": "%onetab.tab.restore%",
+        "category": "Onetab",
         "icon": "$(refresh)"
       },
       {
         "command": "onetab.tab.remove",
         "title": "%onetab.tab.remove%",
+        "category": "Onetab",
         "icon": "$(close)"
       },
       {
         "command": "onetab.tabsGroup.restore",
         "title": "%onetab.tabsGroup.restore%",
+        "category": "Onetab",
         "icon": "$(refresh)"
       },
       {
         "command": "onetab.tabsGroup.rename",
         "title": "%onetab.tabsGroup.rename%",
+        "category": "Onetab",
         "icon": "$(pencil)"
       },
       {
         "command": "onetab.tabsGroup.pin",
         "title": "%onetab.tabsGroup.pin%",
+        "category": "Onetab",
         "icon": {
           "light": "media/pin-dark.svg",
           "dark": "media/pin-light.svg"
@@ -171,54 +188,61 @@
       {
         "command": "onetab.tabsGroup.remove",
         "title": "%onetab.tabsGroup.remove%",
+        "category": "Onetab",
         "icon": "$(close)"
       },
       {
         "command": "onetab.tabsGroup.tag",
         "title": "%onetab.tabsGroup.tag%",
+        "category": "Onetab",
         "icon": "$(tag)"
       },
       {
         "command": "onetab.export",
         "title": "%onetab.export%",
+        "category": "Onetab",
         "icon": "$(tag)"
       },
       {
-        "command": "onetab.advanced.send.thisTab",
-        "title": "%onetab.advanced.send.thisTab%"
-      },
-      {
         "command": "onetab.search",
-        "title": "%onetab.search%"
+        "title": "%onetab.search%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.branches.archive",
-        "title": "%onetab.branches.archive%"
+        "title": "%onetab.branches.archive%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.branches.pickandrestore",
-        "title": "%onetab.branches.pickandrestore%"
+        "title": "%onetab.branches.pickandrestore%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.branches.restorebranch",
         "title": "%onetab.branches.restorebranch%",
+        "category": "Onetab",
         "icon": "$(refresh)"
       },
       {
         "command": "onetab.debug.GetState",
-        "title": "%onetab.debug.GetState%"
+        "title": "%onetab.debug.GetState%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.debug.clearState",
-        "title": "%onetab.debug.clearState%"
+        "title": "%onetab.debug.clearState%",
+        "category": "Onetab"
       },
       {
         "command": "oneTabFeedback.openHelpLink",
-        "title": "%oneTabFeedback.openHelpLink%"
+        "title": "%oneTabFeedback.openHelpLink%",
+        "category": "Onetab"
       },
       {
         "command": "onetab.autogroup",
-        "title": "%onetab.autogroup%"
+        "title": "%onetab.autogroup%",
+        "category": "Onetab"
       }
     ],
     "viewsContainers": {

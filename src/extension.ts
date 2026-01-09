@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.send.blacklist", sendToBlackList);
   vscode.commands.registerCommand("onetab.edit.blacklist", () => {
     vscode.commands.executeCommand(
-      "workbench.action.openSettings",
+      "workbench.action.openWorkspaceSettings",
       "onetab.blacklist"
     );
   });
