@@ -40,14 +40,11 @@ export class GitFileWatcher {
 
     constructor() {
         this.watcher = vscode.workspace.createFileSystemWatcher(
-            "**/*",
-            false,
-            false,
-            false
+            "**/.git{,/**}"
         );
         this.watcher.onDidCreate((uri) => {
             // the creation of .git folder
-            if (uri.fsPath.endsWith(pattern)) {
+            if (uri.fsPath.endsWith(pattern) || uri.fsPath.includes(pattern + "/")) {
                 const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
                 const git = gitExtension?.getAPI(1);
                 if (git) {
