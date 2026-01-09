@@ -8,6 +8,7 @@ import { Global } from "../global";
 import { TabItem } from "../model/tabitem";
 import { TabsGroup } from "../model/tabsgroup";
 import { listAllKeys } from "./debug";
+import * as path from "path";
 
 
 export function tabIsTextInput(tab: vscode.Tab): boolean {
@@ -139,12 +140,50 @@ export function getActiveTab(uri: vscode.Uri): vscode.Tab | undefined {
   }
 }
 
+function getLabelBaseFolder(uri: vscode.Uri): string | undefined {
+  // Prefer the workspace folder that contains the file (if any),
+  // otherwise fall back to the "active" workspace folder,
+  // otherwise fall back to the first workspace folder.
+  const containing = vscode.workspace.getWorkspaceFolder(uri);
+  if (containing) return containing.uri.fsPath;
+
+  const activeEditorUri = vscode.window.activeTextEditor?.document?.uri;
+  if (activeEditorUri) {
+    const activeWs = vscode.workspace.getWorkspaceFolder(activeEditorUri);
+    if (activeWs) return activeWs.uri.fsPath;
+  }
+
+  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+}
+
+function getRelativeTabLabel(uri: vscode.Uri, fallbackLabel?: string): string {
+  // Only file URIs have stable fsPath semantics.
+  if (uri.scheme === "file") {
+    const base = getLabelBaseFolder(uri);
+    if (base) {
+      // This will yield things like "../proj2/readme.md" when outside base.
+      let rel = path.relative(base, uri.fsPath);
+
+      // Ensure it doesn't become an empty string (e.g., base == file path)
+      if (!rel) rel = path.basename(uri.fsPath);
+
+      // Normalize for display (VS Code labels commonly use forward slashes)
+      return rel.split(path.sep).join("/");
+    }
+
+    // No workspace at all—fall back to basename rather than an absolute path label.
+    return path.basename(uri.fsPath);
+  }
+
+  // Non-file schemes (untitled, vscode-remote, etc.)
+  return fallbackLabel ?? uri.path.split("/").filter(Boolean).pop() ?? "";
+}
 // safety: for every item in tabs, item.input is instance of TabInputText
 export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?: string) {
   const tabItems = tabs.map((tab) => {
     let textFile = tab.input as vscode.TabInputText;
     let item = new TabItem();
-    item.setLabel(tab.label);
+    item.setLabel(getRelativeTabLabel(textFile.uri, tab.label));
     item.setFileUri(textFile.uri);
     item.setDefaultIcon();
     item.parentId = groupId;
