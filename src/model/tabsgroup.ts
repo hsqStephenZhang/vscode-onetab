@@ -34,11 +34,7 @@ export class TabsGroup extends Node {
 
     let groupLabel = label;
     if (!groupLabel) {
-      groupLabel = DEFAULT_TAB_GROUP_LABEL + Global.GroupCnt;
-      // Only increment counter if we are creating a fresh group, not loading one
-      if (!id) {
-        Global.GroupCnt++;
-      }
+      groupLabel = DEFAULT_TAB_GROUP_LABEL + Global.getAndIncGroupCnt();
     }
 
     super(groupId, groupLabel, vscode.TreeItemCollapsibleState.Collapsed);
@@ -52,7 +48,7 @@ export class TabsGroup extends Node {
   public toJSON(): TabsGroupDTO {
     return {
       id: this.id!,
-      label: (typeof this.label === 'string' ? this.label : this.label?.label) || DEFAULT_TAB_GROUP_LABEL,
+      label:this.getLabel(),
       pinned: this.pinned,
       tags: this.tags,
       createTime: this.createTime,
@@ -109,6 +105,10 @@ export class TabsGroup extends Node {
 
     newGroup.updateTooltip();
     return newGroup;
+  }
+
+  public getLabel(): string {
+    return typeof this.label === 'string' ? this.label : (this.label?.label || DEFAULT_TAB_GROUP_LABEL);
   }
 
   public getText(): string {

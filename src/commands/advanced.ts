@@ -27,7 +27,7 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
 
   let items: vscode.QuickPickItem[] = groups.map((group) => {
     return {
-      label: typeof group.label === 'string' ? group.label : group.label?.label,
+      label: group.getLabel(),
       description: group
         .getTabs()
         .map((tab) => tab.label)

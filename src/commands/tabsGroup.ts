@@ -45,7 +45,7 @@ export async function tabsGroupRename(group: TabsGroup) {
   const id = group.id;
   const newName = await vscode.window.showInputBox({
     prompt: "New name",
-    value: group.label,
+    value: group.getLabel(),
   });
   if (newName) {
     Global.tabsProvider.updateState((state) => {

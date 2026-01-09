@@ -45,7 +45,7 @@ export class TabItem extends Node {
   public toJSON(): TabItemDTO {
     return {
       id: this.id || randomUUID(),
-      label: typeof this.label === 'string' ? this.label : DEFAULT_TAB_LABEL,
+      label: this.getLabel(),
       fileUri: this.fileUri.toString(), // Convert URI object to string
     };
   }
@@ -54,10 +54,10 @@ export class TabItem extends Node {
   public static fromJSON(json: TabItemDTO): TabItem {
     // 1. Revive URI
     const uri = vscode.Uri.parse(json.fileUri);
-    
+
     // 2. Create instance with restored ID and Label
     const item = new TabItem(uri, json.id, json.label);
-    
+
     return item;
   }
 
@@ -83,5 +83,9 @@ export class TabItem extends Node {
 
   public setDefaultIcon() {
     this.iconPath = new vscode.ThemeIcon("output-view-icon");
+  }
+
+  public getLabel(): string {
+    return typeof this.label === 'string' ? this.label : (this.label?.label || DEFAULT_TAB_LABEL);
   }
 }
