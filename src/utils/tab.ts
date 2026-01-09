@@ -176,6 +176,6 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
   // check if state are updated
   if (updated) {
     listAllKeys();
-    vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
+    await vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
   }
 }
