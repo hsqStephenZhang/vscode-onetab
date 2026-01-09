@@ -98,11 +98,6 @@
         "category": "Onetab"
       },
       {
-        "command": "onetab.send.selectedTabs",
-        "title": "selectedTabs",
-        "category": "Onetab"
-      },
-      {
         "command": "onetab.send.otherTabs",
         "title": "%onetab.send.otherTabs%",
         "category": "Onetab"
