@@ -10,14 +10,14 @@ export class FeedbackProvider
 
     public items: FeedBackItem[];
 
-    private _onDidChangeTreeData: vscode.EventEmitter<FeedBackItem | undefined | void> =
-        new vscode.EventEmitter<FeedBackItem | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
+    private _onDidChangeTreeData: vscode.EventEmitter<FeedBackItem | void> =
+        new vscode.EventEmitter<FeedBackItem | void>();
+    readonly onDidChangeTreeData: vscode.Event<any | void> =
         this._onDidChangeTreeData.event;
     getTreeItem(element: FeedBackItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
-    getChildren(_element?: FeedBackItem | undefined): vscode.ProviderResult<FeedBackItem[]> {
+    getChildren(_element?: FeedBackItem): vscode.ProviderResult<FeedBackItem[]> {
         return new Promise(resolve => {
             resolve(this.items);
         });

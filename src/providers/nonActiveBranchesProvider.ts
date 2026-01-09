@@ -8,9 +8,9 @@ import { randomUUID } from "crypto";
 
 // TreeDataProvider for `branches` treeview in the sidebar
 export class BranchesProvider implements vscode.TreeDataProvider<Node> {
-    private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
-        new vscode.EventEmitter<Node | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
+    private _onDidChangeTreeData: vscode.EventEmitter<Node | void> =
+        new vscode.EventEmitter<Node | void>();
+    readonly onDidChangeTreeData: vscode.Event<any | void> =
         this._onDidChangeTreeData.event;
 
     branchViewer: vscode.TreeView<Node> | undefined;
@@ -45,7 +45,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
                 let allBranches: Branch[] = [];
                 // Sort branches? (Optional: alphabetical)
                 const sortedEntries = Array.from(this.branchState.branches.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                
+
                 for (const [branchName, branch] of sortedEntries) {
                     allBranches.push(new Branch(branchName, branch));
                 }
@@ -73,7 +73,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
     reloadState() {
         // 1. Get raw string
         const s = WorkState.get(BRANCHES_KEY, "");
-        
+
         if (!s) {
             this.branchState = new BranchStates();
             return;
@@ -127,7 +127,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
         // 1. Serialize Map -> Object
         // We cannot just stringify `this.branchState` because Maps don't serialize to JSON automatically.
         const branchesObj: Record<string, any> = {};
-        
+
         for (const [name, state] of this.branchState.branches) {
             branchesObj[name] = state.toJSON(); // Delegate to TabsState.toJSON()
         }

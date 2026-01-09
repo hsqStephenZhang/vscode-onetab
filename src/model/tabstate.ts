@@ -278,7 +278,7 @@ export class TabsState {
     }
   }
 
-  public mergeTabsGroup(dst_id: string, src_ids: (string | undefined)[]) {
+  public mergeTabsGroup(dst_id: string, src_ids: string[]) {
     const dst = this.groups.get(dst_id);
     if (!dst) return;
 

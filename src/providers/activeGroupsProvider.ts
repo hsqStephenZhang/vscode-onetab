@@ -21,9 +21,9 @@ export class TabsProvider
   viewer: vscode.TreeView<Node> | undefined;
   tabsState: TabsState;
 
-  private _onDidChangeTreeData: vscode.EventEmitter<Node | undefined | void> =
-    new vscode.EventEmitter<Node | undefined | void>();
-  readonly onDidChangeTreeData: vscode.Event<any | undefined | void> =
+  private _onDidChangeTreeData: vscode.EventEmitter<Node | void> =
+    new vscode.EventEmitter<Node | void>();
+  readonly onDidChangeTreeData: vscode.Event<any | void> =
     this._onDidChangeTreeData.event;
 
   constructor(rootPath: string | undefined, context: vscode.ExtensionContext, tabsState?: TabsState) {
@@ -59,7 +59,7 @@ export class TabsProvider
   }
 
   async getChildren(
-    element?: Node | undefined
+    element?: Node
   ): Promise<Node[] | undefined | null> {
     return new Promise(async (res, rej) => {
       if (!element) {
