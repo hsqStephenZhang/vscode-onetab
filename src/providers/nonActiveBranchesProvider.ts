@@ -47,8 +47,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
                 const sortedEntries = Array.from(this.branchState.branches.entries()).sort((a, b) => a[0].localeCompare(b[0]));
                 
                 for (const [branchName, branch] of sortedEntries) {
-                    let id = randomUUID();
-                    allBranches.push(new Branch(id, branchName, branch));
+                    allBranches.push(new Branch(branchName, branch));
                 }
                 return res(allBranches);
             } else {

@@ -45,17 +45,14 @@ export class BranchStates {
 export class Branch extends Node {
     tabsState: TabsState;
 
-    constructor(id: string, branchName: string, tabsState: TabsState) {
+    constructor(branchName: string, tabsState: TabsState) {
         // 1. Call Super with Label + State (TreeItem signature)
+        let id = randomUUID();
         super(id, branchName, vscode.TreeItemCollapsibleState.Collapsed);
-        
-        // 2. Set ID manually
-        this.id = randomUUID();
-        
         this.contextValue = CONTEXT_BRANCH;
         this.tabsState = tabsState;
-        
-        // Optional: Add an icon for branches if desired
+
+        // todo: set icon
         // this.iconPath = new vscode.ThemeIcon("git-branch");
     }
 
