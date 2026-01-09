@@ -31,7 +31,7 @@ import { exportJsonData } from "./exporter";
 import { searchGroup } from "./commands/search";
 import { GitExtension } from "./typings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
-import { GitFileWatcher, reinitGitBranchGroups } from "./git-utils";
+import { GitFileWatcher, reinitGitBranchGroups } from "./utils/git";
 import { clearState, debugState } from "./commands/debug";
 import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
