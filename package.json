@@ -204,6 +204,12 @@
         "icon": "$(tag)"
       },
       {
+        "command": "onetab.import",
+        "title": "%onetab.import%",
+        "category": "Onetab",
+        "icon": "$(tag)"
+      },
+      {
         "command": "onetab.search",
         "title": "%onetab.search%",
         "category": "Onetab"

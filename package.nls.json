@@ -21,6 +21,7 @@
   "onetab.tabsGroup.remove": "Remove Tabs Group",
   "onetab.tabsGroup.tag": "Set Tags Of Tabs Group",
   "onetab.export": "Export Current Database",
+  "onetab.import": "Import Database From File",
   "onetab.search": "List & Search Tab Groups",
   "onetab.branches.archive": "Archive Active Branch State",
   "onetab.branches.pickandrestore": "Pick One Branch's Staet, And Migrate From It",

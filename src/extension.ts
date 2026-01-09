@@ -26,7 +26,7 @@ import {
 } from "./commands/advanced";
 import { tabRemove, tabRestore } from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
-import { exportJsonData } from "./exporter";
+import { exportJsonData, importJsonData } from "./import_export";
 import { searchGroup } from "./commands/search";
 import { GitExtension } from "./typings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
@@ -121,13 +121,14 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
   vscode.commands.registerCommand("onetab.export", exportJsonData);
+  vscode.commands.registerCommand("onetab.import", importJsonData);
 
   // archive: the active state, store it into the non-active branches
   // migrate: clone  a non-active branch state to the current active state
   vscode.commands.registerCommand("onetab.branches.archive", archive);
   vscode.commands.registerCommand("onetab.branches.pickandrestore", pickAndClone);
   vscode.commands.registerCommand("onetab.branches.restorebranch", cloneBranch);
-  
+
   vscode.commands.registerCommand("onetab.autogroup", autoGroup);
 
   const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
