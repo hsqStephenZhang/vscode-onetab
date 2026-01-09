@@ -26,7 +26,7 @@ export class FeedbackProvider
     /// the viedId should be the same with the viewId in the package.json
     /// and please make sure the command `${viewId}.openHelpLink` has been registered in the package.json
     constructor(context: vscode.ExtensionContext, viewId: string, links: Link[]) {
-        registerOpenUrlCommand(viewId);
+        registerOpenUrlCommand(context, viewId);
         let view = vscode.window.createTreeView(viewId, { treeDataProvider: this });
         context.subscriptions.push(view);
 
@@ -38,8 +38,9 @@ export class FeedbackProvider
     }
 }
 
-function registerOpenUrlCommand(viewId: string) {
-    vscode.commands.registerCommand(`${viewId}.openHelpLink`, (url: string) => {
+function registerOpenUrlCommand(context: vscode.ExtensionContext, viewId: string) {
+    const disp = vscode.commands.registerCommand(`${viewId}.openHelpLink`, (url: string) => {
         vscode.env.openExternal(vscode.Uri.parse(url));
-    })
+    });
+    context.subscriptions.push(disp);
 }
