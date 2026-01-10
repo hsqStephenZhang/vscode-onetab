@@ -103,7 +103,6 @@ export async function autoGroup() {
             let path = (tab.input as vscode.TabInputText).uri.path;
             return file_names.includes(path);
         });
-        sendTabs(tabs, undefined, group_name);
+        await sendTabs(tabs, undefined, group_name);
     }
-
 }
