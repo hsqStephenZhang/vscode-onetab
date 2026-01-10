@@ -9,16 +9,7 @@ import { Node } from "./node";
 import { TabItem } from "./tabitem";
 import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../constant";
 import { Global } from '../global';
-
-// Define the shape of the saved JSON
-interface TabsGroupDTO {
-  id: string;
-  label: string;
-  pinned: boolean;
-  tags: string[];
-  createTime: number;
-  tabs: any[]; // These will be passed to TabItem.fromJSON
-}
+import { TabsGroupRow } from "../db";
 
 export class TabsGroup extends Node {
   private pinned: boolean = false;
@@ -27,9 +18,6 @@ export class TabsGroup extends Node {
   public tabs: TabItem[] = [];
 
   constructor(id?: string, label?: string) {
-    // 1. Determine ID and Label
-    // If loading from file, use provided ID/Label. 
-    // If creating new (via command), generate new ID and use default label logic.
     const groupId = id ?? randomUUID();
 
     let groupLabel = label;
@@ -44,37 +32,19 @@ export class TabsGroup extends Node {
     this.updateTooltip();
   }
 
-  // --- SERIALIZATION ---
-  public toJSON(): TabsGroupDTO {
-    return {
-      id: this.id!,
-      label:this.getLabel(),
-      pinned: this.pinned,
-      tags: this.tags,
-      createTime: this.createTime,
-      tabs: this.tabs.map(tab => tab.toJSON())
-    };
-  }
-
-  // --- DESERIALIZATION ---
-  public static fromJSON(json: TabsGroupDTO): TabsGroup {
-    // 1. Create instance (bypass Global.GroupCnt increment logic by passing args)
-    const group = new TabsGroup(json.id, json.label);
-
-    // 2. Restore Primitive State
-    group.createTime = json.createTime;
-    group.setTags(json.tags || []);
-    group.setPin(json.pinned); // This restores the icon!
-
-    // 3. Restore Children (Tabs)
-    if (Array.isArray(json.tabs)) {
-      group.tabs = json.tabs.map(t => {
-        const tab = TabItem.fromJSON(t);
-        tab.parentId = group.id; // Crucial: Re-link parent ID
-        return tab;
-      });
+  // --- FROM DB ROW ---
+  public static fromRow(row: TabsGroupRow): TabsGroup {
+    const group = new TabsGroup(row.id, row.label);
+    group.createTime = row.create_time;
+    
+    // Parse tags from JSON string
+    try {
+      group.tags = JSON.parse(row.tags) || [];
+    } catch {
+      group.tags = row.tags ? row.tags.split(',').filter(t => t) : [];
     }
-
+    
+    group.setPin(row.pinned === 1);
     group.updateTooltip();
     return group;
   }
@@ -83,26 +53,18 @@ export class TabsGroup extends Node {
     return this.tabs;
   }
 
-  // our methods
-
   public deepClone(): TabsGroup {
-    // Clone container
-    const newGroup = new TabsGroup(); // Generates new ID
-
-    // Copy properties
+    const newGroup = new TabsGroup();
     newGroup.label = this.label;
     newGroup.pinned = this.pinned;
-    newGroup.setPin(this.pinned); // Restore icon
+    newGroup.setPin(this.pinned);
     newGroup.tags = [...this.tags];
     newGroup.createTime = this.createTime;
-
-    // Clone tabs
     newGroup.tabs = this.tabs.map((tab) => {
       let newTab = tab.deepClone();
       newTab.parentId = newGroup.id;
       return newTab;
     });
-
     newGroup.updateTooltip();
     return newGroup;
   }
@@ -152,10 +114,7 @@ export class TabsGroup extends Node {
 
   private updateTooltip() {
     const labelText = typeof this.label === 'string' ? this.label : (this.label?.label || '');
-    this.tooltip =
-      labelText +
-      ", tags: " +
-      (this.tags.length === 0 ? "none" : this.tags.join(", "));
+    this.tooltip = labelText + ", tags: " + (this.tags.length === 0 ? "none" : this.tags.join(", "));
   }
 
   public isUntitled(): boolean {
@@ -187,12 +146,6 @@ export class TabsGroup extends Node {
   }
 
   public removeDuplicateTabs() {
-    let all_tabs = this.tabs.map((tab) => tab.fileUri.fsPath);
-    let unique_tabs = new Set(all_tabs);
-
-    // We want to keep the FIRST occurrence, so we iterate and check if it's in the set.
-    // However, Sets are unordered. A better way is to track "seen".
-
     const seen = new Set<string>();
     const new_tabs = this.tabs.filter((tab) => {
       const path = tab.fileUri.fsPath;
@@ -202,7 +155,6 @@ export class TabsGroup extends Node {
       seen.add(path);
       return true;
     });
-
     this.tabs = new_tabs;
   }
 }

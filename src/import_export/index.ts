@@ -1,20 +1,131 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { Global } from "../global";
 import { TabsState } from "../model/tabstate";
-import { OutputChannelLogger } from "../logging";
+import { TabsGroup } from "../model/tabsgroup";
+import { TabItem } from "../model/tabitem";
 
-type TabsStateDTO = {
-  groups?: Record<string, any>;
+
+// =====================================================
+// DTOs for JSON Export/Import (backward compatible format)
+// =====================================================
+
+interface TabItemDTO {
+  id: string;
+  label: string;
+  fileUri: string;
+}
+
+interface TabsGroupDTO {
+  id: string;
+  label: string;
+  pinned: boolean;
+  tags: string[];
+  createTime: number;
+  tabs: TabItemDTO[];
+}
+
+interface TabsStateDTO {
+  groups?: Record<string, TabsGroupDTO>;
   blackList?: string[];
-};
+}
+
+// =====================================================
+// Serialization: TabsState -> DTO
+// =====================================================
+
+function tabItemToDTO(item: TabItem): TabItemDTO {
+  return {
+    id: item.id || "",
+    label: item.getLabel(),
+    fileUri: item.fileUri.toString(),
+  };
+}
+
+function tabsGroupToDTO(group: TabsGroup): TabsGroupDTO {
+  return {
+    id: group.id || "",
+    label: group.getLabel(),
+    pinned: group.isPinned(),
+    tags: group.getTags(),
+    createTime: group.createTime,
+    tabs: group.getTabs().map(tabItemToDTO),
+  };
+}
+
+function tabsStateToDTO(state: TabsState): TabsStateDTO {
+  const groupsObj: Record<string, TabsGroupDTO> = {};
+  for (const [id, group] of state.groups) {
+    if (id) {
+      groupsObj[id] = tabsGroupToDTO(group);
+    }
+  }
+  return {
+    groups: groupsObj,
+    blackList: Array.from(state.blackList),
+  };
+}
+
+// =====================================================
+// Deserialization: DTO -> TabsState
+// =====================================================
+
+function tabItemFromDTO(dto: TabItemDTO): TabItem {
+  const uri = vscode.Uri.parse(dto.fileUri);
+  return new TabItem(uri, dto.id, dto.label);
+}
+
+function tabsGroupFromDTO(dto: TabsGroupDTO): TabsGroup {
+  const group = new TabsGroup(dto.id, dto.label);
+  group.createTime = dto.createTime ?? Date.now();
+  group.setTags(dto.tags ?? []);
+  group.setPin(dto.pinned ?? false);
+
+  if (Array.isArray(dto.tabs)) {
+    const tabs = dto.tabs.map((t) => {
+      const tab = tabItemFromDTO(t);
+      tab.parentId = group.id;
+      return tab;
+    });
+    group.setTabs(tabs);
+  }
+
+  return group;
+}
+
+function tabsStateFromDTO(dto: TabsStateDTO, branchName: string | null = null): TabsState {
+  const state = new TabsState(branchName);
+
+  if (dto.groups) {
+    for (const key of Object.keys(dto.groups)) {
+      const groupDTO = dto.groups[key];
+      const group = tabsGroupFromDTO(groupDTO);
+      if (group.id) {
+        state.groups.set(group.id, group);
+      }
+    }
+  }
+
+  if (Array.isArray(dto.blackList)) {
+    for (const item of dto.blackList) {
+      state.blackList.add(item);
+    }
+  }
+
+  return state;
+}
+
+// =====================================================
+// Type Guards
+// =====================================================
 
 function isTabsStateDTO(value: any): value is TabsStateDTO {
   return (
     value &&
     typeof value === "object" &&
     !Array.isArray(value) &&
-    // must have at least one of the known keys
     ("groups" in value || "blackList" in value)
   );
 }
@@ -31,11 +142,9 @@ function isBranchesWrapper(value: any): value is { branches: Record<string, Tabs
 }
 
 function looksLikeBranchMap(value: any): value is Record<string, TabsStateDTO> {
-  // e.g. { "main": {groups:{...}, blackList:[]}, "dev": {...} }
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const keys = Object.keys(value);
   if (keys.length === 0) return false;
-  // Heuristic: most values look like TabsStateDTO
   const sampleKeys = keys.slice(0, Math.min(5, keys.length));
   let ok = 0;
   for (const k of sampleKeys) {
@@ -44,6 +153,10 @@ function looksLikeBranchMap(value: any): value is Record<string, TabsStateDTO> {
   return ok >= Math.max(1, Math.floor(sampleKeys.length / 2));
 }
 
+// =====================================================
+// Helpers
+// =====================================================
+
 async function readJsonFile(uri: vscode.Uri): Promise<any> {
   const buf = await fs.promises.readFile(uri.fsPath);
   const text = buf.toString("utf8");
@@ -51,7 +164,6 @@ async function readJsonFile(uri: vscode.Uri): Promise<any> {
 }
 
 async function confirmReplaceMerge(scopeLabel: string): Promise<"replace" | "merge" | undefined> {
-  // Keep it simple: default to Replace (safer + predictable)
   const picked = await vscode.window.showQuickPick(
     [
       { label: "Replace", description: `Replace ${scopeLabel} completely with imported data`, value: "replace" as const },
@@ -63,40 +175,45 @@ async function confirmReplaceMerge(scopeLabel: string): Promise<"replace" | "mer
 }
 
 function mergeTabsState(dst: TabsState, src: TabsState): TabsState {
-  // Merge strategy:
-  // - groups: overwrite by groupId (imported wins)
-  // - blackList: union
   const merged = dst.deepClone();
 
   for (const [gid, group] of src.groups) {
-    if (gid) merged.groups.set(gid, group);
+    if (gid) {
+      // Clone the source group and add it (overwrites if ID exists)
+      const clonedGroup = group.deepClone();
+      // Preserve original ID for imported data
+      if (group.id) {
+        clonedGroup.id = group.id;
+      }
+      merged.groups.set(clonedGroup.id!, clonedGroup);
+    }
   }
+
   for (const item of src.blackList) {
     merged.blackList.add(item);
   }
 
-  // Ensure internal index is correct: easiest is roundtrip via JSON
-  return TabsState.fromJSON(merged.toJSON() as any);
+  return merged;
 }
+
+// =====================================================
+// Export Functions
+// =====================================================
 
 export async function exportJsonData() {
   try {
     // =========================================================
     // 1. Export Current Branch State
     // =========================================================
-
-    // Get the raw data object (DTO) using our new toJSON method
     const currentState = Global.tabsProvider.getState();
-    const currentDto = currentState.toJSON();
-
-    // Convert to formatted string
+    const currentDto = tabsStateToDTO(currentState);
     const currentDataStr = JSON.stringify(currentDto, null, 4);
 
     Global.logger.info("Exporting Current Branch JSON data length: " + currentDataStr.length);
 
     const uri = await vscode.window.showSaveDialog({
       title: "Export Current Branch State",
-      defaultUri: vscode.Uri.file("current-branch-tabs.json"),
+      defaultUri: vscode.Uri.file(path.join(os.homedir(), "Downloads", "current-branch-tabs.json")),
       filters: { "JSON files": ["json"] },
     });
 
@@ -110,40 +227,22 @@ export async function exportJsonData() {
       });
     }
 
-    // if there is only one branch, skip exporting all branches
-    if (Global.branchesProvider.allBranches().length <= 1) {
-      Global.logger.info("Only one branch exists, skipping export of all branches.");
+    // If there is only one branch or no branches, skip exporting all branches
+    const allBranchNames = Global.branchesProvider.allBranches();
+    if (allBranchNames.length === 0) {
+      Global.logger.info("No branches exist, skipping export of all branches.");
       return;
     }
 
     // =========================================================
     // 2. Export All Branches' States
     // =========================================================
+    const allStatesObj: Record<string, TabsStateDTO> = {};
 
-    // Assuming Global.branchesProvider.getStates() returns a Map<string, TabsState>
-    const allStatesMap = Global.branchesProvider.getStates();
-    const allStatesObj: Record<string, any> = {};
-
-    // Manually serialize the map
-    // We iterate over the map entries and call .toJSON() on each TabsState
-    if (allStatesMap instanceof Map) {
-      for (const [branchName, state] of allStatesMap) {
-        if (state && typeof state.toJSON === 'function') {
-          allStatesObj[branchName] = state.toJSON();
-        } else {
-          // Fallback if state is somehow raw data
-          allStatesObj[branchName] = state;
-        }
-      }
-    } else {
-      // Fallback if it's already a plain object
-      const obj = allStatesMap as any;
-      for (const key in obj) {
-        if (obj[key] && typeof obj[key].toJSON === 'function') {
-          allStatesObj[key] = obj[key].toJSON();
-        } else {
-          allStatesObj[key] = obj[key];
-        }
+    for (const branchName of allBranchNames) {
+      const branchState = Global.branchesProvider.getBranchState(branchName);
+      if (branchState) {
+        allStatesObj[branchName] = tabsStateToDTO(branchState);
       }
     }
 
@@ -152,7 +251,7 @@ export async function exportJsonData() {
 
     const uri2 = await vscode.window.showSaveDialog({
       title: "Export All Branches' States",
-      defaultUri: vscode.Uri.file("all-branches-tabs.json"),
+      defaultUri: vscode.Uri.file(path.join(os.homedir(), "Downloads", "all-branches-tabs.json")),
       filters: { "JSON files": ["json"] },
     });
 
@@ -171,6 +270,10 @@ export async function exportJsonData() {
     vscode.window.showErrorMessage("An error occurred during export.");
   }
 }
+
+// =====================================================
+// Import Functions
+// =====================================================
 
 export async function importJsonData() {
   try {
@@ -191,13 +294,14 @@ export async function importJsonData() {
       if (!mode) return;
 
       for (const [branchName, dto] of Object.entries(json.branches)) {
-        const importedState = TabsState.fromJSON(dto as any);
+        const importedState = tabsStateFromDTO(dto as TabsStateDTO, branchName);
 
         if (mode === "replace") {
           Global.branchesProvider.insertOrUpdateBranch(branchName, importedState);
         } else {
           const existing = Global.branchesProvider.getBranchState(branchName);
           const merged = existing ? mergeTabsState(existing, importedState) : importedState;
+          merged.branchName = branchName;
           Global.branchesProvider.insertOrUpdateBranch(branchName, merged);
         }
       }
@@ -230,12 +334,13 @@ export async function importJsonData() {
         if (!mode) return;
 
         for (const [branchName, dto] of Object.entries(json as Record<string, TabsStateDTO>)) {
-          const importedState = TabsState.fromJSON(dto as any);
+          const importedState = tabsStateFromDTO(dto, branchName);
           if (mode === "replace") {
             Global.branchesProvider.insertOrUpdateBranch(branchName, importedState);
           } else {
             const existing = Global.branchesProvider.getBranchState(branchName);
             const merged = existing ? mergeTabsState(existing, importedState) : importedState;
+            merged.branchName = branchName;
             Global.branchesProvider.insertOrUpdateBranch(branchName, merged);
           }
         }
@@ -253,7 +358,7 @@ export async function importJsonData() {
         const mode = await confirmReplaceMerge("current branch state");
         if (!mode) return;
 
-        const importedState = TabsState.fromJSON((json as any)[pickedBranch]);
+        const importedState = tabsStateFromDTO((json as any)[pickedBranch], null);
         if (mode === "replace") {
           Global.tabsProvider.resetState(importedState);
         } else {
@@ -271,7 +376,7 @@ export async function importJsonData() {
       const mode = await confirmReplaceMerge("current branch state");
       if (!mode) return;
 
-      const importedState = TabsState.fromJSON(json as any);
+      const importedState = tabsStateFromDTO(json, null);
       if (mode === "replace") {
         Global.tabsProvider.resetState(importedState);
       } else {

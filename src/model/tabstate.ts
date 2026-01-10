@@ -3,74 +3,45 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { Global } from "../global";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
-
-// JSON Data Transfer Object
-interface TabsStateDTO {
-  groups: { [key: string]: any };
-  blackList: string[];
-}
+import { TabsGroupRow, TabItemRow } from "../db";
 
 export class TabsState {
   public groups: Map<string, TabsGroup>;
   public blackList: Set<string>;
-
-  // Cache: Map from file path -> list of group IDs
   private reverseIndex: Map<string, string[]>;
 
-  public constructor() {
+  // The branch name this state belongs to (null = active/main state)
+  public branchName: string | null;
+
+  public constructor(branchName: string | null = null) {
     this.groups = new Map();
     this.blackList = new Set();
     this.reverseIndex = new Map();
+    this.branchName = branchName;
   }
 
-  // --- SERIALIZATION ---
-  public toJSON(): TabsStateDTO {
-    const groupsObj: { [key: string]: any } = {};
-    for (const [id, group] of this.groups) {
-      if (id) {
-        groupsObj[id] = group.toJSON();
+  // --- LOAD FROM DB ---
+  public static loadFromDb(branchName: string | null): TabsState {
+    const state = new TabsState(branchName);
+    const db = Global.sqlDb;
+
+    const groupRows = db.getTabsGroups(branchName);
+
+    for (const row of groupRows) {
+      const group = TabsGroup.fromRow(row);
+      const tabRows = db.getTabItems(row.id);
+
+      for (const tabRow of tabRows) {
+        const tab = TabItem.fromRow(tabRow);
+        tab.parentId = group.id;
+        group.tabs.push(tab);
       }
-    }
 
-    return {
-      groups: groupsObj,
-      blackList: Array.from(this.blackList),
-    };
-  }
-
-  public toString(): string {
-    return JSON.stringify(this.toJSON());
-  }
-
-  // --- DESERIALIZATION ---
-  public static fromString(s: string): TabsState {
-    try {
-      const json = JSON.parse(s) as TabsStateDTO;
-      return TabsState.fromJSON(json);
-    } catch (e) {
-      console.error("Failed to parse TabsState", e);
-      return new TabsState();
-    }
-  }
-
-  public static fromJSON(json: TabsStateDTO): TabsState {
-    const state = new TabsState();
-
-    if (Array.isArray(json.blackList)) {
-      state.blackList = new Set(json.blackList);
-    }
-
-    if (json.groups) {
-      for (const key of Object.keys(json.groups)) {
-        const groupDTO = json.groups[key];
-        const group = TabsGroup.fromJSON(groupDTO);
-
-        // SAFETY CHECK: Ensure ID exists before setting in Map
-        if (group.id) {
-          state.groups.set(group.id, group);
-        }
+      if (group.id) {
+        state.groups.set(group.id, group);
       }
     }
 
@@ -78,29 +49,89 @@ export class TabsState {
     return state;
   }
 
-  // --- DEEP CLONE ---
-  public deepClone(): TabsState {
-    const newState = new TabsState();
+  // --- SAVE TO DB ---
+  public saveToDb(): Promise<void> {
+    const db = Global.sqlDb;
 
-    // 1. Clone Groups
-    for (const group of this.groups.values()) {
-      const newGroup = group.deepClone();
+    // Clear existing data for this branch
+    db.clearTabsGroups(this.branchName);
 
-      // SAFETY CHECK: Ensure new group has an ID
-      if (newGroup.id) {
-        newState.groups.set(newGroup.id, newGroup);
+    let sortOrder = 0;
+    for (const group of this.getAllTabsGroupsSorted()) {
+      if (!group.id) continue;
+
+      const row: TabsGroupRow = {
+        id: group.id,
+        branch_name: this.branchName,
+        label: group.getLabel(),
+        pinned: group.isPinned() ? 1 : 0,
+        tags: JSON.stringify(group.getTags()),
+        create_time: group.createTime,
+        sort_order: sortOrder++,
+      };
+      db.insertTabsGroup(row);
+
+      let tabSortOrder = 0;
+      for (const tab of group.getTabs()) {
+        const tabRow: TabItemRow = {
+          id: tab.id!,
+          group_id: group.id,
+          label: tab.getLabel(),
+          file_uri: tab.fileUri.toString(),
+          sort_order: tabSortOrder++,
+        };
+        db.insertTabItem(tabRow);
       }
     }
 
-    // 2. Clone Blacklist
-    for (const item of this.blackList) {
-      newState.blackList.add(item);
+    return db.flush();
+  }
+
+  // --- SINGLE GROUP OPERATIONS (more efficient than full save) ---
+
+  public saveGroup(group: TabsGroup): Promise<void> {
+    if (!group.id) return Promise.resolve();
+
+    const db = Global.sqlDb;
+
+    const existingGroup = db.getTabsGroupById(group.id);
+    const row: TabsGroupRow = {
+      id: group.id,
+      branch_name: this.branchName,
+      label: group.getLabel(),
+      pinned: group.isPinned() ? 1 : 0,
+      tags: JSON.stringify(group.getTags()),
+      create_time: group.createTime,
+      sort_order: existingGroup?.sort_order ?? 0,
+    };
+
+    if (existingGroup) {
+      db.updateTabsGroup(row);
+    } else {
+      db.insertTabsGroup(row);
     }
 
-    // 3. Rebuild Index
-    newState.rebuildReverseIndex();
+    // Replace all tabs for this group
+    db.deleteTabItemsByGroupId(group.id);
+    let tabSortOrder = 0;
+    for (const tab of group.getTabs()) {
+      const tabRow: TabItemRow = {
+        id: tab.id!,
+        group_id: group.id,
+        label: tab.getLabel(),
+        file_uri: tab.fileUri.toString(),
+        sort_order: tabSortOrder++,
+      };
+      db.insertTabItem(tabRow);
+    }
 
-    return newState;
+    return db.flush();
+  }
+
+  public deleteGroupFromDb(id: string): Promise<void> {
+    const db = Global.sqlDb;
+    db.deleteTabsGroup(id);
+    return db.flush();
   }
 
   // --- INDEX MANAGEMENT ---
@@ -108,9 +139,7 @@ export class TabsState {
   private rebuildReverseIndex() {
     this.reverseIndex.clear();
     for (const group of this.groups.values()) {
-      // Skip groups without valid IDs
       if (!group.id) continue;
-
       for (const tab of group.getTabs()) {
         this.addToReverseIndex(tab.fileUri.fsPath, group.id);
       }
@@ -131,7 +160,7 @@ export class TabsState {
   private removeFromReverseIndex(fsPath: string, groupId: string) {
     const list = this.reverseIndex.get(fsPath);
     if (list) {
-      const newList = list.filter(id => id !== groupId);
+      const newList = list.filter((id) => id !== groupId);
       if (newList.length === 0) {
         this.reverseIndex.delete(fsPath);
       } else {
@@ -147,13 +176,8 @@ export class TabsState {
   }
 
   public addTabsGroup(group: TabsGroup) {
-    // SAFETY CHECK: Return early if ID is undefined
-    if (!group.id) {
-      return;
-    }
-
+    if (!group.id) return;
     this.groups.set(group.id, group);
-
     for (const tab of group.getTabs()) {
       this.addToReverseIndex(tab.fileUri.fsPath, group.id);
     }
@@ -175,8 +199,6 @@ export class TabsState {
       this.removeTabsGroup(id);
     }
   }
-
-  // ... (Getters/Setters below remain mostly the same, ensuring 'id' usage is safe) ...
 
   public getPinnedLists(): TabsGroup[] {
     return Array.from(this.groups.values()).filter((list) => list.isPinned());
@@ -249,11 +271,9 @@ export class TabsState {
     if (group) {
       const originalLength = group.getTabs().length;
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
-
       if (group.getTabs().length < originalLength) {
         this.removeFromReverseIndex(fsPath, groupId);
       }
-
       if (group.getTabs().length === 0) {
         this.groups.delete(groupId);
       }
@@ -263,9 +283,7 @@ export class TabsState {
   public removeTabFromAllGroups(fsPath: string) {
     const includeTabGroups = this.reverseIndex.get(fsPath);
     if (!includeTabGroups) return;
-
     const groupsToRemove = [...includeTabGroups];
-
     for (const gid of groupsToRemove) {
       const group = this.groups.get(gid);
       if (group) {
@@ -286,16 +304,13 @@ export class TabsState {
 
     for (const src_id of src_ids) {
       if (!src_id || src_id === dst_id) continue;
-
       const srcGroup = this.groups.get(src_id);
       if (srcGroup) {
-
-        const clonedTabs = srcGroup.getTabs().map(t => {
-          const nt = t.deepClone();     // new UUID id
-          nt.parentId = dst_id;         // re-parent
+        const clonedTabs = srcGroup.getTabs().map((t) => {
+          const nt = t.deepClone();
+          nt.parentId = dst_id;
           return nt;
         });
-
         dst.extendTabs(clonedTabs);
         for (const tab of srcGroup.getTabs()) {
           this.addToReverseIndex(tab.fileUri.fsPath, dst_id);
@@ -339,6 +354,22 @@ export class TabsState {
         return b.group.createTime - a.group.createTime;
       })
       .map((item) => item.group);
+  }
+
+  // --- DEEP CLONE ---
+  public deepClone(): TabsState {
+    const newState = new TabsState(this.branchName);
+    for (const group of this.groups.values()) {
+      const newGroup = group.deepClone();
+      if (newGroup.id) {
+        newState.groups.set(newGroup.id, newGroup);
+      }
+    }
+    for (const item of this.blackList) {
+      newState.blackList.add(item);
+    }
+    newState.rebuildReverseIndex();
+    return newState;
   }
 }
 
