@@ -36,11 +36,13 @@ import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
 import { autoGroup } from "./autogroup";
+import { SqlJsDatabaseService } from "./db";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   Global.context = context;
+
   let level = LogLevel.INFO;
   if (context.extensionMode == vscode.ExtensionMode.Development) {
     console.log("debug mode is on");
@@ -50,6 +52,9 @@ export function activate(context: vscode.ExtensionContext) {
   let outputChannel = vscode.window.createOutputChannel("Onetab");
   Global.outputChannel = outputChannel;
   Global.logger = new OutputChannelLogger(level, outputChannel);
+
+  Global.sqlDb = new SqlJsDatabaseService(context);
+  await Global.sqlDb.init();
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
@@ -157,4 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {
+  // best-effort close; cannot await here
+  Global.sqlDb?.close?.();
+}

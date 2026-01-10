@@ -8,6 +8,7 @@ import { Logger } from "./logging";
 import { TabsProvider } from "./providers/activeGroupsProvider";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { WorkState } from "./common/state";
+import { SqlJsDatabaseService } from "./db";
 
 // global is a singleton, can be used after initialization at the beginning of the extension
 export class Global {
@@ -17,6 +18,7 @@ export class Global {
   public static branchesProvider: BranchesProvider;
   public static outputChannel: vscode.OutputChannel;
   public static logger: Logger;
+  public static sqlDb: SqlJsDatabaseService;
 
   public static getAndIncGroupCnt(): number {
     let cnt = WorkState.get<number>("groupCnt", 0);

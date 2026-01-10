@@ -20,23 +20,45 @@ export class GlobalState {
 }
 
 export class WorkState {
+  private static db() {
+    if (!Global.sqlDb) throw new Error("sql.js DB not initialized");
+    return Global.sqlDb;
+  }
+
   public static update(key: string, value: any): Thenable<void> {
-    return Global.context.workspaceState.update(key, value);
+    const s = typeof value === "string" ? value : JSON.stringify(value);
+    return this.db().setWorkspaceState(key, s) as unknown as Thenable<void>;
   }
 
   public static get<T>(key: string, defaultValue: T): T {
-    return Global.context.workspaceState.get(key, defaultValue);
+    const s = this.db().getWorkspaceState(key);
+    if (s === undefined) return defaultValue;
+
+    // preserve old behavior: callers often pass string defaultValue for JSON
+    if (typeof defaultValue === "string") return s as any;
+
+    try {
+      return JSON.parse(s) as T;
+    } catch {
+      return defaultValue;
+    }
   }
 
   public static getOrUndefined<T>(key: string): T | undefined {
-    return Global.context.workspaceState.get(key);
+    const s = this.db().getWorkspaceState(key);
+    if (s === undefined) return undefined;
+    try {
+      return JSON.parse(s) as T;
+    } catch {
+      return s as any;
+    }
   }
 
   public static delete(key: string): Thenable<void> {
-    return Global.context.workspaceState.update(key, undefined);
+    return this.db().deleteWorkspaceState(key) as unknown as Thenable<void>;
   }
 
   public static keys(): readonly string[] {
-    return Global.context.workspaceState.keys();
+    return this.db().listWorkspaceKeys();
   }
 }

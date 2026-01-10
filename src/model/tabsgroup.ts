@@ -123,8 +123,8 @@ export class TabsGroup extends Node {
     this.pinned = pin;
     if (pin) {
       this.iconPath = {
-        dark: vscode.Uri.joinPath(Global.context.extensionUri, "media", "pin-light.svg"),
-        light: vscode.Uri.joinPath(Global.context.extensionUri, "media", "pin-dark.svg"),
+        dark: vscode.Uri.joinPath(Global.context.extensionUri, "asset", "pin-light.svg"),
+        light: vscode.Uri.joinPath(Global.context.extensionUri, "asset", "pin-dark.svg"),
       };
     } else {
       this.iconPath = undefined;
