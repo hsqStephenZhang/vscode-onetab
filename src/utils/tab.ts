@@ -84,7 +84,8 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const leftTabs = tabs.slice(0, currentIdx).filter(notInBlackList);
+    // Include the current tab (currentIdx + 1 to include the tab at currentIdx)
+    const leftTabs = tabs.slice(0, currentIdx + 1).filter(notInBlackList);
     if (leftTabs.length === 0) {
       return undefined;
     } else {
@@ -105,7 +106,8 @@ export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     });
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const rightTabs = tabs.slice(currentIdx + 1, tabs.length).filter(notInBlackList);
+    // Include the current tab (start from currentIdx instead of currentIdx + 1)
+    const rightTabs = tabs.slice(currentIdx, tabs.length).filter(notInBlackList);
     if (rightTabs.length === 0) {
       return undefined;
     } else {
