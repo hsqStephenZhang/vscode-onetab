@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Global } from '../global';
+import { TagItem } from '../providers/tagsProvider';
 
 let globalFilters: Set<string> = new Set();
 
@@ -110,4 +111,30 @@ export async function filterByTagDirect(tag: string) {
       await treeview?.reveal(group, { select: false, focus: true, expand: true });
     }
   }
+}
+
+export async function removeTagFromAllGroups(tagItem: TagItem) {
+  const tag = tagItem.tag;
+  
+  const confirm = await vscode.window.showWarningMessage(
+    `Remove tag "${tag}" from all groups?`,
+    { modal: true },
+    'Yes'
+  );
+  
+  if (confirm !== 'Yes') {
+    return;
+  }
+  
+  Global.tabsProvider.updateState((state) => {
+    for (const [, group] of state.groups) {
+      const currentTags = group.getTags();
+      if (currentTags.includes(tag)) {
+        const newTags = currentTags.filter(t => t !== tag);
+        group.setTags(newTags);
+      }
+    }
+  });
+  
+  vscode.window.showInformationMessage(`Tag "${tag}" removed from all groups.`);
 }

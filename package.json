@@ -217,6 +217,12 @@
         "title": "Manage All Tags",
         "category": "Onetab",
         "icon": "$(tag)"
+      },
+      {
+        "command": "onetab.tag.remove",
+        "title": "Remove Tag from All Groups",
+        "category": "Onetab",
+        "icon": "$(trash)"
       }
     ],
     "languages": [
@@ -374,6 +380,16 @@
           "command": "onetab.branches.restorebranch",
           "when": "view =~ /^(branches)$/ && viewItem =~ /^(branch)$/",
           "group": "inline@0"
+        },
+        {
+          "command": "onetab.tag.remove",
+          "when": "view == tags && viewItem == tagItem",
+          "group": "inline@0"
+        },
+        {
+          "command": "onetab.tag.remove",
+          "when": "view == tags && viewItem == tagItem",
+          "group": "context@0"
         }
       ],
       "onetab.title.context.submenu": [

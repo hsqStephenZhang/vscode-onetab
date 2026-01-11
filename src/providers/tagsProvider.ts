@@ -1,9 +1,21 @@
 import * as vscode from 'vscode';
 import { Global } from '../global';
 
-interface TagItem extends vscode.TreeItem {
-  tag: string;
-  groupCount: number;
+export class TagItem extends vscode.TreeItem {
+  constructor(
+    public readonly tag: string,
+    public readonly groupCount: number,
+  ) {
+    super(`#${tag}`, vscode.TreeItemCollapsibleState.None);
+    this.description = `${groupCount} group${groupCount > 1 ? 's' : ''}`;
+    this.iconPath = new vscode.ThemeIcon('tag');
+    this.contextValue = 'tagItem';  // This enables context menu
+    this.command = {
+      command: 'onetab.filterByTagDirect',
+      title: 'Filter by this tag',
+      arguments: [tag],
+    };
+  }
 }
 
 export class TagsProvider implements vscode.TreeDataProvider<TagItem> {
@@ -26,22 +38,7 @@ export class TagsProvider implements vscode.TreeDataProvider<TagItem> {
     
     return Array.from(tagCounts.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(([tag, count]) => {
-        const item: TagItem = {
-          label: `#${tag}`,
-          description: `${count} group${count > 1 ? 's' : ''}`,
-          tag,
-          groupCount: count,
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-          iconPath: new vscode.ThemeIcon('tag'),
-          command: {
-            command: 'onetab.filterByTagDirect',
-            title: 'Filter by this tag',
-            arguments: [tag],
-          },
-        } as TagItem;
-        return item;
-      });
+      .map(([tag, count]) => new TagItem(tag, count));
   }
 
   refresh(): void {

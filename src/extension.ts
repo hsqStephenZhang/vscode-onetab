@@ -27,7 +27,7 @@ import {
 import { tabRemove, tabRestore } from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
 import { exportJsonData, importJsonData } from "./import_export";
-import { searchGroup, filterByTag, filterByTagDirect } from "./commands/search";
+import { searchGroup, filterByTag, filterByTagDirect, removeTagFromAllGroups } from "./commands/search";
 import { GitExtension } from "./typings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
 import { GitFileWatcher, reinitGitBranchGroups } from "./utils/git";
@@ -69,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   Global.tabsProvider = new TabsProvider(rootPath, context);
   Global.branchesProvider = new BranchesProvider(context);
-  
+
   // Register TagsProvider
   Global.tagsProvider = new TagsProvider();
   const tagsTreeView = vscode.window.createTreeView("tags", {
@@ -126,10 +126,11 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.debug.clearState", clearState);
 
   vscode.commands.registerCommand("onetab.search", searchGroup);
-  
+
   // Register tag filter commands
   vscode.commands.registerCommand("onetab.filterByTag", filterByTag);
   vscode.commands.registerCommand("onetab.filterByTagDirect", filterByTagDirect);
+  vscode.commands.registerCommand("onetab.tag.remove", removeTagFromAllGroups);
 
   // tabs group related commands
   vscode.commands.registerCommand("onetab.tab.restore", tabRestore);
