@@ -6,14 +6,48 @@
 import * as vscode from "vscode";
 import { Global } from "../global";
 import { TabsGroup } from "../model/tabsgroup";
+import { TabItem } from "../model/tabitem";
+
+// Add the openTabItem helper or import it
+async function openTabItem(tab: TabItem): Promise<void> {
+  switch (tab.tabType) {
+    case 'diff':
+      if (tab.originalUri) {
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          tab.originalUri,
+          tab.fileUri,
+          `${tab.getLabel()} (diff)`
+        );
+      } else {
+        await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      }
+      break;
+      
+    case 'notebookDiff':
+      if (tab.originalUri) {
+        try {
+          await vscode.commands.executeCommand('vscode.diff', tab.originalUri, tab.fileUri);
+        } catch {
+          await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+        }
+      } else {
+        await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      }
+      break;
+      
+    default:
+      await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      break;
+  }
+}
 
 export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   if (!tabsGroup.id) {
     return;
   }
   for (const tab of tabsGroup.getTabs()) {
-    const fileUri = tab.fileUri;
-    vscode.window.showTextDocument(fileUri, { preview: false });
+    await openTabItem(tab);
   }
   if (!tabsGroup.isPinned()) {
     removeInner(tabsGroup.id);

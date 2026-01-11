@@ -7,6 +7,53 @@ import * as vscode from "vscode";
 import { Global } from "../global";
 import { TabItem } from "../model/tabitem";
 
+// Restore tab based on its type
+async function openTabItem(tab: TabItem): Promise<void> {
+  switch (tab.tabType) {
+    case 'diff':
+      if (tab.originalUri) {
+        // Open as diff view
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          tab.originalUri,
+          tab.fileUri,
+          `${tab.getLabel()} (diff)`
+        );
+      } else {
+        // Fallback to regular file if original is missing
+        await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      }
+      break;
+      
+    case 'notebookDiff':
+      if (tab.originalUri) {
+        // Open as notebook diff (if supported)
+        try {
+          await vscode.commands.executeCommand(
+            'vscode.diff',
+            tab.originalUri,
+            tab.fileUri,
+            `${tab.getLabel()} (diff)`
+          );
+        } catch {
+          // Fallback to regular notebook
+          await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+        }
+      } else {
+        await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      }
+      break;
+      
+    case 'notebook':
+    case 'custom':
+    case 'text':
+    default:
+      // Use vscode.open for proper file type handling
+      await vscode.commands.executeCommand('vscode.open', tab.fileUri);
+      break;
+  }
+}
+
 export async function tabRestore(tab: TabItem) {
   if (!tab.parentId) {
     return;
@@ -14,18 +61,17 @@ export async function tabRestore(tab: TabItem) {
   let groupId = tab.parentId;
 
   const state = Global.tabsProvider.getState();
-
   let g = state.getGroup(groupId);
 
   if (g) {
     if (g.isPinned()) {
-      vscode.window.showTextDocument(tab.fileUri, { preview: false });
+      await openTabItem(tab);
       Global.tabsProvider.refresh();
     } else {
-      vscode.window.showTextDocument(tab.fileUri, { preview: false });
+      await openTabItem(tab);
       Global.tabsProvider.updateState((state) => {
         state.removeTabFromGroup(groupId, tab.fileUri.fsPath);
-      })
+      });
     }
   }
 }

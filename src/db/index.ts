@@ -13,6 +13,8 @@ export interface TabItemRow {
     group_id: string;
     label: string;
     file_uri: string;
+    original_uri?: string;  // For diff views
+    tab_type?: string;      // 'text' | 'diff' | 'notebook' | etc.
     sort_order: number;
 }
 
@@ -52,6 +54,7 @@ export class SqlJsDatabaseService {
 
         this.db = bytes ? new SQL.Database(bytes) : new SQL.Database();
         this.initializeSchema();
+        await this.migrateSchema();
 
         this.initialized = true;
     }
@@ -176,9 +179,9 @@ export class SqlJsDatabaseService {
     public insertTabItem(item: TabItemRow): void {
         this.ensureReady();
         this.db.run(
-            `INSERT OR REPLACE INTO tab_items(id, group_id, label, file_uri, sort_order)
-             VALUES (?, ?, ?, ?, ?)`,
-            [item.id, item.group_id, item.label, item.file_uri, item.sort_order]
+            `INSERT OR REPLACE INTO tab_items(id, group_id, label, file_uri, original_uri, tab_type, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [item.id, item.group_id, item.label, item.file_uri, item.original_uri || null, item.tab_type || 'text', item.sort_order]
         );
     }
 
@@ -268,14 +271,16 @@ export class SqlJsDatabaseService {
         `);
 
         this.db.run(`
-            CREATE TABLE IF NOT EXISTS tab_items(
+            CREATE TABLE IF NOT EXISTS tab_items (
                 id TEXT PRIMARY KEY,
                 group_id TEXT NOT NULL,
                 label TEXT NOT NULL,
                 file_uri TEXT NOT NULL,
-                sort_order INTEGER NOT NULL DEFAULT 0,
-                FOREIGN KEY(group_id) REFERENCES tabs_groups(id)
-            );
+                original_uri TEXT,
+                tab_type TEXT DEFAULT 'text',
+                sort_order INTEGER NOT NULL,
+                FOREIGN KEY (group_id) REFERENCES tabs_groups(id) ON DELETE CASCADE
+            )
         `);
 
         this.db.run(`
@@ -285,6 +290,21 @@ export class SqlJsDatabaseService {
         this.db.run(`
             CREATE INDEX IF NOT EXISTS idx_tab_items_uri ON tab_items(file_uri);
         `);
+    }
+
+    private async migrateSchema(): Promise<void> {
+        // Add new columns if they don't exist
+        try {
+            this.db.run(`ALTER TABLE tab_items ADD COLUMN original_uri TEXT`);
+        } catch (e) {
+            // Column already exists, ignore
+        }
+        
+        try {
+            this.db.run(`ALTER TABLE tab_items ADD COLUMN tab_type TEXT DEFAULT 'text'`);
+        } catch (e) {
+            // Column already exists, ignore
+        }
     }
 
     private ensureReady() {

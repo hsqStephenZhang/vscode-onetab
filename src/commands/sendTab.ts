@@ -3,7 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 import * as vscode from "vscode";
-import { TabInputText } from "vscode";
 import {
   notInBlackList,
   getAllTabsWithBlackList,
@@ -12,19 +11,21 @@ import {
   getRightTabs,
   getActiveTab,
   sendTabs,
+  isSaveableTab,
+  getTabUri,
 } from "../utils/tab";
 
 export async function sendThisTab(uri: vscode.Uri) {
   let tab = getActiveTab(uri);
   if (
     tab &&
-    tab.input instanceof TabInputText &&
+    isSaveableTab(tab) &&
     notInBlackList(tab)
   ) {
     await sendTabs([tab]);
   } else {
     vscode.window.showWarningMessage(
-      "this is is not a text tab or in blacklist"
+      "This tab cannot be saved (not a file-based tab or in blacklist)"
     );
   }
 }
