@@ -320,9 +320,8 @@ export class TabsState {
       }
     }
 
-    dst.removeDuplicateTabs();
-
     if (merged_labels.length > 0) {
+      dst.removeDuplicateTabs();
       dst.setLabel(dst.label + " (merged with: " + merged_labels.join(", ") + ")");
     }
   }
