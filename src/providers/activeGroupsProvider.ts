@@ -91,7 +91,7 @@ export class TabsProvider
           .filter((node) => node.id !== dst_id)
           .map((node) => node.id)
           .filter((id) => id !== undefined);
-        this.tabsState.mergeTabsGroup(dst_id, excludeSelfGroupIds);
+        this.tabsState.mergeTabsGroup(dst_id, excludeSelfGroupIds as string[]);
 
         const excludeSelfTabs = src
           .filter((node) => node instanceof TabItem)
