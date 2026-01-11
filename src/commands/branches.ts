@@ -3,7 +3,7 @@ import { Global } from "../global";
 import { Branch } from "../model/branch";
 
 export function archive() {
-    let activeState = Global.tabsProvider.getState();
+    let activeState = Global.tabsProvider.getState().deepClone();
     let activeBranchName = Global.branchName;
     Global.branchesProvider.insertOrUpdateBranch(activeBranchName, activeState);
     Global.tabsProvider.clearState();

@@ -18,13 +18,23 @@ export function reinitGitBranchGroups(git: API): vscode.Disposable | void {
         if (repo.state.HEAD?.name !== Global.branchName) {
             Global.logger.debug(`Branch changed, from: ${Global.branchName}, to: ${repo.state.HEAD?.name}`);
 
-            // do the state switch
-            let activeState = Global.tabsProvider.getState();
+            // Save current state to DB under the old branch name
             let activeBranchName = Global.branchName;
+            let activeState = Global.tabsProvider.getState();
+            activeState.branchName = activeBranchName;
+            await activeState.saveToDb();
+
+            // Update to new branch
             Global.branchName = repo.state.HEAD?.name || DEFAULT_BRANCH_NAME;
-            Global.branchesProvider.insertOrUpdateBranch(activeBranchName, activeState);
+
+            // Reload branches provider to reflect the saved branch
+            Global.branchesProvider.reloadState();
+
+            // Load fresh state for the new branch from DB (or create empty)
             let newState = Global.branchesProvider.getBranchState(Global.branchName);
             if (newState) {
+                // Remove from branches since it's now active
+                Global.branchesProvider.deleteBranch(Global.branchName);
                 Global.tabsProvider.resetState(newState);
             } else {
                 Global.tabsProvider.clearState();
