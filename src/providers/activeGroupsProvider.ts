@@ -47,7 +47,10 @@ export class TabsProvider
   }
 
   getParent(element: Node): vscode.ProviderResult<Node> {
-    return element;
+    if (element instanceof TabItem && element.parentId) {
+      return this.tabsState.getGroup(element.parentId);
+    }
+    return null;
   }
 
   async getChildren(element?: Node): Promise<Node[] | undefined | null> {
