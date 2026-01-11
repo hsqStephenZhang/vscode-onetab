@@ -168,9 +168,13 @@ export class TabsProvider
   private saveAndRefresh(): void {
     this.tabsState.saveToDb();
     this.refresh();
+    // Refresh tags view when state changes
+    Global.tagsProvider?.refresh();
   }
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
+    // Also refresh tags view
+    Global.tagsProvider?.refresh();
   }
 }

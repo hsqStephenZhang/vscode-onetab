@@ -46,6 +46,7 @@ export class TabsGroup extends Node {
     
     group.setPin(row.pinned === 1);
     group.updateTooltip();
+    group.updateDescription();
     return group;
   }
 
@@ -100,11 +101,22 @@ export class TabsGroup extends Node {
   public setTags(tags: string[]) {
     this.tags = tags;
     this.updateTooltip();
+    this.updateDescription(); // Add this
   }
 
   public extendTags(tags: string[]) {
     this.tags.push(...tags);
     this.updateTooltip();
+    this.updateDescription(); // Add this
+  }
+
+  // Add new method to show tags in tree item description
+  private updateDescription() {
+    if (this.tags.length > 0) {
+      this.description = this.tags.map(t => `#${t}`).join(' ');
+    } else {
+      this.description = undefined;
+    }
   }
 
   public setLabel(label: string) {

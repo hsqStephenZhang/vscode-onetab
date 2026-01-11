@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { Logger } from "./logging";
 import { TabsProvider } from "./providers/activeGroupsProvider";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
+import { TagsProvider } from "./providers/tagsProvider"; // Add this import
 import { WorkState } from "./common/state";
 import { SqlJsDatabaseService } from "./db";
 
@@ -16,6 +17,7 @@ export class Global {
   public static branchName: string;
   public static tabsProvider: TabsProvider;
   public static branchesProvider: BranchesProvider;
+  public static tagsProvider: TagsProvider; // Add this
   public static outputChannel: vscode.OutputChannel;
   public static logger: Logger;
   public static sqlDb: SqlJsDatabaseService;

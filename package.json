@@ -47,58 +47,6 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "languages": [
-      {
-        "id": "vscode-onetab-output",
-        "mimetypes": [
-          "log",
-          "text/log",
-          "text/x-log",
-          "text/x-code-output",
-          "x-code-output"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "vscode-onetab-output",
-        "scopeName": "vscode-onetab.output",
-        "path": "./syntaxes/log.tmLanguage.json"
-      }
-    ],
-    "configuration": [
-      {
-        "id": "onetab",
-        "title": "onetab",
-        "properties": {
-          "onetab.blacklist": {
-            "scope": "resource",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "description": "The list of file to be excluded from onetab. Will match by regex"
-          },
-          "onetab.autoclean": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": false,
-            "description": "Whether to remove the deleted tabs from tabsGroup"
-          },
-          "onetab.autogroup.apikeys": {
-            "scope": "resource",
-            "type": "object",
-            "properties": {
-              "claude": {
-                "type": "string",
-                "default": ""
-              }
-            }
-          }
-        }
-      }
-    ],
     "commands": [
       {
         "command": "onetab.send.thisTab",
@@ -257,6 +205,70 @@
         "command": "onetab.autogroup",
         "title": "%onetab.autogroup%",
         "category": "Onetab"
+      },
+      {
+        "command": "onetab.filterByTag",
+        "title": "Filter by Tag",
+        "category": "Onetab",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "onetab.manageTags",
+        "title": "Manage All Tags",
+        "category": "Onetab",
+        "icon": "$(tag)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "vscode-onetab-output",
+        "mimetypes": [
+          "log",
+          "text/log",
+          "text/x-log",
+          "text/x-code-output",
+          "x-code-output"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vscode-onetab-output",
+        "scopeName": "vscode-onetab.output",
+        "path": "./syntaxes/log.tmLanguage.json"
+      }
+    ],
+    "configuration": [
+      {
+        "id": "onetab",
+        "title": "onetab",
+        "properties": {
+          "onetab.blacklist": {
+            "scope": "resource",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "The list of file to be excluded from onetab. Will match by regex"
+          },
+          "onetab.autoclean": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to remove the deleted tabs from tabsGroup"
+          },
+          "onetab.autogroup.apikeys": {
+            "scope": "resource",
+            "type": "object",
+            "properties": {
+              "claude": {
+                "type": "string",
+                "default": ""
+              }
+            }
+          }
+        }
       }
     ],
     "keybindings": [
@@ -300,6 +312,12 @@
           "name": "feedback",
           "icon": "asset/dep.svg",
           "contextualTitle": "FeedBack"
+        },
+        {
+          "id": "tags",
+          "name": "Tags",
+          "icon": "asset/dep.svg",
+          "contextualTitle": "Tags"
         }
       ]
     },

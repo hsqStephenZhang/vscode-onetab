@@ -27,7 +27,7 @@ import {
 import { tabRemove, tabRestore } from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
 import { exportJsonData, importJsonData } from "./import_export";
-import { searchGroup } from "./commands/search";
+import { searchGroup, filterByTag, filterByTagDirect } from "./commands/search";
 import { GitExtension } from "./typings/git";
 import { FeedbackProvider, } from "./providers/feedbackProvider";
 import { GitFileWatcher, reinitGitBranchGroups } from "./utils/git";
@@ -37,6 +37,7 @@ import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
 import { autoGroup } from "./autogroup";
 import { SqlJsDatabaseService } from "./db";
+import { TagsProvider } from "./providers/tagsProvider";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -68,6 +69,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   Global.tabsProvider = new TabsProvider(rootPath, context);
   Global.branchesProvider = new BranchesProvider(context);
+  
+  // Register TagsProvider
+  Global.tagsProvider = new TagsProvider();
+  const tagsTreeView = vscode.window.createTreeView("tags", {
+    treeDataProvider: Global.tagsProvider,
+    showCollapseAll: false,
+  });
+  context.subscriptions.push(tagsTreeView);
+
   const feedbackItems = [
     new ReportIssueLink("https://github.com/hsqStephenZhang/vscode-onetab/issues/new"),
     new SupportLink("https://ko-fi.com/babystepping")
@@ -116,6 +126,11 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.debug.clearState", clearState);
 
   vscode.commands.registerCommand("onetab.search", searchGroup);
+  
+  // Register tag filter commands
+  vscode.commands.registerCommand("onetab.filterByTag", filterByTag);
+  vscode.commands.registerCommand("onetab.filterByTagDirect", filterByTagDirect);
+
   // tabs group related commands
   vscode.commands.registerCommand("onetab.tab.restore", tabRestore);
   vscode.commands.registerCommand("onetab.tab.remove", tabRemove);

@@ -59,17 +59,107 @@ export async function tabsGroupTags(group: TabsGroup) {
     return;
   }
   const id = group.id;
-  const tagsRaw = group.getTags().join(",");
-  const newTagsRaw = await vscode.window.showInputBox({
-    prompt: "New Tags, separated by comma",
-    value: tagsRaw,
-  });
-  if (newTagsRaw) {
-    Global.tabsProvider.updateState((state) => {
-      const newTags = newTagsRaw.split(",").map((tag) => tag.trim());
-      state.setGroupTags(id, newTags);
-    })
+  const state = Global.tabsProvider.getState();
+  
+  // Collect all existing tags from all groups
+  const existingTags = new Set<string>();
+  for (const [, g] of state.groups) {
+    for (const tag of g.getTags()) {
+      existingTags.add(tag);
+    }
   }
+  
+  const currentTags = new Set(group.getTags());
+  
+  // Create QuickPick items
+  const baseItems: vscode.QuickPickItem[] = Array.from(existingTags).map(tag => ({
+    label: tag,
+    description: currentTags.has(tag) ? '(current)' : undefined,
+  }));
+  
+  const quickPick = vscode.window.createQuickPick();
+  quickPick.items = baseItems;
+  quickPick.canSelectMany = true;
+  quickPick.placeholder = 'Select existing tags or type to add new ones';
+  quickPick.selectedItems = baseItems.filter(item => currentTags.has(item.label));
+  
+  // Track dynamically added items
+  let dynamicItems: vscode.QuickPickItem[] = [];
+  
+  // Allow adding new tags as user types
+  quickPick.onDidChangeValue(value => {
+    const trimmedValue = value.trim();
+    
+    if (!trimmedValue) {
+      // Reset to base items when input is cleared
+      quickPick.items = baseItems;
+      dynamicItems = [];
+      return;
+    }
+    
+    // Parse input - support comma-separated or single tag
+    const inputTags = trimmedValue.split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    
+    // Find truly new tags (not in existing tags)
+    const newTags = inputTags.filter(t => !existingTags.has(t));
+    
+    if (newTags.length > 0) {
+      // Create a SINGLE item that matches the current input value
+      // This ensures it won't be filtered out by QuickPick
+      dynamicItems = [{
+        label: trimmedValue,  // Use the raw input so it matches the filter
+        description: `(new: ${newTags.join(', ')} - press Enter to add)`,
+        alwaysShow: true,  // Force show even if it doesn't match filter
+      }];
+    } else {
+      dynamicItems = [];
+    }
+    
+    // Preserve current selection
+    const currentSelection = quickPick.selectedItems;
+    
+    // Update items: base items + new dynamic items
+    quickPick.items = [...baseItems, ...dynamicItems];
+    
+    // Restore selection
+    quickPick.selectedItems = quickPick.items.filter(item => 
+      currentSelection.some(sel => sel.label === item.label)
+    );
+  });
+  
+  quickPick.onDidAccept(() => {
+    const finalTags = new Set<string>();
+    
+    // Add selected items (but parse them if they contain commas)
+    for (const item of quickPick.selectedItems) {
+      // Check if this is a "new tags" item (contains comma)
+      if (item.label.includes(',')) {
+        // Parse the comma-separated tags
+        const parsed = item.label.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        parsed.forEach(tag => finalTags.add(tag));
+      } else {
+        finalTags.add(item.label);
+      }
+    }
+    
+    // Also add any typed tags that aren't selected yet
+    const inputValue = quickPick.value.trim();
+    if (inputValue) {
+      const typedTags = inputValue.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      typedTags.forEach(tag => finalTags.add(tag));
+    }
+    
+    Global.tabsProvider.updateState((state) => {
+      state.setGroupTags(id, Array.from(finalTags));
+    });
+    quickPick.hide();
+  });
+  
+  quickPick.onDidHide(() => quickPick.dispose());
+  
+  quickPick.show();
 }
 
 export async function tabsGroupRename(group: TabsGroup) {
