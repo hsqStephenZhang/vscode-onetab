@@ -316,7 +316,9 @@ export class TabsState {
           this.addToReverseIndex(tab.fileUri.fsPath, dst_id);
         }
         merged_labels.push(srcGroup.label as string);
-        this.tryRemoveTabsGroup(src_id);
+        if (!srcGroup.isPinned()) {
+          this.tryRemoveTabsGroup(src_id);
+        }
       }
     }
 

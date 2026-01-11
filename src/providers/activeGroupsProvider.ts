@@ -9,6 +9,7 @@ import { TabsGroup } from "../model/tabsgroup";
 import { TabsState } from "../model/tabstate";
 import { Global } from "../global";
 import { TabItem } from "../model/tabitem";
+import { randomUUID } from "crypto";
 
 export class TabsProvider
   implements
@@ -85,6 +86,7 @@ export class TabsProvider
         dst_id = dst.parentId;
       }
       if (dst_id) {
+        // 1. handle top level groups
         const excludeSelfGroupIds = src
           .filter((node) => node instanceof TabsGroup)
           .map((node) => node as TabsGroup)
@@ -93,15 +95,23 @@ export class TabsProvider
           .filter((id) => id !== undefined);
         this.tabsState.mergeTabsGroup(dst_id, excludeSelfGroupIds as string[]);
 
+        // 2. handle individual tabs
         const excludeSelfTabs = src
           .filter((node) => node instanceof TabItem)
           .map((node) => node as TabItem)
           .filter((node) => node.parentId && node.parentId !== dst_id);
         for (const tabItem of excludeSelfTabs) {
-          if (tabItem.parentId) {
+          // only remove from src group if not pinned
+          if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
             this.tabsState.removeTabFromGroup(tabItem.parentId, tabItem.fileUri.fsPath);
           }
         }
+
+        // always reset the id to avoid conflicts
+        for (const tabItem of excludeSelfTabs) {
+          tabItem.id = randomUUID();
+        }
+
         this.tabsState.addTabsToGroup(dst_id, excludeSelfTabs);
 
         this.saveAndRefresh();
@@ -111,7 +121,7 @@ export class TabsProvider
       if (tabItems.length === 0) return;
 
       for (const tabItem of tabItems) {
-        if (tabItem.parentId) {
+        if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
           this.tabsState.removeTabFromGroup(tabItem.parentId, tabItem.fileUri.fsPath);
         }
       }
