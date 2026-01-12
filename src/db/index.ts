@@ -41,13 +41,16 @@ export class SqlJsDatabaseService {
     private writeQueue: Promise<void> = Promise.resolve();
 
     constructor(private readonly context: vscode.ExtensionContext) {
-        this.dbFilePath = path.join(context.globalStorageUri.fsPath, "onetab.sqljs.sqlite");
+        this.dbFilePath = path.join(context.storageUri ? context.storageUri.fsPath : context.globalStorageUri.fsPath, "onetab.sqljs.sqlite");
     }
 
     public async init(): Promise<void> {
         if (this.initialized) return;
 
-        await fs.promises.mkdir(this.context.globalStorageUri.fsPath, { recursive: true });
+        if (!this.context.storageUri) {
+            return;
+        }
+        await fs.promises.mkdir(this.context.storageUri.fsPath, { recursive: true });
 
         const SQL: SqlJsModule = await this.loadSqlJs();
         const bytes = await this.readDbFileIfExists();
@@ -68,6 +71,11 @@ export class SqlJsDatabaseService {
             // ignore
         }
         this.initialized = false;
+    }
+
+    public run(sql: string, params: any[] = []): void {
+        this.ensureReady();
+        this.db.run(sql, params);
     }
 
     // ---------- KV API (for simple state like groupCnt) ----------
@@ -129,6 +137,22 @@ export class SqlJsDatabaseService {
             `UPDATE tabs_groups SET label = ?, pinned = ?, tags = ?, sort_order = ? WHERE id = ?`,
             [group.label, group.pinned, group.tags, group.sort_order, group.id]
         );
+    }
+
+    // NEW: Fine-grained updates for individual fields
+    public updateTabsGroupPin(id: string, pinned: number): void {
+        this.ensureReady();
+        this.db.run(`UPDATE tabs_groups SET pinned = ? WHERE id = ?`, [pinned, id]);
+    }
+
+    public updateTabsGroupLabel(id: string, label: string): void {
+        this.ensureReady();
+        this.db.run(`UPDATE tabs_groups SET label = ? WHERE id = ?`, [label, id]);
+    }
+
+    public updateTabsGroupTags(id: string, tags: string): void {
+        this.ensureReady();
+        this.db.run(`UPDATE tabs_groups SET tags = ? WHERE id = ?`, [tags, id]);
     }
 
     public deleteTabsGroup(id: string): void {
@@ -195,6 +219,7 @@ export class SqlJsDatabaseService {
         this.db.run(`DELETE FROM tab_items WHERE group_id = ?`, [groupId]);
     }
 
+    // NEW: Single tab deletion by path (used for removeTabFromGroup)
     public deleteTabItemByPath(groupId: string, fsPath: string): void {
         this.ensureReady();
         this.db.run(`DELETE FROM tab_items WHERE group_id = ? AND file_uri = ?`, [groupId, fsPath]);
@@ -299,7 +324,7 @@ export class SqlJsDatabaseService {
         } catch (e) {
             // Column already exists, ignore
         }
-        
+
         try {
             this.db.run(`ALTER TABLE tab_items ADD COLUMN tab_type TEXT DEFAULT 'text'`);
         } catch (e) {

@@ -87,7 +87,102 @@ export class TabsState {
     return db.flush();
   }
 
-  // --- SINGLE GROUP OPERATIONS (more efficient than full save) ---
+  // --- SINGLE GROUP OPERATIONS (fine-grained updates) ---
+
+  // Add new group and persist
+  public async addTabsGroupToDb(group: TabsGroup): Promise<void> {
+    if (!group.id) return Promise.resolve();
+    const db = Global.sqlDb;
+    const row: TabsGroupRow = {
+      id: group.id,
+      branch_name: this.branchName,
+      label: group.getLabel(),
+      pinned: group.isPinned() ? 1 : 0,
+      tags: JSON.stringify(group.getTags()),
+      create_time: group.createTime,
+      sort_order: 0, // Initial sort order, will be updated on next full save if needed
+    };
+    db.insertTabsGroup(row);
+    
+    // Insert tabs for this group
+    let tabSortOrder = 0;
+    for (const tab of group.getTabs()) {
+      const tabRow: TabItemRow = {
+        id: tab.id!,
+        group_id: group.id,
+        label: tab.getLabel(),
+        file_uri: tab.fileUri.toString(),
+        sort_order: tabSortOrder++,
+      };
+      db.insertTabItem(tabRow);
+    }
+    return db.flush();
+  }
+
+  public async updateGroupPin(id: string, pinned: boolean): Promise<void> {
+    const db = Global.sqlDb;
+    db.updateTabsGroupPin(id, pinned ? 1 : 0);
+    return db.flush();
+  }
+
+  public async updateGroupLabel(id: string, label: string): Promise<void> {
+    const db = Global.sqlDb;
+    db.updateTabsGroupLabel(id, label);
+    return db.flush();
+  }
+
+  public async updateGroupTags(id: string, tags: string[]): Promise<void> {
+    const db = Global.sqlDb;
+    db.updateTabsGroupTags(id, JSON.stringify(tags));
+    return db.flush();
+  }
+
+  public async removeTabFromDb(groupId: string, fsPath: string): Promise<void> {
+    const db = Global.sqlDb;
+    db.deleteTabItemByPath(groupId, fsPath);
+    return db.flush();
+  }
+
+  public async addTabsToDb(groupId: string, tabs: TabItem[]): Promise<void> {
+    const db = Global.sqlDb;
+    const existingTabs = db.getTabItems(groupId);
+    let tabSortOrder = existingTabs.length;
+
+    for (const tab of tabs) {
+      const tabRow: TabItemRow = {
+        id: tab.id!,
+        group_id: groupId,
+        label: tab.getLabel(),
+        file_uri: tab.fileUri.toString(),
+        sort_order: tabSortOrder++,
+      };
+      db.insertTabItem(tabRow);
+    }
+    return db.flush();
+  }
+
+  public async replaceGroupTabs(groupId: string, newTabs: TabItem[]): Promise<void> {
+    const db = Global.sqlDb;
+    db.deleteTabItemsByGroupId(groupId);
+    let tabSortOrder = 0;
+    for (const tab of newTabs) {
+      const tabRow: TabItemRow = {
+        id: tab.id!,
+        group_id: groupId,
+        label: tab.getLabel(),
+        file_uri: tab.fileUri.toString(),
+        sort_order: tabSortOrder++,
+      };
+      db.insertTabItem(tabRow);
+    }
+    return db.flush();
+  }
+
+  public async deleteGroupFromDb(id: string): Promise<void> {
+    const db = Global.sqlDb;
+    db.deleteTabsGroup(id);
+    return db.flush();
+  }
 
   public saveGroup(group: TabsGroup): Promise<void> {
     if (!group.id) return Promise.resolve();
@@ -125,12 +220,6 @@ export class TabsState {
       db.insertTabItem(tabRow);
     }
 
-    return db.flush();
-  }
-
-  public deleteGroupFromDb(id: string): Promise<void> {
-    const db = Global.sqlDb;
-    db.deleteTabsGroup(id);
     return db.flush();
   }
 
@@ -218,24 +307,38 @@ export class TabsState {
     );
   }
 
+  // --- UPDATED MUTATION METHODS (with fine-grained persistence) ---
+
   public setPinned(id: string, pinned: boolean = true) {
     const g = this.groups.get(id);
-    if (g) g.setPin(pinned);
+    if (g) {
+      g.setPin(pinned);
+      this.updateGroupPin(id, pinned); // async, fire-and-forget
+    }
   }
 
   public setGroupLabel(id: string, label: string) {
     const g = this.groups.get(id);
-    if (g) g.setLabel(label);
+    if (g) {
+      g.setLabel(label);
+      this.updateGroupLabel(id, label); // async, fire-and-forget
+    }
   }
 
   public setGroupTags(id: string, tags: string[]) {
     const g = this.groups.get(id);
-    if (g) g.setTags(tags);
+    if (g) {
+      g.setTags(tags);
+      this.updateGroupTags(id, tags); // async, fire-and-forget
+    }
   }
 
   public addTagsToGroup(id: string, tags: string[]) {
     const g = this.groups.get(id);
-    if (g) g.extendTags(tags);
+    if (g) {
+      g.extendTags(tags);
+      this.updateGroupTags(id, g.getTags()); // async, fire-and-forget
+    }
   }
 
   public setGroupTabs(id: string, newTabs: TabItem[]) {
@@ -249,6 +352,7 @@ export class TabsState {
       for (const tab of newTabs) {
         this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
+      this.replaceGroupTabs(id, newTabs); // async, fire-and-forget
     }
   }
 
@@ -263,6 +367,9 @@ export class TabsState {
       for (const tab of newTabs) {
         this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
+      if (newTabs.length > 0) {
+        this.addTabsToDb(id, newTabs); // async, fire-and-forget
+      }
     }
   }
 
@@ -273,6 +380,7 @@ export class TabsState {
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
       if (group.getTabs().length < originalLength) {
         this.removeFromReverseIndex(fsPath, groupId);
+        this.removeTabFromDb(groupId, fsPath); // async, fire-and-forget
       }
       if (group.getTabs().length === 0) {
         this.groups.delete(groupId);
@@ -289,12 +397,15 @@ export class TabsState {
       if (group) {
         group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
         this.removeFromReverseIndex(fsPath, gid);
+        this.removeTabFromDb(gid, fsPath); // async, fire-and-forget
         if (group.getTabs().length === 0 && group.id) {
           this.groups.delete(group.id);
         }
       }
     }
   }
+
+  // --- BULK OPERATIONS (use saveToDb for efficiency) ---
 
   public mergeTabsGroup(dst_id: string, src_ids: string[]) {
     const dst = this.groups.get(dst_id);

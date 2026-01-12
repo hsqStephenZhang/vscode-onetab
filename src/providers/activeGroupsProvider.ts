@@ -100,6 +100,7 @@ export class TabsProvider
           .filter((node) => node instanceof TabItem)
           .map((node) => node as TabItem)
           .filter((node) => node.parentId && node.parentId !== dst_id);
+
         for (const tabItem of excludeSelfTabs) {
           // only remove from src group if not pinned
           if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
@@ -107,14 +108,17 @@ export class TabsProvider
           }
         }
 
-        // always reset the id to avoid conflicts
-        for (const tabItem of excludeSelfTabs) {
-          tabItem.id = randomUUID();
-        }
+        let tabsToAdd = excludeSelfTabs.map((orig) => {
+          let item = orig.deepClone();
+          item.id = randomUUID();
+          item.parentId = dst_id;
+          return item as TabItem;
+        });
 
-        this.tabsState.addTabsToGroup(dst_id, excludeSelfTabs);
+        this.tabsState.addTabsToGroup(dst_id, tabsToAdd);
 
-        this.saveAndRefresh();
+        // Complex merge operation - do a one-time full save
+        this.refresh();
       }
     } else if (dst === undefined) {
       let tabItems = src.filter((node) => node instanceof TabItem).map(node => node as TabItem);
@@ -127,14 +131,19 @@ export class TabsProvider
       }
 
       let group = new TabsGroup();
-      let newTabItems = tabItems.map((item) => {
+      let newTabItems = tabItems.map((orig) => {
+        let item = orig.deepClone();
+        item.id = randomUUID();
         item.parentId = group.id;
         return item as TabItem;
       });
       group.setTabs(newTabItems);
       this.tabsState.addTabsGroup(group);
 
-      this.saveAndRefresh();
+      // New group - persist with fine-grained operation
+      this.tabsState.addTabsGroupToDb(group).then(() => {
+        this.refresh();
+      });
     }
   }
 
@@ -144,7 +153,10 @@ export class TabsProvider
 
   public clearState() {
     this.tabsState = new TabsState(null);
-    this.saveAndRefresh();
+    // Full clear - use saveToDb which clears all data for this branch
+    this.tabsState.saveToDb().then(() => {
+      this.refresh();
+    });
   }
 
   public reloadState(refresh: boolean = true) {
@@ -163,24 +175,24 @@ export class TabsProvider
     }
     this.tabsState = newState;
     this.tabsState.branchName = null; // Ensure it's the main state
-    this.saveAndRefresh();
+    // Full state replacement - use saveToDb
+    this.tabsState.saveToDb().then(() => {
+      this.refresh();
+    });
   }
 
   public updateState(updater: (state: TabsState) => void) {
     updater(this.tabsState);
-    this.saveAndRefresh();
+    // No saveToDb() here - fine-grained methods handle their own persistence
+    // Just refresh the UI
+    this.refresh();
   }
 
   public getTreeView(): vscode.TreeView<Node> | undefined {
     return this.viewer;
   }
 
-  private saveAndRefresh(): void {
-    this.tabsState.saveToDb();
-    this.refresh();
-    // Refresh tags view when state changes
-    Global.tagsProvider?.refresh();
-  }
+  // saveAndRefresh removed; complex callers now inline saveToDb + refresh
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
