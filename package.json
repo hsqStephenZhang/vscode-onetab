@@ -8,23 +8,15 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "engines": {
-    "vscode": "^1.69.0"
+    "vscode": "^1.90.0"
   },
   "license": "MIT",
   "keywords": [
     "onetab",
     "vscode",
     "efficiency"
-  ],
-  "files": [
-    "dist/**",
-    "asset/**",
-    "package.json",
-    "README.md",
-    "LICENSE",
-    "syntaxes/**"
   ],
   "repository": {
     "type": "git",
@@ -479,19 +471,19 @@
   },
   "scripts": {
     "vscode:prepublish": "rm -rf dist && rm -rf out && webpack --mode production",
-    "publish": "vsce publish && npm publish",
+    "publish": "vsce publish --no-dependencies",
     "compile": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "pretest": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish"
+    "deploy": "vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "~16.18.126",
-    "@types/vscode": "^1.108.0",
+    "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.5.2",
