@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { AccessTracking } from "../model/accessTracking";
 
 export interface TabItemRow {
     id: string;
@@ -350,5 +351,71 @@ export class StorageService {
 
     public async init(): Promise<void> {
         // No-op - VS Code storage is ready immediately
+    }
+
+    // ---------- ACCESS TRACKING API ----------
+
+    /**
+     * Get access tracking data for a group
+     */
+    public getAccessTracking(groupId: string): AccessTracking | undefined {
+        const trackingStr = this.getWorkspaceState(`tracking:${groupId}`);
+        if (!trackingStr) return undefined;
+        try {
+            return AccessTracking.fromJSON(trackingStr);
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Save access tracking data for a group
+     */
+    public async setAccessTracking(tracking: AccessTracking): Promise<void> {
+        return this.setWorkspaceState(`tracking:${tracking.groupId}`, tracking.toJSON());
+    }
+
+    /**
+     * Record an access event for a group
+     */
+    public async recordGroupAccess(groupId: string): Promise<void> {
+        let tracking = this.getAccessTracking(groupId);
+        if (!tracking) {
+            tracking = new AccessTracking(groupId);
+        }
+        tracking.recordAccess();
+        await this.setAccessTracking(tracking);
+    }
+
+    /**
+     * Delete access tracking data for a group
+     */
+    public async deleteAccessTracking(groupId: string): Promise<void> {
+        return this.deleteWorkspaceState(`tracking:${groupId}`);
+    }
+
+    /**
+     * Get all access tracking data (for all groups)
+     */
+    public getAllAccessTracking(): Map<string, AccessTracking> {
+        const trackingMap = new Map<string, AccessTracking>();
+        const keys = this.listWorkspaceKeys();
+
+        for (const key of keys) {
+            if (key.startsWith('tracking:')) {
+                const groupId = key.substring('tracking:'.length);
+                const trackingStr = this.getWorkspaceState(key);
+                if (trackingStr) {
+                    try {
+                        const tracking = AccessTracking.fromJSON(trackingStr);
+                        trackingMap.set(groupId, tracking);
+                    } catch {
+                        // Skip invalid entries
+                    }
+                }
+            }
+        }
+
+        return trackingMap;
     }
 }

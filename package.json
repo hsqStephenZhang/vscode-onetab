@@ -249,16 +249,6 @@
             "default": false,
             "description": "Whether to remove the deleted tabs from tabsGroup"
           },
-          "onetab.autogroup.apikeys": {
-            "scope": "resource",
-            "type": "object",
-            "properties": {
-              "claude": {
-                "type": "string",
-                "default": ""
-              }
-            }
-          },
           "onetab.autogroup.customStrategies": {
             "scope": "application",
             "type": "array",
@@ -282,6 +272,22 @@
             },
             "description": "Custom strategies for auto-grouping files. You can edit this directly or use the 'Manage Custom Strategies' command.",
             "editPresentation": "multilineText"
+          },
+          "onetab.sortingStrategy": {
+            "scope": "resource",
+            "type": "string",
+            "enum": [
+              "default",
+              "lru",
+              "lfu"
+            ],
+            "enumDescriptions": [
+              "Default sorting: pinned first, then named, then tagged, then by creation time",
+              "LRU (Least Recently Used): recently accessed groups first",
+              "LFU (Least Frequently Used): frequently accessed groups first"
+            ],
+            "default": "default",
+            "description": "Sorting strategy for tab groups in the onetab view"
           }
         }
       }
@@ -483,7 +489,7 @@
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "~16.18.126",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.108.1",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.5.2",
@@ -495,7 +501,7 @@
     "npm-run-all": "^4.1.5",
     "style-loader": "^3.3.4",
     "ts-loader": "^9.5.4",
-    "typescript": "^4.9.5",
+    "typescript": "^5.9.3",
     "vscode-test": "^1.6.1",
     "webpack": "^5.104.1",
     "webpack-cli": "^4.10.0"

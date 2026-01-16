@@ -3,10 +3,13 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import * as vscode from "vscode";
 import { Global } from "../global";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 import { TabsGroupRow, TabItemRow } from "../db/storageService";
+import { DEFAULT_SORTING_STRATEGY, SORTING_STRATEGY_CONFIG_KEY, SortingStrategy } from "../constant";
+import { SortingService } from "../utils/sortingService";
 
 export class TabsState {
   public groups: Map<string, TabsGroup>;
@@ -155,7 +158,7 @@ export class TabsState {
 
   public async addTabsGroupToStorage(group: TabsGroup): Promise<void> {
     if (!group.id) return;
-    
+
     this.markDirty(group.id);
     await this.persistChanges();
   }
@@ -187,7 +190,7 @@ export class TabsState {
   public async addTabsToStorage(groupId: string, tabs: TabItem[]): Promise<void> {
     const storage = Global.storage;
     this.markDirty(groupId);
-    
+
     const existingTabs = storage.getTabItems(groupId);
     let tabSortOrder = existingTabs.length;
 
@@ -209,7 +212,7 @@ export class TabsState {
     const storage = Global.storage;
     this.markDirty(groupId);
     await storage.deleteTabItemsByGroupId(groupId);
-    
+
     let tabSortOrder = 0;
     for (const tab of newTabs) {
       const tabRow: TabItemRow = {
@@ -477,32 +480,12 @@ export class TabsState {
   }
 
   public getAllTabsGroupsSorted(): TabsGroup[] {
-    const pinnedIds = new Set<string>();
-    const namedIds = new Set<string>();
-    const taggedIds = new Set<string>();
+    // Get the current sorting strategy from configuration
+    const config = vscode.workspace.getConfiguration();
+    const strategy = (config.get<string>(SORTING_STRATEGY_CONFIG_KEY) ?? DEFAULT_SORTING_STRATEGY) as SortingStrategy;
 
-    for (const group of this.groups.values()) {
-      if (!group.id) continue;
-      if (group.isPinned()) pinnedIds.add(group.id);
-      if (!group.isUntitled()) namedIds.add(group.id);
-      if (group.getTags().length > 0) taggedIds.add(group.id);
-    }
-
-    return Array.from(this.groups.values())
-      .map((group) => {
-        let score = 0;
-        if (group.id) {
-          if (pinnedIds.has(group.id)) score += 100;
-          if (namedIds.has(group.id)) score += 10;
-          if (taggedIds.has(group.id)) score += 1;
-        }
-        return { group, score };
-      })
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return b.group.createTime - a.group.createTime;
-      })
-      .map((item) => item.group);
+    const groups = Array.from(this.groups.values());
+    return SortingService.sortGroups(groups, strategy);
   }
 
   // --- DEEP CLONE ---

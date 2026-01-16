@@ -12,3 +12,13 @@ export const DEFAULT_TAB_LABEL = "untitled tab";
 export const CONTEXT_TAB_GROUP = "tabsGroup";
 export const CONTEXT_TAB = "tab";
 export const CONTEXT_BRANCH = "branch";
+
+// Sorting strategy constants
+export enum SortingStrategy {
+  DEFAULT = "default",
+  LRU = "lru",      // Least Recently Used
+  LFU = "lfu"       // Least Frequently Used
+}
+
+export const SORTING_STRATEGY_CONFIG_KEY = "onetab.sortingStrategy";
+export const DEFAULT_SORTING_STRATEGY = SortingStrategy.DEFAULT;

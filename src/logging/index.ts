@@ -5,7 +5,7 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import * as moment from 'moment';
+import moment from 'moment';
 
 export enum LogLevel {
     DEBUG = 1,
