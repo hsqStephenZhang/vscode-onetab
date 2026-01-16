@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { Global } from "../global";
 import { TabItem } from "../model/tabitem";
+import { AccessTrackingService } from "../utils/accessTrackingService";
 
 // Restore tab based on its type
 async function openTabItem(tab: TabItem): Promise<void> {
@@ -24,7 +25,7 @@ async function openTabItem(tab: TabItem): Promise<void> {
         await vscode.commands.executeCommand('vscode.open', tab.fileUri);
       }
       break;
-      
+
     case 'notebookDiff':
       if (tab.originalUri) {
         // Open as notebook diff (if supported)
@@ -43,7 +44,7 @@ async function openTabItem(tab: TabItem): Promise<void> {
         await vscode.commands.executeCommand('vscode.open', tab.fileUri);
       }
       break;
-      
+
     case 'notebook':
     case 'custom':
     case 'text':
@@ -64,6 +65,7 @@ export async function tabRestore(tab: TabItem) {
   let g = state.getGroup(groupId);
 
   if (g) {
+    await AccessTrackingService.recordAccess(groupId);
     if (g.isPinned()) {
       await openTabItem(tab);
       Global.tabsProvider.refresh();
@@ -87,6 +89,7 @@ export async function tabRemove(tab: TabItem) {
   let g = state.getGroup(groupId);
 
   if (g) {
+    await AccessTrackingService.recordAccess(groupId);
     if (g.isPinned()) {
       vscode.window.showWarningMessage(
         "this tab has been pinned within a group, please unpin the group before removing this tab"

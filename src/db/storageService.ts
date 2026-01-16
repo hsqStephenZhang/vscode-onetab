@@ -98,7 +98,7 @@ export class StorageService {
 
     // ---------- TABS GROUPS API (High-level) ----------
 
-    public async insertTabsGroup(group: TabsGroupRow): Promise<void> {
+    public insertTabsGroup(group: TabsGroupRow): void {
         const branchGroupIds = this.getBranchGroupIds(group.branch_name);
 
         if (!branchGroupIds.includes(group.id)) {
@@ -106,7 +106,7 @@ export class StorageService {
         }
 
         // Update branch group IDs
-        await this.setBranchGroupIds(group.branch_name, branchGroupIds);
+        this.setBranchGroupIds(group.branch_name, branchGroupIds);
 
         // Create group data with empty tabs
         const groupData: GroupData = {
@@ -119,11 +119,11 @@ export class StorageService {
             const branchIds = this.getBranchIds();
             if (!branchIds.includes(group.branch_name)) {
                 branchIds.push(group.branch_name);
-                await this.setBranchIds(branchIds);
+                this.setBranchIds(branchIds);
             }
         }
 
-        await this.setGroupData(groupData);
+        this.setGroupData(groupData);
     }
 
     public async updateTabsGroup(group: TabsGroupRow): Promise<void> {
@@ -270,12 +270,12 @@ export class StorageService {
         }
     }
 
-    public async deleteTabItemsByGroupId(groupId: string): Promise<void> {
+    public deleteTabItemsByGroupId(groupId: string): void {
         const groupData = this.getGroupData(groupId);
         if (!groupData) return;
 
         groupData.tabs = [];
-        await this.setGroupData(groupData);
+        this.setGroupData(groupData);
     }
 
     public async deleteTabItemByPath(groupId: string, fsPath: string): Promise<void> {

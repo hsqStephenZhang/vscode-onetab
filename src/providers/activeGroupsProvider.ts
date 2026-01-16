@@ -185,9 +185,10 @@ export class TabsProvider
 
   public updateState(updater: (state: TabsState) => void) {
     updater(this.tabsState);
-    // No saveToStorage() here - fine-grained methods handle their own persistence
-    // Just refresh the UI
-    this.refresh();
+    // Use microtask queue to ensure persistence completes first
+    setTimeout(() => {
+      this.refresh();
+    }, 0);
   }
 
   public getTreeView(): vscode.TreeView<Node> | undefined {
@@ -196,7 +197,6 @@ export class TabsProvider
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
-    // Also refresh tags view
     Global.tagsProvider?.refresh();
   }
 }

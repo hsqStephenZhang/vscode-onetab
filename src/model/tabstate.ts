@@ -14,6 +14,7 @@ import { SortingService } from "../utils/sortingService";
 export class TabsState {
   public groups: Map<string, TabsGroup>;
   public blackList: Set<string>;
+  // TODO: is it still useful?
   private reverseIndex: Map<string, string[]>;
 
   // The branch name this state belongs to (null = active/main state)
@@ -134,7 +135,7 @@ export class TabsState {
         create_time: group.createTime,
         sort_order: sortOrder++,
       };
-      await storage.insertTabsGroup(row);
+      storage.insertTabsGroup(row);
 
       let tabSortOrder = 0;
       for (const tab of group.getTabs()) {
@@ -154,84 +155,13 @@ export class TabsState {
     this.deletedGroups.clear();
   }
 
-  // --- SINGLE GROUP OPERATIONS (fine-grained updates) ---
+  // // --- SINGLE GROUP OPERATIONS (fine-grained updates) ---
 
   public async addTabsGroupToStorage(group: TabsGroup): Promise<void> {
     if (!group.id) return;
 
     this.markDirty(group.id);
     await this.persistChanges();
-  }
-
-  public async updateGroupPin(id: string, pinned: boolean): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(id);
-    await storage.updateTabsGroupPin(id, pinned ? 1 : 0);
-  }
-
-  public async updateGroupLabel(id: string, label: string): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(id);
-    await storage.updateTabsGroupLabel(id, label);
-  }
-
-  public async updateGroupTags(id: string, tags: string[]): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(id);
-    await storage.updateTabsGroupTags(id, JSON.stringify(tags));
-  }
-
-  public async removeTabFromStorage(groupId: string, fsPath: string): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(groupId);
-    await storage.deleteTabItemByPath(groupId, fsPath);
-  }
-
-  public async addTabsToStorage(groupId: string, tabs: TabItem[]): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(groupId);
-
-    const existingTabs = storage.getTabItems(groupId);
-    let tabSortOrder = existingTabs.length;
-
-    for (const tab of tabs) {
-      const tabRow: TabItemRow = {
-        id: tab.id!,
-        group_id: groupId,
-        label: tab.getLabel(),
-        file_uri: tab.fileUri.toString(),
-        original_uri: tab.originalUri?.toString(),
-        tab_type: tab.tabType,
-        sort_order: tabSortOrder++,
-      };
-      await storage.insertTabItem(tabRow);
-    }
-  }
-
-  public async replaceGroupTabs(groupId: string, newTabs: TabItem[]): Promise<void> {
-    const storage = Global.storage;
-    this.markDirty(groupId);
-    await storage.deleteTabItemsByGroupId(groupId);
-
-    let tabSortOrder = 0;
-    for (const tab of newTabs) {
-      const tabRow: TabItemRow = {
-        id: tab.id!,
-        group_id: groupId,
-        label: tab.getLabel(),
-        file_uri: tab.fileUri.toString(),
-        original_uri: tab.originalUri?.toString(),
-        tab_type: tab.tabType,
-        sort_order: tabSortOrder++,
-      };
-      await storage.insertTabItem(tabRow);
-    }
-  }
-
-  public async deleteGroupFromStorage(id: string): Promise<void> {
-    const storage = Global.storage;
-    this.markDeleted(id);
-    await storage.deleteTabsGroup(id);
   }
 
   // --- INDEX MANAGEMENT ---
