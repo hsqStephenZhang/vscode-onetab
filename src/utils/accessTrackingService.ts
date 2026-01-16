@@ -38,9 +38,9 @@ export class AccessTrackingService {
   /**
    * Get last access time for a group
    */
-  public static getLastAccessTime(groupId: string): number {
+  public static getLastAccessTime(groupId: string): number | undefined {
     const tracking = this.trackingCache.get(groupId);
-    return tracking?.getLastAccessTime() ?? Date.now();
+    return tracking?.getLastAccessTime();
   }
 
   /**

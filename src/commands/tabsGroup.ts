@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { Global } from "../global";
 import { TabsGroup } from "../model/tabsgroup";
 import { TabItem } from "../model/tabitem";
+import { AccessTrackingService } from "../utils/accessTrackingService";
 
 // Add the openTabItem helper or import it
 async function openTabItem(tab: TabItem): Promise<void> {
@@ -46,6 +47,7 @@ export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   if (!tabsGroup.id) {
     return;
   }
+  await AccessTrackingService.recordAccess(tabsGroup.id);
   for (const tab of tabsGroup.getTabs()) {
     await openTabItem(tab);
   }
@@ -129,7 +131,7 @@ export async function tabsGroupTags(group: TabsGroup) {
     );
   });
   
-  quickPick.onDidAccept(() => {
+  quickPick.onDidAccept(async () => {
     const finalTags = new Set<string>();
     
     // Add selected items (but parse them if they contain commas)
@@ -151,6 +153,7 @@ export async function tabsGroupTags(group: TabsGroup) {
       typedTags.forEach(tag => finalTags.add(tag));
     }
     
+    await AccessTrackingService.recordAccess(id);
     Global.tabsProvider.updateState((state) => {
       state.setGroupTags(id, Array.from(finalTags));
     });
@@ -172,6 +175,7 @@ export async function tabsGroupRename(group: TabsGroup) {
     value: group.getLabel(),
   });
   if (newName) {
+    await AccessTrackingService.recordAccess(id);
     Global.tabsProvider.updateState((state) => {
       state.setGroupLabel(id, newName);
     })
@@ -183,6 +187,7 @@ export async function tabsGroupPin(group: TabsGroup) {
     return;
   }
   let id = group.id;
+  await AccessTrackingService.recordAccess(id);
   Global.tabsProvider.updateState((state) => {
     state.setPinned(id, !group.isPinned())
   })

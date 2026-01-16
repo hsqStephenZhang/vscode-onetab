@@ -27,6 +27,7 @@ node_modules
 # Ignore built ts files
 out/**/*
 dist/**/*
+.vscode/settings.json
 
 **.vsix
 

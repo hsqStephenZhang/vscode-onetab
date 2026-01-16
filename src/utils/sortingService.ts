@@ -73,15 +73,15 @@ export class SortingService {
 
     // Sort pinned by last access time (most recent first)
     pinned.sort((a, b) => {
-      const aTime = a.id ? AccessTrackingService.getLastAccessTime(a.id) : a.createTime;
-      const bTime = b.id ? AccessTrackingService.getLastAccessTime(b.id) : b.createTime;
+      const aTime = (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ?? a.createTime;
+      const bTime = (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ?? b.createTime
       return bTime - aTime;
     });
 
     // Sort unpinned by last access time (most recent first)
     unpinned.sort((a, b) => {
-      const aTime = a.id ? AccessTrackingService.getLastAccessTime(a.id) : a.createTime;
-      const bTime = b.id ? AccessTrackingService.getLastAccessTime(b.id) : b.createTime;
+      const aTime = (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ?? a.createTime;
+      const bTime = (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ?? b.createTime
       return bTime - aTime;
     });
 
