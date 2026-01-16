@@ -317,6 +317,12 @@
           "contextualTitle": "Tabs"
         },
         {
+          "id": "tags",
+          "name": "Tags",
+          "icon": "asset/dep.svg",
+          "contextualTitle": "Tags"
+        },
+        {
           "id": "branches",
           "name": "onetab Branches",
           "icon": "asset/dep.svg",
@@ -327,12 +333,6 @@
           "name": "feedback",
           "icon": "asset/dep.svg",
           "contextualTitle": "FeedBack"
-        },
-        {
-          "id": "tags",
-          "name": "Tags",
-          "icon": "asset/dep.svg",
-          "contextualTitle": "Tags"
         }
       ]
     },
