@@ -118,7 +118,9 @@ export class TabsProvider
         this.tabsState.addTabsToGroup(dst_id, tabsToAdd);
 
         // Complex merge operation - do a one-time full save
-        this.refresh();
+        this.tabsState.saveToStorage().then(() => {
+          this.refresh();
+        });
       }
     } else if (dst === undefined) {
       let tabItems = src.filter((node) => node instanceof TabItem).map(node => node as TabItem);
@@ -141,7 +143,7 @@ export class TabsProvider
       this.tabsState.addTabsGroup(group);
 
       // New group - persist with fine-grained operation
-      this.tabsState.addTabsGroupToDb(group).then(() => {
+      this.tabsState.addTabsGroupToStorage(group).then(() => {
         this.refresh();
       });
     }
@@ -153,14 +155,14 @@ export class TabsProvider
 
   public clearState() {
     this.tabsState = new TabsState(null);
-    // Full clear - use saveToDb which clears all data for this branch
-    this.tabsState.saveToDb().then(() => {
+    // Full clear - use saveToStorage which clears all data for this branch
+    this.tabsState.saveToStorage().then(() => {
       this.refresh();
     });
   }
 
   public reloadState(refresh: boolean = true) {
-    this.tabsState = TabsState.loadFromDb(null);
+    this.tabsState = TabsState.loadFromStorage(null);
     if (refresh) {
       this.refresh();
     }
@@ -175,15 +177,15 @@ export class TabsProvider
     }
     this.tabsState = newState;
     this.tabsState.branchName = null; // Ensure it's the main state
-    // Full state replacement - use saveToDb
-    this.tabsState.saveToDb().then(() => {
+    // Full state replacement - use saveToStorage
+    this.tabsState.saveToStorage().then(() => {
       this.refresh();
     });
   }
 
   public updateState(updater: (state: TabsState) => void) {
     updater(this.tabsState);
-    // No saveToDb() here - fine-grained methods handle their own persistence
+    // No saveToStorage() here - fine-grained methods handle their own persistence
     // Just refresh the UI
     this.refresh();
   }
@@ -191,8 +193,6 @@ export class TabsProvider
   public getTreeView(): vscode.TreeView<Node> | undefined {
     return this.viewer;
   }
-
-  // saveAndRefresh removed; complex callers now inline saveToDb + refresh
 
   refresh(): void {
     this._onDidChangeTreeData.fire();

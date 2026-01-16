@@ -38,6 +38,7 @@ import { ReportIssueLink, SupportLink } from "./model/feedback";
 import { autoGroup } from "./autogroup";
 import { SqlJsDatabaseService } from "./db";
 import { TagsProvider } from "./providers/tagsProvider";
+import { StorageService } from "./db/storageService";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -54,8 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Global.outputChannel = outputChannel;
   Global.logger = new OutputChannelLogger(level, outputChannel);
 
-  Global.sqlDb = new SqlJsDatabaseService(context);
-  await Global.sqlDb.init();
+  Global.storage = new StorageService(context.workspaceState);
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
@@ -175,10 +175,4 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // refresh at the beginning
   Global.tabsProvider.refresh();
-}
-
-// this method is called when your extension is deactivated
-export function deactivate() {
-  // best-effort close; cannot await here
-  Global.sqlDb?.close?.();
 }

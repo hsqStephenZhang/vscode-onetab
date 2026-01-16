@@ -6,7 +6,7 @@
 import { Global } from "../global";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
-import { TabsGroupRow, TabItemRow } from "../db";
+import { TabsGroupRow, TabItemRow, GroupData, StorageService } from "../db/storageService";
 
 export class TabsState {
   public groups: Map<string, TabsGroup>;
@@ -23,16 +23,16 @@ export class TabsState {
     this.branchName = branchName;
   }
 
-  // --- LOAD FROM DB ---
-  public static loadFromDb(branchName: string | null): TabsState {
+  // --- LOAD FROM STORAGE ---
+  public static loadFromStorage(branchName: string | null): TabsState {
     const state = new TabsState(branchName);
-    const db = Global.sqlDb;
+    const storage = Global.storage;
 
-    const groupRows = db.getTabsGroups(branchName);
+    const groupRows = storage.getTabsGroups(branchName);
 
     for (const row of groupRows) {
       const group = TabsGroup.fromRow(row);
-      const tabRows = db.getTabItems(row.id);
+      const tabRows = storage.getTabItems(row.id);
 
       for (const tabRow of tabRows) {
         const tab = TabItem.fromRow(tabRow);
@@ -49,12 +49,12 @@ export class TabsState {
     return state;
   }
 
-  // --- SAVE TO DB ---
-  public saveToDb(): Promise<void> {
-    const db = Global.sqlDb;
+  // --- SAVE TO STORAGE ---
+  public async saveToStorage(): Promise<void> {
+    const storage = Global.storage;
 
     // Clear existing data for this branch
-    db.clearTabsGroups(this.branchName);
+    await storage.clearTabsGroups(this.branchName);
 
     let sortOrder = 0;
     for (const group of this.getAllTabsGroupsSorted()) {
@@ -69,7 +69,7 @@ export class TabsState {
         create_time: group.createTime,
         sort_order: sortOrder++,
       };
-      db.insertTabsGroup(row);
+      await storage.insertTabsGroup(row);
 
       let tabSortOrder = 0;
       for (const tab of group.getTabs()) {
@@ -78,21 +78,21 @@ export class TabsState {
           group_id: group.id,
           label: tab.getLabel(),
           file_uri: tab.fileUri.toString(),
+          original_uri: tab.originalUri?.toString(),
+          tab_type: tab.tabType,
           sort_order: tabSortOrder++,
         };
-        db.insertTabItem(tabRow);
+        await storage.insertTabItem(tabRow);
       }
     }
-
-    return db.flush();
   }
 
   // --- SINGLE GROUP OPERATIONS (fine-grained updates) ---
 
-  // Add new group and persist
-  public async addTabsGroupToDb(group: TabsGroup): Promise<void> {
-    if (!group.id) return Promise.resolve();
-    const db = Global.sqlDb;
+  public async addTabsGroupToStorage(group: TabsGroup): Promise<void> {
+    if (!group.id) return;
+    const storage = Global.storage;
+    
     const row: TabsGroupRow = {
       id: group.id,
       branch_name: this.branchName,
@@ -100,10 +100,11 @@ export class TabsState {
       pinned: group.isPinned() ? 1 : 0,
       tags: JSON.stringify(group.getTags()),
       create_time: group.createTime,
-      sort_order: 0, // Initial sort order, will be updated on next full save if needed
+      sort_order: 0,
     };
-    db.insertTabsGroup(row);
     
+    await storage.insertTabsGroup(row);
+
     // Insert tabs for this group
     let tabSortOrder = 0;
     for (const tab of group.getTabs()) {
@@ -112,40 +113,37 @@ export class TabsState {
         group_id: group.id,
         label: tab.getLabel(),
         file_uri: tab.fileUri.toString(),
+        original_uri: tab.originalUri?.toString(),
+        tab_type: tab.tabType,
         sort_order: tabSortOrder++,
       };
-      db.insertTabItem(tabRow);
+      await storage.insertTabItem(tabRow);
     }
-    return db.flush();
   }
 
   public async updateGroupPin(id: string, pinned: boolean): Promise<void> {
-    const db = Global.sqlDb;
-    db.updateTabsGroupPin(id, pinned ? 1 : 0);
-    return db.flush();
+    const storage = Global.storage;
+    await storage.updateTabsGroupPin(id, pinned ? 1 : 0);
   }
 
   public async updateGroupLabel(id: string, label: string): Promise<void> {
-    const db = Global.sqlDb;
-    db.updateTabsGroupLabel(id, label);
-    return db.flush();
+    const storage = Global.storage;
+    await storage.updateTabsGroupLabel(id, label);
   }
 
   public async updateGroupTags(id: string, tags: string[]): Promise<void> {
-    const db = Global.sqlDb;
-    db.updateTabsGroupTags(id, JSON.stringify(tags));
-    return db.flush();
+    const storage = Global.storage;
+    await storage.updateTabsGroupTags(id, JSON.stringify(tags));
   }
 
-  public async removeTabFromDb(groupId: string, fsPath: string): Promise<void> {
-    const db = Global.sqlDb;
-    db.deleteTabItemByPath(groupId, fsPath);
-    return db.flush();
+  public async removeTabFromStorage(groupId: string, fsPath: string): Promise<void> {
+    const storage = Global.storage;
+    await storage.deleteTabItemByPath(groupId, fsPath);
   }
 
-  public async addTabsToDb(groupId: string, tabs: TabItem[]): Promise<void> {
-    const db = Global.sqlDb;
-    const existingTabs = db.getTabItems(groupId);
+  public async addTabsToStorage(groupId: string, tabs: TabItem[]): Promise<void> {
+    const storage = Global.storage;
+    const existingTabs = storage.getTabItems(groupId);
     let tabSortOrder = existingTabs.length;
 
     for (const tab of tabs) {
@@ -154,16 +152,18 @@ export class TabsState {
         group_id: groupId,
         label: tab.getLabel(),
         file_uri: tab.fileUri.toString(),
+        original_uri: tab.originalUri?.toString(),
+        tab_type: tab.tabType,
         sort_order: tabSortOrder++,
       };
-      db.insertTabItem(tabRow);
+      await storage.insertTabItem(tabRow);
     }
-    return db.flush();
   }
 
   public async replaceGroupTabs(groupId: string, newTabs: TabItem[]): Promise<void> {
-    const db = Global.sqlDb;
-    db.deleteTabItemsByGroupId(groupId);
+    const storage = Global.storage;
+    await storage.deleteTabItemsByGroupId(groupId);
+    
     let tabSortOrder = 0;
     for (const tab of newTabs) {
       const tabRow: TabItemRow = {
@@ -171,25 +171,25 @@ export class TabsState {
         group_id: groupId,
         label: tab.getLabel(),
         file_uri: tab.fileUri.toString(),
+        original_uri: tab.originalUri?.toString(),
+        tab_type: tab.tabType,
         sort_order: tabSortOrder++,
       };
-      db.insertTabItem(tabRow);
+      await storage.insertTabItem(tabRow);
     }
-    return db.flush();
   }
 
-  public async deleteGroupFromDb(id: string): Promise<void> {
-    const db = Global.sqlDb;
-    db.deleteTabsGroup(id);
-    return db.flush();
+  public async deleteGroupFromStorage(id: string): Promise<void> {
+    const storage = Global.storage;
+    await storage.deleteTabsGroup(id);
   }
 
-  public saveGroup(group: TabsGroup): Promise<void> {
-    if (!group.id) return Promise.resolve();
+  public async saveGroup(group: TabsGroup): Promise<void> {
+    if (!group.id) return;
 
-    const db = Global.sqlDb;
+    const storage = Global.storage;
 
-    const existingGroup = db.getTabsGroupById(group.id);
+    const existingGroup = storage.getTabsGroupById(group.id);
     const row: TabsGroupRow = {
       id: group.id,
       branch_name: this.branchName,
@@ -201,13 +201,13 @@ export class TabsState {
     };
 
     if (existingGroup) {
-      db.updateTabsGroup(row);
+      await storage.updateTabsGroup(row);
     } else {
-      db.insertTabsGroup(row);
+      await storage.insertTabsGroup(row);
     }
 
     // Replace all tabs for this group
-    db.deleteTabItemsByGroupId(group.id);
+    await storage.deleteTabItemsByGroupId(group.id);
     let tabSortOrder = 0;
     for (const tab of group.getTabs()) {
       const tabRow: TabItemRow = {
@@ -215,12 +215,12 @@ export class TabsState {
         group_id: group.id,
         label: tab.getLabel(),
         file_uri: tab.fileUri.toString(),
+        original_uri: tab.originalUri?.toString(),
+        tab_type: tab.tabType,
         sort_order: tabSortOrder++,
       };
-      db.insertTabItem(tabRow);
+      await storage.insertTabItem(tabRow);
     }
-
-    return db.flush();
   }
 
   // --- INDEX MANAGEMENT ---
@@ -368,7 +368,7 @@ export class TabsState {
         this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
       if (newTabs.length > 0) {
-        this.addTabsToDb(id, newTabs); // async, fire-and-forget
+        this.addTabsToStorage(id, newTabs); // async, fire-and-forget
       }
     }
   }
@@ -380,7 +380,7 @@ export class TabsState {
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
       if (group.getTabs().length < originalLength) {
         this.removeFromReverseIndex(fsPath, groupId);
-        this.removeTabFromDb(groupId, fsPath); // async, fire-and-forget
+        this.removeTabFromStorage(groupId, fsPath); // async, fire-and-forget
       }
       if (group.getTabs().length === 0) {
         this.groups.delete(groupId);
@@ -397,7 +397,7 @@ export class TabsState {
       if (group) {
         group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
         this.removeFromReverseIndex(fsPath, gid);
-        this.removeTabFromDb(gid, fsPath); // async, fire-and-forget
+        this.removeTabFromStorage(gid, fsPath); // async, fire-and-forget
         if (group.getTabs().length === 0 && group.id) {
           this.groups.delete(group.id);
         }
@@ -405,7 +405,7 @@ export class TabsState {
     }
   }
 
-  // --- BULK OPERATIONS (use saveToDb for efficiency) ---
+  // --- BULK OPERATIONS (use saveToStorage for efficiency) ---
 
   public mergeTabsGroup(dst_id: string, src_ids: string[]) {
     const dst = this.groups.get(dst_id);

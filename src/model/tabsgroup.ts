@@ -9,7 +9,7 @@ import { Node } from "./node";
 import { TabItem } from "./tabitem";
 import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../constant";
 import { Global } from '../global';
-import { TabsGroupRow } from "../db";
+import { TabsGroupRow } from "../db/storageService";
 
 export class TabsGroup extends Node {
   private pinned: boolean = false;
@@ -32,7 +32,7 @@ export class TabsGroup extends Node {
     this.updateTooltip();
   }
 
-  // --- FROM DB ROW ---
+  // --- FROM STORAGE ROW ---
   public static fromRow(row: TabsGroupRow): TabsGroup {
     const group = new TabsGroup(row.id, row.label);
     group.createTime = row.create_time;
@@ -101,16 +101,15 @@ export class TabsGroup extends Node {
   public setTags(tags: string[]) {
     this.tags = tags;
     this.updateTooltip();
-    this.updateDescription(); // Add this
+    this.updateDescription();
   }
 
   public extendTags(tags: string[]) {
     this.tags.push(...tags);
     this.updateTooltip();
-    this.updateDescription(); // Add this
+    this.updateDescription();
   }
 
-  // Add new method to show tags in tree item description
   private updateDescription() {
     if (this.tags.length > 0) {
       this.description = this.tags.map(t => `#${t}`).join(' ');

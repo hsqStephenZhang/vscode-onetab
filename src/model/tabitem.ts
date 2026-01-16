@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { randomUUID } from "crypto";
 import { DEFAULT_TAB_LABEL, CONTEXT_TAB } from "../constant";
 import { Node } from "./node";
-import { TabItemRow } from "../db";
+import { TabItemRow } from "../db/storageService";
 
 // Tab types that can be restored
 export type TabType = 'text' | 'diff' | 'notebook' | 'notebookDiff' | 'custom';
@@ -28,7 +28,7 @@ export class TabItem extends Node {
     this.setDefaultIcon();
   }
 
-  // --- FROM DB ROW ---
+  // --- FROM STORAGE ROW ---
   public static fromRow(row: TabItemRow): TabItem {
     const uri = vscode.Uri.parse(row.file_uri);
     const item = new TabItem(uri, row.id, row.label);

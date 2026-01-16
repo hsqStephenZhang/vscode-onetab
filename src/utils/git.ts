@@ -22,7 +22,7 @@ export function reinitGitBranchGroups(git: API): vscode.Disposable | void {
             let activeBranchName = Global.branchName;
             let activeState = Global.tabsProvider.getState();
             activeState.branchName = activeBranchName;
-            await activeState.saveToDb();
+            await activeState.saveToStorage();
 
             // Update to new branch
             Global.branchName = repo.state.HEAD?.name || DEFAULT_BRANCH_NAME;

@@ -5,8 +5,38 @@
 
 import * as vscode from "vscode";
 import { Global } from "../../global";
+import { StorageService } from "../../db/storageService";
 
 let groupCounter = 0;
+
+/**
+ * Mock StorageService for unit tests that don't require full extension activation
+ */
+class MockStorageService extends StorageService {
+  private mockStore: Map<string, string> = new Map();
+
+  constructor() {
+    super({} as vscode.Memento);
+  }
+
+  override getWorkspaceState(key: string): string | undefined {
+    return this.mockStore.get(key);
+  }
+
+  override setWorkspaceState(key: string, value: string): Thenable<void> {
+    this.mockStore.set(key, value);
+    return Promise.resolve();
+  }
+
+  override deleteWorkspaceState(key: string): Thenable<void> {
+    this.mockStore.delete(key);
+    return Promise.resolve();
+  }
+
+  override listWorkspaceKeys(): string[] {
+    return Array.from(this.mockStore.keys());
+  }
+}
 
 /**
  * Mock the Global object for unit tests that don't require full extension activation
@@ -21,38 +51,18 @@ export function setupTestGlobals(): void {
     } as unknown as vscode.ExtensionContext;
   }
 
-  // Mock sqlDb for WorkState.get/set
-  if (!Global.sqlDb) {
-    const mockKvStore = new Map<string, string>();
-    Global.sqlDb = {
-      getWorkspaceState: (key: string) => mockKvStore.get(key),
-      setWorkspaceState: (key: string, value: string) => {
-        mockKvStore.set(key, value);
-        return Promise.resolve();
-      },
-      deleteWorkspaceState: (key: string) => {
-        mockKvStore.delete(key);
-        return Promise.resolve();
-      },
-      listWorkspaceKeys: () => Array.from(mockKvStore.keys()),
-      // Add other methods as needed for tests
-      init: () => Promise.resolve(),
-      close: () => Promise.resolve(),
-      flush: () => Promise.resolve(),
-      getTabsGroups: () => [],
-      insertTabsGroup: () => {},
-      updateTabsGroup: () => {},
-      deleteTabsGroup: () => {},
-      getTabsGroupById: () => undefined,
-      clearTabsGroups: () => {},
-      getTabItems: () => [],
-      insertTabItem: () => {},
-      deleteTabItem: () => {},
-      deleteTabItemsByGroupId: () => {},
-      deleteTabItemByPath: () => {},
-      getTabItemsByPath: () => [],
-      listBranches: () => [],
-      deleteBranch: () => {},
+  // Mock storage service
+  if (!Global.storage) {
+    Global.storage = new MockStorageService();
+  }
+
+  // Mock logger (optional, for safety)
+  if (!Global.logger) {
+    Global.logger = {
+      debug: (msg: string) => console.debug(msg),
+      info: (msg: string) => console.info(msg),
+      warn: (msg: string) => console.warn(msg),
+      error: (msg: string) => console.error(msg),
     } as any;
   }
 }
@@ -62,12 +72,14 @@ export function setupTestGlobals(): void {
  */
 export function resetTestState(): void {
   groupCounter = 0;
-  if (Global.sqlDb) {
-    const mockKvStore = new Map<string, string>();
-    (Global.sqlDb as any).getWorkspaceState = (key: string) => mockKvStore.get(key);
-    (Global.sqlDb as any).setWorkspaceState = (key: string, value: string) => {
-      mockKvStore.set(key, value);
-      return Promise.resolve();
-    };
+
+  // Clear and reset the storage service
+  if (Global.storage) {
+    const mockService = Global.storage as MockStorageService;
+    // Clear all keys
+    const keys = mockService.listWorkspaceKeys();
+    for (const key of keys) {
+      mockService.deleteWorkspaceState(key);
+    }
   }
 }

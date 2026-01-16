@@ -54,22 +54,22 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
         return this.branchState;
     }
 
-    public clearState() {
-        // Delete all branches from DB
-        for (const branchName of this.branchState.branches.keys()) {
-            Global.sqlDb.deleteBranch(branchName);
+    public async clearState() {
+        // Delete all branches from storage
+        const branchNames = Array.from(this.branchState.branches.keys());
+        for (const branchName of branchNames) {
+            await Global.storage.deleteBranch(branchName);
         }
         this.branchState = new BranchStates();
-        Global.sqlDb.flush();
         this._onDidChangeTreeData.fire();
     }
 
-    reloadState() {
+    public reloadState() {
         const newState = new BranchStates();
-        const branchNames = Global.sqlDb.listBranches();
+        const branchNames = Global.storage.listBranches();
 
         for (const branchName of branchNames) {
-            const tabsState = TabsState.loadFromDb(branchName);
+            const tabsState = TabsState.loadFromStorage(branchName);
             newState.branches.set(branchName, tabsState);
         }
 
@@ -85,29 +85,28 @@ export class BranchesProvider implements vscode.TreeDataProvider<Node> {
         return this.branchState.branches.get(branchName);
     }
 
-    public deleteBranch(branchName: string) {
+    public async deleteBranch(branchName: string) {
         if (this.branchState.branches.delete(branchName)) {
-            Global.sqlDb.deleteBranch(branchName);
-            Global.sqlDb.flush();
+            await Global.storage.deleteBranch(branchName);
             this._onDidChangeTreeData.fire();
         }
     }
 
-    public insertOrUpdateBranch(branchName: string, branchState: TabsState) {
+    public async insertOrUpdateBranch(branchName: string, branchState: TabsState) {
         // Ensure the branch state has the correct branch name
         branchState.branchName = branchName;
         this.branchState.branches.set(branchName, branchState);
         
-        // Save directly to DB
-        branchState.saveToDb();
+        // Save directly to storage
+        await branchState.saveToStorage();
         this._onDidChangeTreeData.fire();
     }
 
-    public update() {
-        // Save all branches to DB
+    public async update() {
+        // Save all branches to storage
         for (const [branchName, state] of this.branchState.branches) {
             state.branchName = branchName;
-            state.saveToDb();
+            await state.saveToStorage();
         }
         this._onDidChangeTreeData.fire();
     }
