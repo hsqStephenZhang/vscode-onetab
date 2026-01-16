@@ -8,7 +8,7 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -250,7 +250,7 @@
             "description": "Whether to remove the deleted tabs from tabsGroup"
           },
           "onetab.autogroup.customStrategies": {
-            "scope": "application",
+            "scope": "machine-overridable",
             "type": "array",
             "default": [],
             "items": {
@@ -274,7 +274,7 @@
             "editPresentation": "multilineText"
           },
           "onetab.sortingStrategy": {
-            "scope": "resource",
+            "scope": "machine-overridable",
             "type": "string",
             "enum": [
               "default",
