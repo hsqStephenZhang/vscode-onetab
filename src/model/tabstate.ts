@@ -6,7 +6,7 @@
 import { Global } from "../global";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
-import { TabsGroupRow, TabItemRow, GroupData, StorageService } from "../db/storageService";
+import { TabsGroupRow, TabItemRow } from "../db/storageService";
 
 export class TabsState {
   public groups: Map<string, TabsGroup>;
@@ -16,11 +16,17 @@ export class TabsState {
   // The branch name this state belongs to (null = active/main state)
   public branchName: string | null;
 
+  // Track which groups have been modified for selective persistence
+  private dirtyGroups: Set<string> = new Set();
+  private deletedGroups: Set<string> = new Set();
+
   public constructor(branchName: string | null = null) {
     this.groups = new Map();
     this.blackList = new Set();
     this.reverseIndex = new Map();
     this.branchName = branchName;
+    this.dirtyGroups = new Set();
+    this.deletedGroups = new Set();
   }
 
   // --- LOAD FROM STORAGE ---
@@ -49,7 +55,63 @@ export class TabsState {
     return state;
   }
 
-  // --- SAVE TO STORAGE ---
+  // --- MARK DIRTY ---
+  private markDirty(groupId: string): void {
+    this.dirtyGroups.add(groupId);
+    this.deletedGroups.delete(groupId); // Remove from deleted if re-adding
+  }
+
+  private markDeleted(groupId: string): void {
+    this.dirtyGroups.delete(groupId);
+    this.deletedGroups.add(groupId);
+  }
+
+  // --- SELECTIVE SAVE (only affected groups) ---
+  public async persistChanges(): Promise<void> {
+    const storage = Global.storage;
+
+    // Delete removed groups
+    for (const groupId of this.deletedGroups) {
+      await storage.deleteTabsGroup(groupId);
+    }
+    this.deletedGroups.clear();
+
+    // Save modified groups
+    for (const groupId of this.dirtyGroups) {
+      const group = this.groups.get(groupId);
+      if (group) {
+        const row: TabsGroupRow = {
+          id: group.id!,
+          branch_name: this.branchName,
+          label: group.getLabel(),
+          pinned: group.isPinned() ? 1 : 0,
+          tags: JSON.stringify(group.getTags()),
+          create_time: group.createTime,
+          sort_order: 0, // Could track sort order if needed
+        };
+        await storage.insertTabsGroup(row);
+
+        // Replace all tabs for this group
+        await storage.deleteTabItemsByGroupId(groupId);
+        let tabSortOrder = 0;
+        for (const tab of group.getTabs()) {
+          const tabRow: TabItemRow = {
+            id: tab.id!,
+            group_id: groupId,
+            label: tab.getLabel(),
+            file_uri: tab.fileUri.toString(),
+            original_uri: tab.originalUri?.toString(),
+            tab_type: tab.tabType,
+            sort_order: tabSortOrder++,
+          };
+          await storage.insertTabItem(tabRow);
+        }
+      }
+    }
+    this.dirtyGroups.clear();
+  }
+
+  // --- FULL SAVE (for bulk operations) ---
   public async saveToStorage(): Promise<void> {
     const storage = Global.storage;
 
@@ -85,64 +147,47 @@ export class TabsState {
         await storage.insertTabItem(tabRow);
       }
     }
+    this.dirtyGroups.clear();
+    this.deletedGroups.clear();
   }
 
   // --- SINGLE GROUP OPERATIONS (fine-grained updates) ---
 
   public async addTabsGroupToStorage(group: TabsGroup): Promise<void> {
     if (!group.id) return;
-    const storage = Global.storage;
     
-    const row: TabsGroupRow = {
-      id: group.id,
-      branch_name: this.branchName,
-      label: group.getLabel(),
-      pinned: group.isPinned() ? 1 : 0,
-      tags: JSON.stringify(group.getTags()),
-      create_time: group.createTime,
-      sort_order: 0,
-    };
-    
-    await storage.insertTabsGroup(row);
-
-    // Insert tabs for this group
-    let tabSortOrder = 0;
-    for (const tab of group.getTabs()) {
-      const tabRow: TabItemRow = {
-        id: tab.id!,
-        group_id: group.id,
-        label: tab.getLabel(),
-        file_uri: tab.fileUri.toString(),
-        original_uri: tab.originalUri?.toString(),
-        tab_type: tab.tabType,
-        sort_order: tabSortOrder++,
-      };
-      await storage.insertTabItem(tabRow);
-    }
+    this.markDirty(group.id);
+    await this.persistChanges();
   }
 
   public async updateGroupPin(id: string, pinned: boolean): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(id);
     await storage.updateTabsGroupPin(id, pinned ? 1 : 0);
   }
 
   public async updateGroupLabel(id: string, label: string): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(id);
     await storage.updateTabsGroupLabel(id, label);
   }
 
   public async updateGroupTags(id: string, tags: string[]): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(id);
     await storage.updateTabsGroupTags(id, JSON.stringify(tags));
   }
 
   public async removeTabFromStorage(groupId: string, fsPath: string): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(groupId);
     await storage.deleteTabItemByPath(groupId, fsPath);
   }
 
   public async addTabsToStorage(groupId: string, tabs: TabItem[]): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(groupId);
+    
     const existingTabs = storage.getTabItems(groupId);
     let tabSortOrder = existingTabs.length;
 
@@ -162,6 +207,7 @@ export class TabsState {
 
   public async replaceGroupTabs(groupId: string, newTabs: TabItem[]): Promise<void> {
     const storage = Global.storage;
+    this.markDirty(groupId);
     await storage.deleteTabItemsByGroupId(groupId);
     
     let tabSortOrder = 0;
@@ -181,46 +227,8 @@ export class TabsState {
 
   public async deleteGroupFromStorage(id: string): Promise<void> {
     const storage = Global.storage;
+    this.markDeleted(id);
     await storage.deleteTabsGroup(id);
-  }
-
-  public async saveGroup(group: TabsGroup): Promise<void> {
-    if (!group.id) return;
-
-    const storage = Global.storage;
-
-    const existingGroup = storage.getTabsGroupById(group.id);
-    const row: TabsGroupRow = {
-      id: group.id,
-      branch_name: this.branchName,
-      label: group.getLabel(),
-      pinned: group.isPinned() ? 1 : 0,
-      tags: JSON.stringify(group.getTags()),
-      create_time: group.createTime,
-      sort_order: existingGroup?.sort_order ?? 0,
-    };
-
-    if (existingGroup) {
-      await storage.updateTabsGroup(row);
-    } else {
-      await storage.insertTabsGroup(row);
-    }
-
-    // Replace all tabs for this group
-    await storage.deleteTabItemsByGroupId(group.id);
-    let tabSortOrder = 0;
-    for (const tab of group.getTabs()) {
-      const tabRow: TabItemRow = {
-        id: tab.id!,
-        group_id: group.id,
-        label: tab.getLabel(),
-        file_uri: tab.fileUri.toString(),
-        original_uri: tab.originalUri?.toString(),
-        tab_type: tab.tabType,
-        sort_order: tabSortOrder++,
-      };
-      await storage.insertTabItem(tabRow);
-    }
   }
 
   // --- INDEX MANAGEMENT ---
@@ -267,9 +275,12 @@ export class TabsState {
   public addTabsGroup(group: TabsGroup) {
     if (!group.id) return;
     this.groups.set(group.id, group);
+    this.markDirty(group.id);
     for (const tab of group.getTabs()) {
       this.addToReverseIndex(tab.fileUri.fsPath, group.id);
     }
+    // Persist immediately
+    this.persistChanges();
   }
 
   public removeTabsGroup(id: string) {
@@ -279,13 +290,17 @@ export class TabsState {
         this.removeFromReverseIndex(tab.fileUri.fsPath, id);
       }
       this.groups.delete(id);
+      this.markDeleted(id);
     }
+    // Persist immediately
+    this.persistChanges();
   }
 
   public tryRemoveTabsGroup(id: string) {
     const group = this.groups.get(id);
     if (group && !group.isPinned()) {
       this.removeTabsGroup(id);
+      // Persist already called in removeTabsGroup
     }
   }
 
@@ -307,13 +322,14 @@ export class TabsState {
     );
   }
 
-  // --- UPDATED MUTATION METHODS (with fine-grained persistence) ---
+  // --- MUTATION METHODS (with automatic persistence) ---
 
   public setPinned(id: string, pinned: boolean = true) {
     const g = this.groups.get(id);
     if (g) {
       g.setPin(pinned);
-      this.updateGroupPin(id, pinned); // async, fire-and-forget
+      this.markDirty(id);
+      this.persistChanges();
     }
   }
 
@@ -321,7 +337,8 @@ export class TabsState {
     const g = this.groups.get(id);
     if (g) {
       g.setLabel(label);
-      this.updateGroupLabel(id, label); // async, fire-and-forget
+      this.markDirty(id);
+      this.persistChanges();
     }
   }
 
@@ -329,7 +346,8 @@ export class TabsState {
     const g = this.groups.get(id);
     if (g) {
       g.setTags(tags);
-      this.updateGroupTags(id, tags); // async, fire-and-forget
+      this.markDirty(id);
+      this.persistChanges();
     }
   }
 
@@ -337,7 +355,8 @@ export class TabsState {
     const g = this.groups.get(id);
     if (g) {
       g.extendTags(tags);
-      this.updateGroupTags(id, g.getTags()); // async, fire-and-forget
+      this.markDirty(id);
+      this.persistChanges();
     }
   }
 
@@ -352,7 +371,8 @@ export class TabsState {
       for (const tab of newTabs) {
         this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
-      this.replaceGroupTabs(id, newTabs); // async, fire-and-forget
+      this.markDirty(id);
+      this.persistChanges();
     }
   }
 
@@ -368,7 +388,8 @@ export class TabsState {
         this.addToReverseIndex(tab.fileUri.fsPath, id);
       }
       if (newTabs.length > 0) {
-        this.addTabsToStorage(id, newTabs); // async, fire-and-forget
+        this.markDirty(id);
+        this.persistChanges();
       }
     }
   }
@@ -380,10 +401,13 @@ export class TabsState {
       group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
       if (group.getTabs().length < originalLength) {
         this.removeFromReverseIndex(fsPath, groupId);
-        this.removeTabFromStorage(groupId, fsPath); // async, fire-and-forget
-      }
-      if (group.getTabs().length === 0) {
-        this.groups.delete(groupId);
+        if (group.getTabs().length === 0) {
+          this.groups.delete(groupId);
+          this.markDeleted(groupId);
+        } else {
+          this.markDirty(groupId);
+        }
+        this.persistChanges();
       }
     }
   }
@@ -397,15 +421,18 @@ export class TabsState {
       if (group) {
         group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
         this.removeFromReverseIndex(fsPath, gid);
-        this.removeTabFromStorage(gid, fsPath); // async, fire-and-forget
         if (group.getTabs().length === 0 && group.id) {
           this.groups.delete(group.id);
+          this.markDeleted(group.id);
+        } else {
+          this.markDirty(gid);
         }
       }
     }
+    this.persistChanges();
   }
 
-  // --- BULK OPERATIONS (use saveToStorage for efficiency) ---
+  // --- BULK OPERATIONS (use persistChanges for efficiency) ---
 
   public mergeTabsGroup(dst_id: string, src_ids: string[]) {
     const dst = this.groups.get(dst_id);
@@ -427,8 +454,14 @@ export class TabsState {
           this.addToReverseIndex(tab.fileUri.fsPath, dst_id);
         }
         merged_labels.push(srcGroup.label as string);
+        this.markDirty(src_id);
         if (!srcGroup.isPinned()) {
-          this.tryRemoveTabsGroup(src_id);
+          // Don't call removeTabsGroup as it will persist immediately
+          for (const tab of srcGroup.getTabs()) {
+            this.removeFromReverseIndex(tab.fileUri.fsPath, src_id);
+          }
+          this.groups.delete(src_id);
+          this.markDeleted(src_id);
         }
       }
     }
@@ -436,7 +469,11 @@ export class TabsState {
     if (merged_labels.length > 0) {
       dst.removeDuplicateTabs();
       dst.setLabel(dst.label + " (merged with: " + merged_labels.join(", ") + ")");
+      this.markDirty(dst_id);
     }
+
+    // Persist all affected groups in one batch
+    this.persistChanges();
   }
 
   public getAllTabsGroupsSorted(): TabsGroup[] {
