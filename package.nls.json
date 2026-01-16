@@ -13,6 +13,7 @@
   "onetab.advanced.send.allTabs": "Send All Tabs Into Named Onetab",
   "onetab.send.blacklist": "Add Path To Onetab Blacklist",
   "onetab.edit.blacklist": "Edit Blacklist",
+  "onetab.tag.remove": "Remove Tag From All Groups",
   "onetab.tab.restore": "Restore One Tab",
   "onetab.tab.remove": "Remove One Tab",
   "onetab.tabsGroup.restore": "Restore Tabs",

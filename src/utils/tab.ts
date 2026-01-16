@@ -212,7 +212,7 @@ function getRelativeTabLabel(uri: vscode.Uri, fallbackLabel?: string): string {
 // Generate descriptive label based on tab type
 function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType }): string {
   const baseLabel = getRelativeTabLabel(info.uri, tab.label);
-  
+
   switch (info.tabType) {
     case 'diff':
       if (info.originalUri) {
@@ -226,7 +226,7 @@ function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vsc
         return `${originalName} ↔ ${modifiedName}`;
       }
       return `${baseLabel} ↔ diff`;
-      
+
     case 'notebookDiff':
       if (info.originalUri) {
         const originalName = path.basename(info.originalUri.fsPath);
@@ -237,14 +237,14 @@ function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vsc
         return `📓 ${originalName} ↔ ${modifiedName}`;
       }
       return `📓 ${baseLabel} ↔ diff`;
-      
+
     case 'notebook':
       return `📓 ${baseLabel}`;
-      
+
     case 'custom':
       // Could be image, PDF, etc.
       return baseLabel;
-      
+
     case 'text':
     default:
       return baseLabel;
@@ -254,7 +254,7 @@ function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vsc
 // Helper to get tab type and URIs
 export function getTabInfo(tab: vscode.Tab): { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType } | undefined {
   const input = tab.input;
-  
+
   if (input instanceof vscode.TabInputText) {
     return { uri: input.uri, tabType: 'text' };
   }
@@ -270,7 +270,7 @@ export function getTabInfo(tab: vscode.Tab): { uri: vscode.Uri; originalUri?: vs
   if (input instanceof vscode.TabInputNotebookDiff) {
     return { uri: input.modified, originalUri: input.original, tabType: 'notebookDiff' };
   }
-  
+
   return undefined;
 }
 
@@ -280,16 +280,16 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
     .map((tab) => {
       const info = getTabInfo(tab);
       if (!info) return null;
-      
+
       let item = new TabItem();
       item.setLabel(getTabLabel(tab, info));  // Use new label generator
       item.setFileUri(info.uri);
       item.setTabType(info.tabType);
-      
+
       if (info.originalUri) {
         item.setOriginalUri(info.originalUri);
       }
-      
+
       item.parentId = groupId;
       return item;
     })
@@ -320,6 +320,12 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
   // check if state are updated
   if (updated) {
     listAllKeys();
-    await vscode.window.tabGroups.close(tabs.filter((tab) => !tab.isPinned));
+    for (const tab of tabs.filter((tab) => !tab.isPinned)) {
+      try {
+        await vscode.window.tabGroups.close(tab);
+      } catch (error) {
+        console.error(`Failed to close tab: ${getTabUri(tab)?.toString()}`, error);
+      }
+    }
   }
 }

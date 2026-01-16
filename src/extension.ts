@@ -35,7 +35,7 @@ import { clearState, debugState } from "./commands/debug";
 import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
-import { autoGroup } from "./autogroup";
+import { autoGroup, manageCustomStrategies } from "./autogroup";
 import { SqlJsDatabaseService } from "./db";
 import { TagsProvider } from "./providers/tagsProvider";
 import { StorageService } from "./db/storageService";
@@ -151,6 +151,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.branches.restorebranch", cloneBranch);
 
   vscode.commands.registerCommand("onetab.autogroup", autoGroup);
+  vscode.commands.registerCommand("onetab.autogroup.manageStrategies", manageCustomStrategies);
 
   const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
   const git = gitExtension?.getAPI(1);

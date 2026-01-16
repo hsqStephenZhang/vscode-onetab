@@ -70,10 +70,8 @@ You can also migrate the tab's state from one branch to the current branch.
 
 For users:
 
-1. optimize interaction experience, making it more ergonomic
-3. optimize icons, handle different themes(light/dark)
-4. add cloud syncing feature with github(similar to [draw.io](https://draw.io)'s strategy)
-5. optimize auto grouping feature based on LLM's API, optimize prompts and support more LLMs  
+1. optimize icons, (might)use the current theme's icons
+2. use copilot api to autogroup with the user given/default prompt
 
 For Developers:
 

@@ -14,15 +14,15 @@ suite('Extension Test Suite', () => {
             return;
         }
 
-        let groups = await requestAutoGroup(apiKey, ["ext"], files);
+        let groups = await requestAutoGroup(["ext"], files);
         assert(groups !== undefined);
         assert(groups?.keys.length === 2); // rs, go
 
-        let groups2 = await requestAutoGroup(apiKey, ["name"], files);
+        let groups2 = await requestAutoGroup(["name"], files);
         assert(groups2 !== undefined);
         assert(groups2?.keys.length === 3); // hello, mod, world
 
-        let groups3 = await requestAutoGroup(apiKey, ["dir"], files);
+        let groups3 = await requestAutoGroup(["dir"], files);
         assert(groups3 !== undefined);
         assert(groups3?.keys.length === 2); // cmd, utils
 

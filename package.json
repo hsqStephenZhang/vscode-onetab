@@ -115,6 +115,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "onetab.tag.remove",
+        "title": "%onetab.tag.remove%",
+        "category": "Onetab",
+        "icon": "$(trash)"
+      },
+      {
         "command": "onetab.tab.remove",
         "title": "%onetab.tab.remove%",
         "category": "Onetab",
@@ -207,22 +213,9 @@
         "category": "Onetab"
       },
       {
-        "command": "onetab.filterByTag",
-        "title": "Filter by Tag",
-        "category": "Onetab",
-        "icon": "$(filter)"
-      },
-      {
-        "command": "onetab.manageTags",
-        "title": "Manage All Tags",
-        "category": "Onetab",
-        "icon": "$(tag)"
-      },
-      {
-        "command": "onetab.tag.remove",
-        "title": "Remove Tag from All Groups",
-        "category": "Onetab",
-        "icon": "$(trash)"
+        "command": "onetab.autogroup.manageStrategies",
+        "title": "Manage Auto-Group Custom Strategies",
+        "category": "Onetab"
       }
     ],
     "languages": [
@@ -273,6 +266,30 @@
                 "default": ""
               }
             }
+          },
+          "onetab.autogroup.customStrategies": {
+            "scope": "application",
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the custom strategy"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description/instruction for how to group files"
+                }
+              },
+              "required": [
+                "name",
+                "description"
+              ]
+            },
+            "description": "Custom strategies for auto-grouping files. You can edit this directly or use the 'Manage Custom Strategies' command.",
+            "editPresentation": "multilineText"
           }
         }
       }
