@@ -39,6 +39,7 @@ import { autoGroup, manageCustomStrategies } from "./autogroup";
 import { SqlJsDatabaseService } from "./db";
 import { TagsProvider } from "./providers/tagsProvider";
 import { StorageService } from "./db/storageService";
+import { blacklistService } from "./utils/blacklistService";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -56,6 +57,10 @@ export async function activate(context: vscode.ExtensionContext) {
   Global.logger = new OutputChannelLogger(level, outputChannel);
 
   Global.storage = new StorageService(context.workspaceState);
+
+  // Initialize blacklist service with caching and auto-update
+  blacklistService.initialize();
+  context.subscriptions.push(blacklistService);
 
   const rootPath =
     vscode.workspace.workspaceFolders &&

@@ -254,7 +254,7 @@
               "type": "string"
             },
             "default": [],
-            "description": "The list of file to be excluded from onetab. Will match by regex"
+            "description": "List of blacklist, `file:` for exact file match, `regex:` for regex match. Tabs matching any of these patterns will not be saved to onetab."
           },
           "onetab.autoclean": {
             "scope": "resource",

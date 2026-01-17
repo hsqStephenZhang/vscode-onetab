@@ -17,6 +17,7 @@ import {
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/tabsgroup";
+import { blacklistService } from "../utils/blacklistService";
 
 export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   const state = Global.tabsProvider.getState();
@@ -132,34 +133,80 @@ export async function advancedSendAllTabs() {
 }
 
 export async function sendToBlackList(uri: vscode.Uri) {
-  let conf = vscode.workspace.getConfiguration();
-  let blacklist = conf.get("onetab.blacklist") as Array<string>;
-
-  if (!blacklist) {
-    Global.logger.debug("No blacklist found");
+  // Determine if the URI is a file or directory
+  let stat;
+  try {
+    stat = await vscode.workspace.fs.stat(uri);
+  } catch (error) {
+    vscode.window.showErrorMessage("Unable to access the file or directory");
     return;
   }
 
-  // Determine if the URI is a file or directory
-  const stat = await vscode.workspace.fs.stat(uri);
   const isDirectory = (stat.type & vscode.FileType.Directory) !== 0;
 
-  // Format the pattern: use "dir/**" for directories, plain path for files
-  const pattern = isDirectory ? uri.path.replace(/\/$/, "") + "/**" : uri.path;
+  // Show quick pick for rule type selection
+  const ruleTypes = [
+    {
+      label: "File Pattern",
+      description: isDirectory ? "Match this directory and all its contents" : "Match this specific file",
+      value: "file",
+    },
+    {
+      label: "Regular Expression",
+      description: "Use a custom regex pattern",
+      value: "regex",
+    },
+  ];
 
-  // Check if pattern already exists in blacklist
-  if (blacklist.includes(pattern)) {
-    vscode.window.showWarningMessage(`${isDirectory ? "Directory" : "File"} already in the blacklist`);
+  const selected = await vscode.window.showQuickPick(ruleTypes, {
+    placeHolder: "Select blacklist rule type",
+  });
+
+  if (!selected) {
+    return; // User cancelled
+  }
+
+  let rule: string;
+
+  if (selected.value === "file") {
+    // Format the pattern: use "dir/**" for directories, plain path for files
+    const pattern = isDirectory ? uri.path.replace(/\/$/, "") + "/**" : uri.path;
+    rule = `file:${pattern}`;
+  } else {
+    // Prompt user for regex pattern
+    const defaultPattern = isDirectory 
+      ? `^${uri.path.replace(/\/$/, "").replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/.*`
+      : `^${uri.path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`;
+
+    const userPattern = await vscode.window.showInputBox({
+      prompt: "Enter regex pattern for blacklist",
+      value: defaultPattern,
+      placeHolder: "e.g., ^/path/to/.*\\.log$",
+    });
+
+    if (!userPattern) {
+      return; // User cancelled
+    }
+
+    rule = `regex:${userPattern}`;
+  }
+
+  // Check if rule already exists
+  const existingRules = vscode.workspace
+    .getConfiguration()
+    .get("onetab.blacklist") as Array<string>;
+
+  if (existingRules && existingRules.includes(rule)) {
+    vscode.window.showWarningMessage(`Rule already exists in the blacklist`);
     return;
   }
 
-  // Add pattern to blacklist
-  blacklist.push(pattern);
-  await vscode.workspace
-    .getConfiguration()
-    .update("onetab.blacklist", blacklist, false);
+  // Add the rule using the blacklist service
+  await blacklistService.addRule(rule);
 
-  Global.logger.debug(
-    "blacklist:" + (blacklist as Array<string>).join(",\n\t")
+  vscode.window.showInformationMessage(
+    `Added to blacklist: ${rule}`
   );
+
+  Global.logger.debug(`Blacklist rule added: ${rule}`);
 }

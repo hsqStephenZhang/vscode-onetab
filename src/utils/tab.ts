@@ -9,6 +9,7 @@ import { TabItem, TabType } from "../model/tabitem";
 import { TabsGroup } from "../model/tabsgroup";
 import { listAllKeys } from "./debug";
 import * as path from "path";
+import { blacklistService } from "./blacklistService";
 
 
 // Helper type for tabs that have a URI we can save
@@ -63,13 +64,8 @@ export function notInBlackList(tab: vscode.Tab): boolean {
   const uri = getTabUri(tab);
   if (!uri) return false;
 
-  let blacklist = vscode.workspace
-    .getConfiguration()
-    .get("onetab.blacklist") as Array<string>;
-  let regexes = blacklist.map((pattern) => new RegExp(pattern));
-
-  // no blacklist item matches
-  return !regexes.some((re) => uri.path.match(re) !== null);
+  // Use the cached blacklist service
+  return !blacklistService.isBlacklisted(uri);
 }
 
 // Updated to support all saveable tab types
