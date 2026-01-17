@@ -25,7 +25,7 @@
   "onetab.import": "Import Database From File",
   "onetab.search": "List & Search Tab Groups",
   "onetab.branches.archive": "Archive Active Branch State",
-  "onetab.branches.pickandrestore": "Pick One Branch's Staet, And Migrate From It",
+  "onetab.branches.pickandrestore": "Pick One Branch's State, And Migrate From It",
   "onetab.branches.restorebranch": "Migrate From Non-active Branch State",
   "onetab.debug.GetState": "Get Current Storage Kvs, Only For Debug",
   "onetab.debug.clearState": "Clear All Kvs, Only For Debug",

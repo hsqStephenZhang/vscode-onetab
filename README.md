@@ -1,17 +1,34 @@
-# vscode-onetabs README
+# Better OneTab for VS Code
 
-## 1. what's this project
+[![Version](https://img.shields.io/visual-studio-marketplace/v/hsqStephenZhang.better-vscode-onetab?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hsqStephenZhang.better-vscode-onetab)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/hsqStephenZhang.better-vscode-onetab?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hsqStephenZhang.better-vscode-onetab)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/hsqStephenZhang.better-vscode-onetab?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=hsqStephenZhang.better-vscode-onetab)
+[![License](https://img.shields.io/github/license/hsqStephenZhang/vscode-onetab?style=flat-square)](https://github.com/hsqStephenZhang/vscode-onetab/blob/main/LICENSE)
 
-[onetab](https://chrome.google.com/webstore/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) for vscode
+> Powerful tab management for VS Code - Save, organize, and restore your editor tabs with smart grouping, Git branch tracking, and AI-powered auto-categorization
 
-The reason for why you need this extension comes from this convenience.
+Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) browser extension, this VS Code extension helps you manage dozens of open files efficiently.
 
-When dealing with large projects, and working on multiple tasks, you may open dozens of files
-in tab windows, and you may get lost in these tabs. Don't worry, this extension will save you from that dilemma.
+## ✨ Features
 
-## 2. usage
+- 📦 **Save & Restore Tabs** - Quickly save individual tabs or entire groups
+- 🏷️ **Smart Organization** - Tag, rename, pin, and categorize your tab groups
+- 🤖 **AI-Powered Auto-Grouping** - Automatically categorize tabs using Claude API
+- 🔀 **Git Branch Tracking** - Automatically track and restore tab state per Git branch
+- 🔍 **Search & Filter** - Find tab groups by name or tags
+- 🖱️ **Drag & Drop** - Reorganize tabs and groups with intuitive drag-and-drop
+- 🚫 **Blacklist Support** - Exclude specific files from being saved
+- 💾 **Import/Export** - Backup and restore your entire tab database
 
-### send tab(s) to onetab extension in right click context.
+## 📋 Requirements
+
+- VS Code 1.90.0 or higher
+- Git extension (built-in) for branch tracking features
+- Claude API key (optional, only for AI auto-grouping)
+
+## 🚀 Usage
+
+### Send tab(s) to onetab extension in right click context.
 
 ![send_tabs](images/send_tabs.png)
 
@@ -23,58 +40,79 @@ in tab windows, and you may get lost in these tabs. Don't worry, this extension 
 
 ![send_to_specific](images/send_to_specific.png)
 
-### restore or remove tab from tab group
+### Restore or remove tab from tab group
 
 ![restore_remove](images/restore_remove.png)
 
-### send file into blacklist and edit blacklist in configuration
+### Send file into blacklist and edit blacklist in configuration
 
-you can send one file 
+You can send one file to the blacklist:
 
 ![blacklist1](images/blacklist1.png)
 ![blacklist2](images/blacklist2.png)
 
-### list and search tab group by their name or tags
+### List and search tab group by their name or tags
 
 ![list_and_search](images/list_and_search.png)
 
-### drag and drop the tab group or tabs
+### Drag and drop the tab group or tabs
 
 ![drag_and_drop](images/drag_and_drop.gif)
 
-### auto group by large language model's api
+### Auto group by large language model's API
 
 ![autogroup](images/autogroup.gif)
 
-there are three strategies for autogroup:
-1. dir: the files' directory hierarchy
-2. ext: file's extension type, `.rs`, `.js` .etc
-3. filename: file names
+There are three strategies for auto-grouping:
+1. **dir** - Files' directory hierarchy
+2. **ext** - File extension type (`.rs`, `.js`, etc.)
+3. **filename** - File names
 
-The UI supports mix of multiple strategies, but single strategy's effect is the best.
+The UI supports a mix of multiple strategies, but single strategy's effect is the best.
 
-**Notice**: we only support claude api now(since it's entirely free), and you need to edit the api key in `settings.json`, welcome to contribute and add support of other LLM's api and our prompts
+**Notice**: We only support Claude API now (since it's entirely free), and you need to edit the API key in `settings.json`. Welcome to contribute and add support for other LLM APIs and our prompts!
 
-### track the git branch switch and initialization
+### Track the Git branch switch and initialization
 
-This feature will track te git branch's switch and change the active treeview accordingly.
+This feature will track the Git branch's switch and change the active tree view accordingly.
 
-When you switch to a new branch, the active treeview will be clearly, the previous branch's state will be saved in the **readonly** treeview "ONETAB BRANCHES"; but if you switch to a branch that exists before, the original state will be restored.
+When you switch to a new branch, the active tree view will be clear, and the previous branch's state will be saved in the **readonly** tree view "ONETAB BRANCHES". If you switch to a branch that existed before, the original state will be restored.
 
 You can also migrate the tab's state from one branch to the current branch.
 
 ![gitbranch](images/gitbranch.gif)
 
+## ⚙️ Configuration
 
-## 3. todos
+You can configure the extension in VS Code settings:
 
-For users:
+- **API Key**: Set your Claude API key for AI auto-grouping
+- **Blacklist**: Manage files to exclude from OneTab
+- **Sorting Strategy**: Choose default sorting strategy for auto-grouping
 
-1. optimize icons, (might)use the current theme's icons
-2. use copilot api to autogroup with the user given/default prompt
+## 📝 Changelog
 
-For Developers:
+See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
 
-1. refactor the serialize/deserialize code, make it more readable
-2. github action to auto package the `better-vscode-onetab.vsix` file
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### For Users:
+
+1. Optimize icons (might use the current theme's icons)
+2. Add Copilot API support for auto-grouping with user-given/default prompts
+
+### For Developers:
+
+1. Refactor the serialize/deserialize code to make it more readable
+2. GitHub action to auto-package the `better-vscode-onetab.vsix` file
+
+## 📄 License
+
+[MIT](LICENSE) © hsqStephenZhang
+
+## 🐛 Issues
+
+Found a bug or have a feature request? Please [open an issue](https://github.com/hsqStephenZhang/vscode-onetab/issues) on GitHub.
 

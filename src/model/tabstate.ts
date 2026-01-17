@@ -14,7 +14,7 @@ import { SortingService } from "../utils/sortingService";
 export class TabsState {
   public groups: Map<string, TabsGroup>;
   public blackList: Set<string>;
-  // TODO: is it still useful?
+  // Maps file paths to group IDs for quick lookup
   private reverseIndex: Map<string, string[]>;
 
   // The branch name this state belongs to (null = active/main state)

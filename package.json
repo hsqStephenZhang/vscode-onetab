@@ -1,14 +1,14 @@
 {
   "name": "better-vscode-onetab",
-  "displayName": "better-vscode-onetab",
-  "description": "better onetab for vscode",
+  "displayName": "Better OneTab for VS Code",
+  "description": "Powerful tab management for VS Code - Save, organize, and restore your editor tabs with smart grouping, Git branch tracking, and AI-powered auto-categorization",
   "publisher": "hsqStephenZhang",
   "author": {
     "name": "hsqStephenZhang",
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -31,6 +31,12 @@
   },
   "bugs": {
     "url": "https://github.com/hsqstephenZhang/vscode-onetab/issues"
+  },
+  "homepage": "https://github.com/hsqStephenZhang/vscode-onetab#readme",
+  "qna": "marketplace",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
   },
   "extensionKind": [
     "workspace"
@@ -514,7 +520,6 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.9",
     "jshint": "^2.13.6",
     "moment": "^2.30.1"
   }

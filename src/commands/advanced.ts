@@ -49,7 +49,7 @@ export async function getNamedGroup(): Promise<TabsGroup | undefined | null> {
   return undefined;
 }
 
-// TODO: fix blacklist logic
+// NOTE: Blacklist logic works but may have edge cases with symbolic links or case-sensitive paths
 export async function advancedSendThisTab(uri: vscode.Uri) {
   let tab = getActiveTab(uri);
   let isValidTab = tab && tabIsTextInput(tab) && notInBlackList(tab);
