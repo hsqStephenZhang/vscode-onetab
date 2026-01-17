@@ -8,15 +8,22 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "engines": {
     "vscode": "^1.90.0"
   },
   "license": "MIT",
   "keywords": [
-    "onetab",
-    "vscode",
-    "efficiency"
+    "tabs",
+    "tab management",
+    "tab groups",
+    "productivity",
+    "workspace",
+    "session management",
+    "save tabs",
+    "restore tabs",
+    "organize",
+    "onetab"
   ],
   "repository": {
     "type": "git",

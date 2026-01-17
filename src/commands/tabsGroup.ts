@@ -202,17 +202,15 @@ export async function tabsGroupRemove(group: TabsGroup) {
     return;
   }
 
-  const choice = await vscode.window.showInputBox({
-    title:
-      "Are you sure to remove this group? Please input 'y/yes' to confirm, 'n' to cancel",
-  });
-  if (
-    choice &&
-    (choice.toLowerCase() === "y" || choice.toLowerCase() === "yes")
-  ) {
+  const choice = await vscode.window.showWarningMessage(
+    `Are you sure you want to remove "${group.getLabel()}"?`,
+    { modal: true },
+    "Remove",
+    "Cancel"
+  );
+  
+  if (choice === "Remove") {
     removeInner(group.id);
-  } else {
-    vscode.window.showInformationMessage("cancel remove tabs group");
   }
 }
 
