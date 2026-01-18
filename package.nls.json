@@ -31,5 +31,6 @@
   "onetab.debug.GetState": "Get Current Storage Kvs, Only For Debug",
   "onetab.debug.clearState": "Clear All Kvs, Only For Debug",
   "oneTabFeedback.openHelpLink": "Open Help Link",
-  "onetab.autogroup": "Auto Group Tabs By Llm"
+  "onetab.autogroup": "Auto Group Tabs By Llm",
+  "onetab.reorder.selectGroups": "Reorder Tabs By Groups (Select Groups)"
 }

@@ -41,6 +41,7 @@ import { SqlJsDatabaseService } from "./db";
 import { TagsProvider } from "./providers/tagsProvider";
 import { StorageService } from "./db/storageService";
 import { blacklistService } from "./utils/blacklistService";
+import { reorderTabsByGroupsCommand, reorderAllTabsByGroupsCommand } from "./commands/reorder";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -159,6 +160,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.commands.registerCommand("onetab.autogroup", autoGroup);
   vscode.commands.registerCommand("onetab.autogroup.manageStrategies", manageCustomStrategies);
+
+  // Reorder tabs commands
+  vscode.commands.registerCommand("onetab.reorder.selectGroups", reorderTabsByGroupsCommand);
 
   const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
   const git = gitExtension?.getAPI(1);

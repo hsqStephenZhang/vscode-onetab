@@ -227,6 +227,11 @@
         "command": "onetab.autogroup.manageStrategies",
         "title": "Manage Auto-Group Custom Strategies",
         "category": "Onetab"
+      },
+      {
+        "command": "onetab.reorder.selectGroups",
+        "title": "%onetab.reorder.selectGroups%",
+        "category": "Onetab"
       }
     ],
     "languages": [
