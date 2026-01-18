@@ -21,6 +21,7 @@
   "onetab.tabsGroup.pin": "Pin Tabs Group",
   "onetab.tabsGroup.remove": "Remove Tabs Group",
   "onetab.tabsGroup.tag": "Set Tags Of Tabs Group",
+  "onetab.tabsGroup.collapse": "Collapse Tabs Group",
   "onetab.export": "Export Current Database",
   "onetab.import": "Import Database From File",
   "onetab.search": "List & Search Tab Groups",

@@ -214,6 +214,73 @@ export async function tabsGroupRemove(group: TabsGroup) {
   }
 }
 
+export async function tabsGroupCollapse(group: TabsGroup) {
+  if (!group.id) {
+    return;
+  }
+
+  await AccessTrackingService.recordAccess(group.id);
+
+  // Get all tabs in this group
+  const tabsInGroup = group.getTabs();
+  
+  // Find all currently open tabs that match the URIs in this group
+  const openTabs: vscode.Tab[] = [];
+  for (const tabItem of tabsInGroup) {
+    const uri = tabItem.fileUri;
+    
+    // Search through all tab groups for matching tabs
+    for (const tabGroup of vscode.window.tabGroups.all) {
+      for (const tab of tabGroup.tabs) {
+        const tabUri = getTabUri(tab);
+        if (tabUri && tabUri.toString() === uri.toString() && !tab.isPinned) {
+          openTabs.push(tab);
+        }
+      }
+    }
+  }
+
+  // Close all matching tabs
+  for (const tab of openTabs) {
+    try {
+      await vscode.window.tabGroups.close(tab);
+    } catch (error) {
+      console.error(`Failed to close tab: ${getTabUri(tab)?.toString()}`, error);
+    }
+  }
+
+  // Reveal the group in the tree view
+  if (Global.tabsProvider.viewer) {
+    await Global.tabsProvider.viewer.reveal(group, { 
+      select: true, 
+      focus: true, 
+      expand: true 
+    });
+  }
+}
+
+// Helper function to get URI from tab (copied from utils/tab.ts for internal use)
+function getTabUri(tab: vscode.Tab): vscode.Uri | undefined {
+  const input = tab.input;
+
+  if (input instanceof vscode.TabInputText) {
+    return input.uri;
+  }
+  if (input instanceof vscode.TabInputTextDiff) {
+    return input.modified;
+  }
+  if (input instanceof vscode.TabInputCustom) {
+    return input.uri;
+  }
+  if (input instanceof vscode.TabInputNotebook) {
+    return input.uri;
+  }
+  if (input instanceof vscode.TabInputNotebookDiff) {
+    return input.modified;
+  }
+  return undefined;
+}
+
 function removeInner(id: string) {
   Global.tabsProvider.updateState((state) => {
     state.removeTabsGroup(id);

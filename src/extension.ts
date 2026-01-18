@@ -8,6 +8,7 @@ import {
   tabsGroupRename,
   tabsGroupRestore,
   tabsGroupTags,
+  tabsGroupCollapse,
 } from "./commands/tabsGroup";
 import {
   sendAllTabs,
@@ -146,6 +147,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
+  vscode.commands.registerCommand("onetab.tabsGroup.collapse", tabsGroupCollapse);
   vscode.commands.registerCommand("onetab.export", exportJsonData);
   vscode.commands.registerCommand("onetab.import", importJsonData);
 

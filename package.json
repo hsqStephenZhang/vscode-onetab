@@ -165,6 +165,12 @@
         "icon": "$(tag)"
       },
       {
+        "command": "onetab.tabsGroup.collapse",
+        "title": "%onetab.tabsGroup.collapse%",
+        "category": "Onetab",
+        "icon": "$(fold)"
+      },
+      {
         "command": "onetab.export",
         "title": "%onetab.export%",
         "category": "Onetab",
@@ -390,9 +396,14 @@
           "group": "inline@3"
         },
         {
-          "command": "onetab.tabsGroup.remove",
+          "command": "onetab.tabsGroup.collapse",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "inline@4"
+        },
+        {
+          "command": "onetab.tabsGroup.remove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "inline@5"
         },
         {
           "command": "onetab.tab.restore",
