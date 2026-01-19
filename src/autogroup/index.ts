@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { getAllTabsWithBlackList, sendTabs } from '../utils/tab';
 import { Global } from '../global';
 
+const STORAGE_KEY_SELECTED_MODEL = 'autogroup.selectedModelId';
+
 const schema = "{group_name: [file_names]}"
 
 const strategy_dir = `the strategy is "directory structure", which means you should consider the file path as the directory 
@@ -202,17 +204,15 @@ The schema of json output are: ${schema}.
 Please output pure json string, and don't output any extra explanations.
 Please name each group with the strategy and extra explainations, but keep short.
 Please keep files' original full names in the output values lists.
-The given files are: ${source}`
-    return prompt
+The given files are: ${source}`;
+    return prompt;
 }
 
-// New function to request auto group using VS Code's Language Model API (Copilot)
 export async function requestAutoGroupWithCopilot(strategies_list: string[], filenames: string[], customStrategyDescriptions?: string[]): Promise<Map<string, string[]> | undefined> {
     try {
-        // Check if language models are available
+        // Get all available Copilot models
         const models = await vscode.lm.selectChatModels({
-            vendor: 'copilot',
-            family: 'gpt-4'
+            vendor: 'copilot'
         });
 
         if (models.length === 0) {
@@ -220,7 +220,56 @@ export async function requestAutoGroupWithCopilot(strategies_list: string[], fil
             return undefined;
         }
 
-        const model = models[0];
+        let model: vscode.LanguageModelChat;
+
+        // Load the previously selected model from storage
+        let selectedModelId = Global.storage.getWorkspaceState(STORAGE_KEY_SELECTED_MODEL);
+
+        // Always show model selection with current selection highlighted
+        interface ModelPickItem extends vscode.QuickPickItem {
+            modelId: string;
+            isChangeOption?: boolean;
+        }
+
+        const modelItems: ModelPickItem[] = models.map(m => {
+            const isSelected = m.id === selectedModelId;
+            return {
+                label: isSelected ? `$(check) ${m.name || m.id}` : (m.name || m.id),
+                description: m.family || m.id,
+                detail: isSelected 
+                    ? `Currently selected • Vendor: ${m.vendor}, Max Input Tokens: ${m.maxInputTokens}`
+                    : `Vendor: ${m.vendor}, Max Input Tokens: ${m.maxInputTokens}`,
+                modelId: m.id
+            };
+        });
+
+        // Add option to use current selection if one exists
+        if (selectedModelId && models.find(m => m.id === selectedModelId)) {
+            modelItems.unshift({
+                label: "$(play) Use Current Model",
+                description: "Continue with your saved selection",
+                detail: "Press Enter to proceed without changing",
+                modelId: selectedModelId
+            });
+        }
+
+        const selected = await vscode.window.showQuickPick(modelItems, {
+            placeHolder: selectedModelId 
+                ? "Press Enter to use current model, or select a different one"
+                : "Select a language model for auto-grouping",
+            title: "Choose Language Model"
+        });
+
+        if (!selected) {
+            return undefined;
+        }
+
+        selectedModelId = selected.modelId;
+        model = models.find(m => m.id === selectedModelId)!;
+        
+        // Save the selection to workspace storage
+        await Global.storage.setWorkspaceState(STORAGE_KEY_SELECTED_MODEL, selectedModelId);
+
         Global.logger.info(`Using Copilot model: ${model.id}`);
 
         let source = filenames.map((name) => `"${name}"`).join(", ");
