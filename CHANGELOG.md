@@ -4,6 +4,32 @@ All notable changes to the "better-vscode-onetab" extension will be documented i
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.2.0] - 2026-01-19
+
+### Added
+- **Restore tab without removing** - New "Open(Keep in Group)" command allows you to restore tabs while keeping them in the group
+- **Context menu support** - All inline button commands now available in right-click context menus for tab groups and tab items
+- **Force remove tab** - New force remove command that allows removing tabs even from pinned groups (with confirmation dialog)
+
+### Improved
+- Enhanced user experience with more accessible commands through context menus
+- Consistent confirmation dialogs for destructive operations
+
+## [1.1.0] - 2026-01-18
+
+### Added
+- **Reorder tabs** - Reorganize tabs within the same group using drag and drop or selection
+- **Reorder all tabs by groups** - Command to select and reorder multiple tab groups at once
+- **Collapse tabs group** - Close all open tabs that belong to a specific group with one click
+
+### Improved
+- Better tab organization capabilities
+
+## [1.0.1] - 2026-01-18
+
+### Added
+- **Blacklist support** - Added blacklist functionality to exclude specific files from being saved to OneTab
+
 ## [1.0.0] - 2026-01-17
 
 ### 🎉 First Major Release
