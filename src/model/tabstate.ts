@@ -327,6 +327,31 @@ export class TabsState {
     }
   }
 
+  public reorderTabInGroup(groupId: string, sourceTab: TabItem, targetTab: TabItem) {
+    const group = this.groups.get(groupId);
+    if (!group) return;
+
+    const tabs = group.getTabs();
+    const sourceIndex = tabs.findIndex((t) => t.fileUri.fsPath === sourceTab.fileUri.fsPath);
+    const targetIndex = tabs.findIndex((t) => t.fileUri.fsPath === targetTab.fileUri.fsPath);
+
+    if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+      return;
+    }
+
+    // Remove source tab
+    const [movedTab] = tabs.splice(sourceIndex, 1);
+    
+    // Insert at target position
+    // If dragging down, insert after target; if dragging up, insert before target
+    const newTargetIndex = sourceIndex < targetIndex ? targetIndex : targetIndex;
+    tabs.splice(newTargetIndex, 0, movedTab);
+
+    group.setTabs(tabs);
+    this.markDirty(groupId);
+    this.persistChanges();
+  }
+
   public removeTabFromGroup(groupId: string, fsPath: string) {
     const group = this.groups.get(groupId);
     if (group) {

@@ -86,6 +86,19 @@ export class TabsProvider
         dst_id = dst.parentId;
       }
       if (dst_id) {
+        // Check if this is a reordering operation within the same group
+        if (dst instanceof TabItem && src.length === 1 && src[0] instanceof TabItem) {
+          const sourceTab = src[0] as TabItem;
+          const targetTab = dst as TabItem;
+          
+          // If both tabs are in the same group, reorder instead of moving
+          if (sourceTab.parentId === targetTab.parentId && sourceTab.parentId) {
+            this.tabsState.reorderTabInGroup(sourceTab.parentId, sourceTab, targetTab);
+            this.refresh();
+            return;
+          }
+        }
+
         // 1. handle top level groups
         const excludeSelfGroupIds = src
           .filter((node) => node instanceof TabsGroup)
