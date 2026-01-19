@@ -15,6 +15,7 @@
   "onetab.edit.blacklist": "Edit Blacklist",
   "onetab.tag.remove": "Remove Tag From All Groups",
   "onetab.tab.restore": "Restore One Tab",
+  "onetab.tab.restoreKeep": "Restore Tab (Keep in Group)",
   "onetab.tab.remove": "Remove One Tab",
   "onetab.tabsGroup.restore": "Restore Tabs",
   "onetab.tabsGroup.rename": "Rename Tabs Group",

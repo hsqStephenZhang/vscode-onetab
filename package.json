@@ -120,6 +120,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "onetab.tab.restoreKeep",
+        "title": "%onetab.tab.restoreKeep%",
+        "category": "Onetab",
+        "icon": "$(eye)"
+      },
+      {
         "command": "onetab.tag.remove",
         "title": "%onetab.tag.remove%",
         "category": "Onetab",
@@ -416,9 +422,14 @@
           "group": "inline@0"
         },
         {
-          "command": "onetab.tab.remove",
+          "command": "onetab.tab.restoreKeep",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@1"
+        },
+        {
+          "command": "onetab.tab.remove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
+          "group": "inline@2"
         },
         {
           "command": "onetab.branches.restorebranch",

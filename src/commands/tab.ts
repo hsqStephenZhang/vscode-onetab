@@ -78,6 +78,22 @@ export async function tabRestore(tab: TabItem) {
   }
 }
 
+export async function tabRestoreKeep(tab: TabItem) {
+  if (!tab.parentId) {
+    return;
+  }
+  let groupId = tab.parentId;
+
+  const state = Global.tabsProvider.getState();
+  let g = state.getGroup(groupId);
+
+  if (g) {
+    await AccessTrackingService.recordAccess(groupId);
+    await openTabItem(tab);
+    Global.tabsProvider.refresh();
+  }
+}
+
 export async function tabRemove(tab: TabItem) {
   if (!tab.parentId) {
     return;
