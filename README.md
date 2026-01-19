@@ -11,14 +11,41 @@ Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/oneta
 
 ## ✨ Features
 
-- 📦 **Save & Restore Tabs** - Quickly save individual tabs or entire groups
-- 🏷️ **Smart Organization** - Tag, rename, pin, and categorize your tab groups
+### Core Tab Management
+- 📦 **Save & Restore Tabs** - Quickly save individual tabs, multiple tabs, or entire groups
+- 🔄 **Restore Options** - Choose to restore tabs with or without removing them from groups
+- 🗑️ **Smart Removal** - Remove tabs with automatic pin status detection and optional force remove with confirmation
+- 🎯 **Context Menu Integration** - All commands accessible via right-click on tree view items
+- 🖱️ **Drag & Drop** - Reorganize tabs and groups with intuitive drag-and-drop interface
+- 📊 **Reorder Tabs** - Reorganize tabs within groups or reorder multiple groups at once
+
+### Organization & Management
+- 🏷️ **Tag System** - Tag groups with multiple tags, filter by tags, and manage tags across all groups
+- 📝 **Rename Groups** - Give meaningful names to your tab groups
+- 📌 **Pin Groups** - Pin important groups to prevent accidental removal
+- 🔽 **Collapse Groups** - Close all open tabs belonging to a specific group with one click
+- 🔍 **Search & Filter** - Find tab groups by name or tags with powerful search functionality
+- 🚫 **Blacklist Support** - Exclude specific files or patterns from being saved
+
+### Smart Features
 - 🤖 **AI-Powered Auto-Grouping** - Automatically categorize tabs using Claude API
+  - Group by directory hierarchy
+  - Group by file extension
+  - Group by file name patterns
+  - Mix multiple strategies
+  - Custom user-defined strategies
 - 🔀 **Git Branch Tracking** - Automatically track and restore tab state per Git branch
-- 🔍 **Search & Filter** - Find tab groups by name or tags
-- 🖱️ **Drag & Drop** - Reorganize tabs and groups with intuitive drag-and-drop
-- 🚫 **Blacklist Support** - Exclude specific files from being saved
+  - Save state when switching branches
+  - Restore state when returning to a branch
+  - Migrate tab state between branches
+  - Browse and restore from non-active branches
 - 💾 **Import/Export** - Backup and restore your entire tab database
+
+### Advanced Sorting
+- 📈 **Multiple Sorting Strategies** - Choose from:
+  - **Default**: Pinned first, named, tagged, then by creation time
+  - **LRU** (Least Recently Used): Recently accessed groups first
+  - **LFU** (Least Frequently Used): Frequently accessed groups first
 
 ## 📋 Requirements
 
@@ -98,15 +125,19 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-### For Users:
+## 🎯 Roadmap & TODOs
 
-1. Optimize icons (might use the current theme's icons)
-2. Add Copilot API support for auto-grouping with user-given/default prompts
+### Planned Features
+- 🎨 **Theme-aware Icons** - Use VS Code theme colors for better visual integration
+- 🤖 **Additional LLM Support** - Add support for OpenAI, Gemini, and other APIs
+- 💬 **Copilot Integration** - Native Copilot API support for auto-grouping
+- 🔧 **Enhanced Customization** - More granular control over grouping strategies
 
-### For Developers:
-
-1. Refactor the serialize/deserialize code to make it more readable
-2. GitHub action to auto-package the `better-vscode-onetab.vsix` file
+### Technical Improvements
+- 📦 **Code Refactoring** - Improve serialize/deserialize code readability
+- 🚀 **CI/CD Pipeline** - GitHub Actions for automated packaging and releases
+- 🧪 **Extended Testing** - More comprehensive test coverage
+- 📚 **Better Documentation** - Enhanced API documentation and examples
 
 ## 📄 License
 

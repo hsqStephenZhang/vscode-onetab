@@ -65,7 +65,12 @@ export class TabsProvider
     });
   }
 
-  dropMimeTypes: readonly string[] = ["text/plain"];
+  // Support both internal tree drag/drop and external tab drops from editor
+  dropMimeTypes: readonly string[] = [
+    "text/plain",
+    "application/vnd.code.tree.testViewDragAndDrop",
+    "text/uri-list" // VSCode tabs use this MIME type
+  ];
   dragMimeTypes: readonly string[] = ["text/plain"];
 
   handleDrag?(source: readonly Node[], dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
@@ -73,19 +78,34 @@ export class TabsProvider
     dataTransfer.set('application/vnd.code.tree.testViewDragAndDrop', new vscode.DataTransferItem(source));
   }
 
-  handleDrop?(dst: Node | undefined, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
+  async handleDrop?(dst: Node | undefined, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): Promise<void> {
+    // First check if this is an internal tree drag/drop
     const transfered = dataTransfer.get('application/vnd.code.tree.testViewDragAndDrop');
-    if (!transfered) return;
+    
+    // If internal drag/drop
+    if (transfered) {
+      const src: Node[] = transfered.value;
+      this._handleInternalDrop(dst, src);
+      return;
+    }
 
-    const src: Node[] = transfered.value;
+    // Check if this is a tab dropped from the editor
+    const uriListData = dataTransfer.get('text/uri-list');
+    if (uriListData) {
+      await this._handleEditorTabDrop(dst, uriListData);
+      return;
+    }
+  }
+
+  private _handleInternalDrop(dst: Node | undefined, src: Node[]): void {
     if (dst && dst.id) {
-      let dst_id: string | undefined;
+      let dstId: string | undefined;
       if (dst instanceof TabsGroup) {
-        dst_id = dst.id;
+        dstId = dst.id;
       } else if (dst instanceof TabItem && dst.parentId) {
-        dst_id = dst.parentId;
+        dstId = dst.parentId;
       }
-      if (dst_id) {
+      if (dstId) {
         // Check if this is a reordering operation within the same group
         if (dst instanceof TabItem && src.length === 1 && src[0] instanceof TabItem) {
           const sourceTab = src[0] as TabItem;
@@ -103,16 +123,16 @@ export class TabsProvider
         const excludeSelfGroupIds = src
           .filter((node) => node instanceof TabsGroup)
           .map((node) => node as TabsGroup)
-          .filter((node) => node.id !== dst_id)
+          .filter((node) => node.id !== dstId)
           .map((node) => node.id)
           .filter((id) => id !== undefined);
-        this.tabsState.mergeTabsGroup(dst_id, excludeSelfGroupIds as string[]);
+        this.tabsState.mergeTabsGroup(dstId, excludeSelfGroupIds as string[]);
 
         // 2. handle individual tabs
         const excludeSelfTabs = src
           .filter((node) => node instanceof TabItem)
           .map((node) => node as TabItem)
-          .filter((node) => node.parentId && node.parentId !== dst_id);
+          .filter((node) => node.parentId && node.parentId !== dstId);
 
         for (const tabItem of excludeSelfTabs) {
           // only remove from src group if not pinned
@@ -124,11 +144,11 @@ export class TabsProvider
         let tabsToAdd = excludeSelfTabs.map((orig) => {
           let item = orig.deepClone();
           item.id = randomUUID();
-          item.parentId = dst_id;
+          item.parentId = dstId;
           return item as TabItem;
         });
 
-        this.tabsState.addTabsToGroup(dst_id, tabsToAdd);
+        this.tabsState.addTabsToGroup(dstId, tabsToAdd);
 
         // Complex merge operation - do a one-time full save
         this.tabsState.saveToStorage().then(() => {
@@ -137,7 +157,9 @@ export class TabsProvider
       }
     } else if (dst === undefined) {
       let tabItems = src.filter((node) => node instanceof TabItem).map(node => node as TabItem);
-      if (tabItems.length === 0) return;
+      if (tabItems.length === 0) {
+        return;
+      }
 
       for (const tabItem of tabItems) {
         if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
@@ -160,6 +182,73 @@ export class TabsProvider
         this.refresh();
       });
     }
+  }
+
+  private async _handleEditorTabDrop(dst: Node | undefined, uriListData: vscode.DataTransferItem): Promise<void> {
+    const uriListText = await uriListData.asString();
+    if (!uriListText) {
+      return;
+    }
+
+    // Parse the URI list (can be multiple URIs separated by newlines)
+    const uriStrings = uriListText.split('\n').filter(s => s.trim());
+    if (uriStrings.length === 0) {
+      return;
+    }
+
+    // Find the actual VSCode tabs that match these URIs
+    const allOpenTabs = vscode.window.tabGroups.all
+      .flatMap(group => group.tabs)
+      .filter(tab => {
+        const tabUri = this._getTabUri(tab);
+        return tabUri && uriStrings.some(uriStr => {
+          try {
+            const droppedUri = vscode.Uri.parse(uriStr.trim());
+            return tabUri.toString() === droppedUri.toString();
+          } catch {
+            return false;
+          }
+        });
+      });
+
+    if (allOpenTabs.length === 0) {
+      vscode.window.showWarningMessage('No matching tabs found to add to group');
+      return;
+    }
+
+    // Import the sendTabs utility
+    const { sendTabs } = await import('../utils/tab');
+
+    // Determine the target group ID
+    let targetGroupId: string | undefined;
+    if (dst instanceof TabsGroup) {
+      targetGroupId = dst.id;
+    } else if (dst instanceof TabItem && dst.parentId) {
+      targetGroupId = dst.parentId;
+    }
+
+    // Send tabs to the group (or create a new group if no target)
+    await sendTabs(allOpenTabs, targetGroupId);
+  }
+
+  private _getTabUri(tab: vscode.Tab): vscode.Uri | undefined {
+    const input = tab.input;
+    if (input instanceof vscode.TabInputText) {
+      return input.uri;
+    }
+    if (input instanceof vscode.TabInputTextDiff) {
+      return input.modified;
+    }
+    if (input instanceof vscode.TabInputCustom) {
+      return input.uri;
+    }
+    if (input instanceof vscode.TabInputNotebook) {
+      return input.uri;
+    }
+    if (input instanceof vscode.TabInputNotebookDiff) {
+      return input.modified;
+    }
+    return undefined;
   }
 
   public getState(): TabsState {

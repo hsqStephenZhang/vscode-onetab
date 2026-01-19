@@ -316,11 +316,23 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
   // check if state are updated
   if (updated) {
     listAllKeys();
-    for (const tab of tabs.filter((tab) => !tab.isPinned)) {
+    const tabsToClose = tabs.filter((tab) => !tab.isPinned);
+    // Close tabs in reverse order to avoid index shifting issues
+    // Or close them all at once using the close method with array
+    if (tabsToClose.length > 0) {
       try {
-        await vscode.window.tabGroups.close(tab);
+        // Try to close all tabs at once - this is more reliable for multiple tabs
+        await vscode.window.tabGroups.close(tabsToClose);
       } catch (error) {
-        console.error(`Failed to close tab: ${getTabUri(tab)?.toString()}`, error);
+        // If batch close fails, fall back to closing one by one
+        console.error('Batch close failed, trying individual close:', error);
+        for (const tab of tabsToClose) {
+          try {
+            await vscode.window.tabGroups.close(tab);
+          } catch (err) {
+            console.error(`Failed to close tab: ${getTabUri(tab)?.toString()}`, err);
+          }
+        }
       }
     }
   }
