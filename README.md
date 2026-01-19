@@ -9,82 +9,74 @@
 
 Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/onetab/chphlpgkkbolifaimnlloiipkdnihall) browser extension, this VS Code extension helps you manage dozens of open files efficiently.
 
-## ✨ Features
+## Features
 
 ### Core Tab Management
-- 📦 **Save & Restore Tabs** - Quickly save individual tabs, multiple tabs, or entire groups
-- 🔄 **Restore Options** - Choose to restore tabs with or without removing them from groups
-- 🗑️ **Smart Removal** - Remove tabs with automatic pin status detection and optional force remove with confirmation
-- 🎯 **Context Menu Integration** - All commands accessible via right-click on tree view items
-- 🖱️ **Drag & Drop** - Reorganize tabs and groups with intuitive drag-and-drop interface
-- 📊 **Reorder Tabs** - Reorganize tabs within groups or reorder multiple groups at once
+- **Save & Restore Tabs** - Quickly save individual tabs, multiple tabs, or entire groups
+- **Restore Options** - Choose to restore tabs with or without removing them from groups
+- **Smart Removal** - Remove tabs with automatic pin status detection and optional force remove with confirmation
+- **Context Menu Integration** - All commands accessible via right-click on tree view items
+- **Drag & Drop** - Reorganize tabs and groups with intuitive drag-and-drop interface
+- **Reorder Tabs** - Reorganize tabs within groups or reorder multiple groups at once
 
 ### Organization & Management
-- 🏷️ **Tag System** - Tag groups with multiple tags, filter by tags, and manage tags across all groups
-- 📝 **Rename Groups** - Give meaningful names to your tab groups
-- 📌 **Pin Groups** - Pin important groups to prevent accidental removal
-- 🔽 **Collapse Groups** - Close all open tabs belonging to a specific group with one click
-- 🔍 **Search & Filter** - Find tab groups by name or tags with powerful search functionality
-- 🚫 **Blacklist Support** - Exclude specific files or patterns from being saved
+- **Tag System** - Tag groups with multiple tags, filter by tags, and manage tags across all groups
+- **Rename Groups** - Give meaningful names to your tab groups
+- **Pin Groups** - Pin important groups to prevent accidental removal
+- **Collapse Groups** - Close all open tabs belonging to a specific group with one click
+-  **Search & Filter** - Find tab groups by name or tags with powerful search functionality
+- **Blacklist Support** - Exclude specific files or patterns from being saved
 
 ### Smart Features
-- 🤖 **AI-Powered Auto-Grouping** - Automatically categorize tabs using Claude API
+- **AI-Powered Auto-Grouping** - Automatically categorize tabs using Claude API
   - Group by directory hierarchy
   - Group by file extension
   - Group by file name patterns
   - Mix multiple strategies
   - Custom user-defined strategies
-- 🔀 **Git Branch Tracking** - Automatically track and restore tab state per Git branch
+- **Git Branch Tracking** - Automatically track and restore tab state per Git branch
   - Save state when switching branches
   - Restore state when returning to a branch
   - Migrate tab state between branches
   - Browse and restore from non-active branches
-- 💾 **Import/Export** - Backup and restore your entire tab database
+- **Import/Export** - Backup and restore your entire tab database
 
 ### Advanced Sorting
-- 📈 **Multiple Sorting Strategies** - Choose from:
+- **Multiple Sorting Strategies** - Choose from:
   - **Default**: Pinned first, named, tagged, then by creation time
   - **LRU** (Least Recently Used): Recently accessed groups first
   - **LFU** (Least Frequently Used): Frequently accessed groups first
 
-## 📋 Requirements
+## Requirements
 
 - VS Code 1.90.0 or higher
 - Git extension (built-in) for branch tracking features
-- Claude API key (optional, only for AI auto-grouping)
 
-## 🚀 Usage
+## Usage
 
-### Send tab(s) to onetab extension in right click context.
+### Send tab(s) to onetab extension in right click context
 
-![send_tabs](images/send_tabs.png)
+![send_tabs](images/sendtabs.gif)
 
 ### Rename, pin, set tags, remove or restore tab groups in onetab extension
 
-![edit_group](images/edit_group.png)
+![edit_group](images/editgroup.gif)
 
 ### Send tab(s) into specific tab group
 
-![send_to_specific](images/send_to_specific.png)
+![send_to_specific](images/sendtabs.gif)
 
 ### Restore or remove tab from tab group
 
-![restore_remove](images/restore_remove.png)
-
-### Send file into blacklist and edit blacklist in configuration
-
-You can send one file to the blacklist:
-
-![blacklist1](images/blacklist1.png)
-![blacklist2](images/blacklist2.png)
+![restore_remove](images/restore_collapse.gif)
 
 ### List and search tab group by their name or tags
 
-![list_and_search](images/list_and_search.png)
+![list_and_search](images/list_search.gif)
 
 ### Drag and drop the tab group or tabs
 
-![drag_and_drop](images/drag_and_drop.gif)
+![drag_and_drop](images/drag_drop.gif)
 
 ### Auto group by large language model's API
 
@@ -107,9 +99,7 @@ When you switch to a new branch, the active tree view will be clear, and the pre
 
 You can also migrate the tab's state from one branch to the current branch.
 
-![gitbranch](images/gitbranch.gif)
-
-## ⚙️ Configuration
+## Configuration
 
 You can configure the extension in VS Code settings:
 
@@ -117,33 +107,19 @@ You can configure the extension in VS Code settings:
 - **Blacklist**: Manage files to exclude from OneTab
 - **Sorting Strategy**: Choose default sorting strategy for auto-grouping
 
-## 📝 Changelog
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes and version history.
 
-## 🤝 Contributing
+## [&] Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 🎯 Roadmap & TODOs
-
-### Planned Features
-- 🎨 **Theme-aware Icons** - Use VS Code theme colors for better visual integration
-- 🤖 **Additional LLM Support** - Add support for OpenAI, Gemini, and other APIs
-- 💬 **Copilot Integration** - Native Copilot API support for auto-grouping
-- 🔧 **Enhanced Customization** - More granular control over grouping strategies
-
-### Technical Improvements
-- 📦 **Code Refactoring** - Improve serialize/deserialize code readability
-- 🚀 **CI/CD Pipeline** - GitHub Actions for automated packaging and releases
-- 🧪 **Extended Testing** - More comprehensive test coverage
-- 📚 **Better Documentation** - Enhanced API documentation and examples
-
-## 📄 License
+## License
 
 [MIT](LICENSE) © hsqStephenZhang
 
-## 🐛 Issues
+## Issues
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/hsqStephenZhang/vscode-onetab/issues) on GitHub.
 

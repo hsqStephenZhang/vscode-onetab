@@ -37,7 +37,6 @@ import { archive, cloneBranch, pickAndClone } from "./commands/branches";
 import { BranchesProvider } from "./providers/nonActiveBranchesProvider";
 import { ReportIssueLink, SupportLink } from "./model/feedback";
 import { autoGroup, manageCustomStrategies } from "./autogroup";
-import { SqlJsDatabaseService } from "./db";
 import { TagsProvider } from "./providers/tagsProvider";
 import { StorageService } from "./db/storageService";
 import { blacklistService } from "./utils/blacklistService";
