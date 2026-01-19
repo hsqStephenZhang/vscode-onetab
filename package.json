@@ -138,6 +138,12 @@
         "icon": "$(close)"
       },
       {
+        "command": "onetab.tab.forceRemove",
+        "title": "%onetab.tab.forceRemove%",
+        "category": "Onetab",
+        "icon": "$(trash)"
+      },
+      {
         "command": "onetab.tabsGroup.restore",
         "title": "%onetab.tabsGroup.restore%",
         "category": "Onetab",
@@ -417,6 +423,36 @@
           "group": "inline@5"
         },
         {
+          "command": "onetab.tabsGroup.pin",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@0"
+        },
+        {
+          "command": "onetab.tabsGroup.rename",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@1"
+        },
+        {
+          "command": "onetab.tabsGroup.tag",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@2"
+        },
+        {
+          "command": "onetab.tabsGroup.restore",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@3"
+        },
+        {
+          "command": "onetab.tabsGroup.collapse",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@4"
+        },
+        {
+          "command": "onetab.tabsGroup.remove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@5"
+        },
+        {
           "command": "onetab.tab.restore",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@0"
@@ -430,6 +466,26 @@
           "command": "onetab.tab.remove",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
           "group": "inline@2"
+        },
+        {
+          "command": "onetab.tab.restore",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
+          "group": "context@0"
+        },
+        {
+          "command": "onetab.tab.restoreKeep",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
+          "group": "context@1"
+        },
+        {
+          "command": "onetab.tab.remove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
+          "group": "context@2"
+        },
+        {
+          "command": "onetab.tab.forceRemove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tab)$/",
+          "group": "context@3"
         },
         {
           "command": "onetab.branches.restorebranch",

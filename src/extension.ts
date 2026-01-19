@@ -25,7 +25,7 @@ import {
   advancedSendThisTab,
   sendToBlackList,
 } from "./commands/advanced";
-import { tabRemove, tabRestore, tabRestoreKeep } from "./commands/tab";
+import { tabRemove, tabRestore, tabRestoreKeep, tabForceRemove } from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
 import { exportJsonData, importJsonData } from "./import_export";
 import { searchGroup, filterByTag, filterByTagDirect, removeTagFromAllGroups } from "./commands/search";
@@ -143,6 +143,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tab.restore", tabRestore);
   vscode.commands.registerCommand("onetab.tab.restoreKeep", tabRestoreKeep);
   vscode.commands.registerCommand("onetab.tab.remove", tabRemove);
+  vscode.commands.registerCommand("onetab.tab.forceRemove", tabForceRemove);
 
   vscode.commands.registerCommand("onetab.tabsGroup.restore", tabsGroupRestore);
   vscode.commands.registerCommand("onetab.tabsGroup.rename", tabsGroupRename);
