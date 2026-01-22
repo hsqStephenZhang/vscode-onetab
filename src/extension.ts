@@ -157,7 +157,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // migrate: clone  a non-active branch state to the current active state
   vscode.commands.registerCommand("onetab.branches.archive", archive);
   vscode.commands.registerCommand("onetab.branches.pickandrestore", pickAndClone);
-  vscode.commands.registerCommand("onetab.branches.restorebranch", cloneBranch);
 
   vscode.commands.registerCommand("onetab.autogroup", autoGroup);
   vscode.commands.registerCommand("onetab.autogroup.manageStrategies", manageCustomStrategies);

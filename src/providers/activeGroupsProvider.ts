@@ -255,12 +255,11 @@ export class TabsProvider
     return this.tabsState;
   }
 
-  public clearState() {
+  public async clearState(): Promise<void> {
     this.tabsState = new TabsState(null);
     // Full clear - use saveToStorage which clears all data for this branch
-    this.tabsState.saveToStorage().then(() => {
-      this.refresh();
-    });
+    await this.tabsState.saveToStorage();
+    this.refresh();
   }
 
   public reloadState(refresh: boolean = true) {
@@ -270,7 +269,7 @@ export class TabsProvider
     }
   }
 
-  public resetState(newState: TabsState) {
+  public async resetState(newState: TabsState): Promise<void> {
     for (const [_k, group] of newState.groups) {
       group.setPin(group.isPinned());
       for (const tab of group.getTabs()) {
@@ -279,10 +278,9 @@ export class TabsProvider
     }
     this.tabsState = newState;
     this.tabsState.branchName = null; // Ensure it's the main state
-    // Full state replacement - use saveToStorage
-    this.tabsState.saveToStorage().then(() => {
-      this.refresh();
-    });
+    // Full state replacement - use saveToStorage and wait for completion
+    await this.tabsState.saveToStorage();
+    this.refresh();
   }
 
   public updateState(updater: (state: TabsState) => void) {

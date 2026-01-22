@@ -54,9 +54,11 @@ export class TabsGroup extends Node {
     return this.tabs;
   }
 
-  public deepClone(): TabsGroup {
-    const newGroup = new TabsGroup();
-    newGroup.label = this.label;
+  public deepClone(preserveId: boolean = false): TabsGroup {
+    const newGroup = preserveId ? new TabsGroup(this.id, this.label) : new TabsGroup();
+    if (!preserveId) {
+      newGroup.label = this.label;
+    }
     newGroup.pinned = this.pinned;
     newGroup.setPin(this.pinned);
     newGroup.tags = [...this.tags];

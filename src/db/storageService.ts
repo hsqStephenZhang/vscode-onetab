@@ -98,7 +98,7 @@ export class StorageService {
 
     // ---------- TABS GROUPS API (High-level) ----------
 
-    public insertTabsGroup(group: TabsGroupRow): void {
+    public async insertTabsGroup(group: TabsGroupRow): Promise<void> {
         const branchGroupIds = this.getBranchGroupIds(group.branch_name);
 
         if (!branchGroupIds.includes(group.id)) {
@@ -106,7 +106,7 @@ export class StorageService {
         }
 
         // Update branch group IDs
-        this.setBranchGroupIds(group.branch_name, branchGroupIds);
+        await this.setBranchGroupIds(group.branch_name, branchGroupIds);
 
         // Create group data with empty tabs
         const groupData: GroupData = {
@@ -119,11 +119,11 @@ export class StorageService {
             const branchIds = this.getBranchIds();
             if (!branchIds.includes(group.branch_name)) {
                 branchIds.push(group.branch_name);
-                this.setBranchIds(branchIds);
+                await this.setBranchIds(branchIds);
             }
         }
 
-        this.setGroupData(groupData);
+        await this.setGroupData(groupData);
     }
 
     public async updateTabsGroup(group: TabsGroupRow): Promise<void> {
@@ -224,8 +224,26 @@ export class StorageService {
     public async clearTabsGroups(branchName: string | null): Promise<void> {
         const groupIds = this.getBranchGroupIds(branchName);
 
+        // Before deleting group data, check if it's still referenced by other branches
+        // Since we preserve IDs when cloning, multiple branches may share the same group IDs
+        const activeGroupIds = this.getBranchGroupIds(null);
+        const allBranchIds = this.getBranchIds();
+        const otherBranchGroupIds = new Set<string>();
+        
+        // Collect all group IDs from other branches (including active)
+        activeGroupIds.forEach(id => otherBranchGroupIds.add(id));
+        for (const otherBranch of allBranchIds) {
+            if (otherBranch !== branchName) {
+                const ids = this.getBranchGroupIds(otherBranch);
+                ids.forEach(id => otherBranchGroupIds.add(id));
+            }
+        }
+
+        // Only delete group data if it's not referenced elsewhere
         for (const groupId of groupIds) {
-            await this.deleteGroupData(groupId);
+            if (!otherBranchGroupIds.has(groupId)) {
+                await this.deleteGroupData(groupId);
+            }
         }
 
         await this.setBranchGroupIds(branchName, []);

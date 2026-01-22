@@ -5,8 +5,8 @@ export function debugState() {
     listAllKeys();
 }
 
-export function clearState() {
+export async function clearState() {
     deleteAllKeys();
-    Global.tabsProvider.clearState();
-    Global.branchesProvider.clearState();
+    await Global.tabsProvider.clearState();
+    await Global.branchesProvider.clearState();
 }

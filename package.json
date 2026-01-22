@@ -210,12 +210,6 @@
         "category": "Onetab"
       },
       {
-        "command": "onetab.branches.restorebranch",
-        "title": "%onetab.branches.restorebranch%",
-        "category": "Onetab",
-        "icon": "$(refresh)"
-      },
-      {
         "command": "onetab.debug.GetState",
         "title": "%onetab.debug.GetState%",
         "category": "Onetab"

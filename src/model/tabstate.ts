@@ -119,10 +119,10 @@ export class TabsState {
   public async saveToStorage(): Promise<void> {
     const storage = Global.storage;
 
-    // Clear existing data for this branch
-    await storage.clearTabsGroups(this.branchName);
-
+    // Collect all group IDs and data FIRST before any deletion
+    const groupsToSave: Array<{ row: TabsGroupRow; tabs: TabItemRow[] }> = [];
     let sortOrder = 0;
+    
     for (const group of this.getAllTabsGroupsSorted()) {
       if (!group.id) continue;
 
@@ -135,8 +135,8 @@ export class TabsState {
         create_time: group.createTime,
         sort_order: sortOrder++,
       };
-      storage.insertTabsGroup(row);
 
+      const tabs: TabItemRow[] = [];
       let tabSortOrder = 0;
       for (const tab of group.getTabs()) {
         const tabRow: TabItemRow = {
@@ -148,9 +148,24 @@ export class TabsState {
           tab_type: tab.tabType,
           sort_order: tabSortOrder++,
         };
+        tabs.push(tabRow);
+      }
+      
+      groupsToSave.push({ row, tabs });
+    }
+
+    // Now perform the clear and insert atomically
+    // Clear existing data for this branch
+    await storage.clearTabsGroups(this.branchName);
+
+    // Insert all collected groups
+    for (const { row, tabs } of groupsToSave) {
+      await storage.insertTabsGroup(row);
+      for (const tabRow of tabs) {
         await storage.insertTabItem(tabRow);
       }
     }
+    
     this.dirtyGroups.clear();
     this.deletedGroups.clear();
   }
@@ -444,10 +459,11 @@ export class TabsState {
   }
 
   // --- DEEP CLONE ---
-  public deepClone(): TabsState {
+  // preserveGroupIds: if true, keeps the same group IDs (for branch saves to prevent duplicates)
+  public deepClone(preserveGroupIds: boolean = false): TabsState {
     const newState = new TabsState(this.branchName);
     for (const group of this.groups.values()) {
-      const newGroup = group.deepClone();
+      const newGroup = group.deepClone(preserveGroupIds);
       if (newGroup.id) {
         newState.groups.set(newGroup.id, newGroup);
       }

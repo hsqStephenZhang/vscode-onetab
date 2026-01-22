@@ -3,8 +3,12 @@ import { Global } from '../global';
 import { API } from '../typings/git';
 import { DEFAULT_BRANCH_NAME } from '../constant';
 import { GitExtension } from "../typings/git";
+import { TabsState } from '../model/tabstate';
 
 const pattern = "/.git";
+
+// Global flag to prevent duplicate branch change processing
+let isProcessingBranchChange = false;
 
 // the git branch change listener, uses vscode's git API to monitor and switch the state
 export function reinitGitBranchGroups(git: API): vscode.Disposable | void {
@@ -14,33 +18,70 @@ export function reinitGitBranchGroups(git: API): vscode.Disposable | void {
     let latestBranch = repo.state.HEAD?.name;
     Global.branchName = latestBranch || DEFAULT_BRANCH_NAME;
     Global.logger.debug(`reinitGitBranchGroups, current Branch: ${latestBranch}`);
+    
     return repo.state.onDidChange(async () => {
         if (repo.state.HEAD?.name !== Global.branchName) {
-            Global.logger.debug(`Branch changed, from: ${Global.branchName}, to: ${repo.state.HEAD?.name}`);
+            // Prevent duplicate processing if already handling a branch change
+            if (isProcessingBranchChange) {
+                Global.logger.debug(`Branch change already in progress, skipping duplicate event`);
+                return;
+            }
+            
+            isProcessingBranchChange = true;
+            try {
+                const fromBranch = Global.branchName;
+                const toBranch = repo.state.HEAD?.name || DEFAULT_BRANCH_NAME;
+                Global.logger.debug(`Branch changed, from: ${fromBranch}, to: ${toBranch}`);
 
-            // Save current state to DB under the old branch name
-            let activeBranchName = Global.branchName;
-            let activeState = Global.tabsProvider.getState();
-            activeState.branchName = activeBranchName;
-            await activeState.saveToStorage();
+            // Step 1: Save current state to DB under the old branch name
+            // Create a deep clone with PRESERVED IDs to prevent duplication
+            const currentState = Global.tabsProvider.getState();
+            const stateToSave = currentState.deepClone(true);
+            stateToSave.branchName = fromBranch;
+            await stateToSave.saveToStorage();
+            Global.logger.debug(`Saved state for branch: ${fromBranch}`);
 
-            // Update to new branch
-            Global.branchName = repo.state.HEAD?.name || DEFAULT_BRANCH_NAME;
+            // Step 2: Update to new branch name
+            Global.branchName = toBranch;
 
-            // Reload branches provider to reflect the saved branch
-            Global.branchesProvider.reloadState();
-
-            // Load fresh state for the new branch from DB (or create empty)
-            let newState = Global.branchesProvider.getBranchState(Global.branchName);
+            // Step 3: Load state for the new branch from DB
+            // Reload from storage directly to get the latest persisted state
+            const newState = await loadBranchStateFromStorage(toBranch);
+            
             if (newState) {
-                // Remove from branches since it's now active
-                Global.branchesProvider.deleteBranch(Global.branchName);
-                Global.tabsProvider.resetState(newState);
+                Global.logger.debug(`Loading existing state for branch: ${toBranch}`);
+                // Use the loaded state directly (already a fresh instance from storage)
+                await Global.tabsProvider.resetState(newState);
             } else {
-                Global.tabsProvider.clearState();
+                Global.logger.debug(`No existing state for branch: ${toBranch}, creating empty state`);
+                await Global.tabsProvider.clearState();
+            }
+
+            // Step 4: Reload branches provider to reflect changes
+            // This ensures the UI is updated with the saved "from" branch
+            Global.branchesProvider.reloadState();
+            } finally {
+                isProcessingBranchChange = false;
             }
         }
-    })
+    });
+}
+
+// Helper function to load branch state directly from storage
+async function loadBranchStateFromStorage(branchName: string): Promise<TabsState | null> {
+    const branchNames = Global.storage.listBranches();
+    
+    if (branchNames.includes(branchName)) {
+        // Load a fresh state from storage
+        const state = TabsState.loadFromStorage(branchName);
+        
+        // Delete from storage since it's now the active branch
+        await Global.storage.deleteBranch(branchName);
+        
+        return state;
+    }
+    
+    return null;
 }
 
 // our file watcher to monitor the changes under `.git` folder
@@ -86,7 +127,7 @@ export class GitFileWatcher {
             if (autoClean) {
                 Global.tabsProvider.updateState((state) => {
                     state.removeTabFromAllGroups(uri.fsPath);
-                })
+                });
             }
         });
     }

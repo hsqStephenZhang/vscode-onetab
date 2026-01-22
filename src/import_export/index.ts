@@ -360,10 +360,10 @@ export async function importJsonData() {
 
         const importedState = tabsStateFromDTO((json as any)[pickedBranch], null);
         if (mode === "replace") {
-          Global.tabsProvider.resetState(importedState);
+          await Global.tabsProvider.resetState(importedState);
         } else {
           const existing = Global.tabsProvider.getState();
-          Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
+          await Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
         }
 
         vscode.window.showInformationMessage(`Imported '${pickedBranch}' into Current Branch successfully.`);
@@ -378,10 +378,10 @@ export async function importJsonData() {
 
       const importedState = tabsStateFromDTO(json, null);
       if (mode === "replace") {
-        Global.tabsProvider.resetState(importedState);
+        await Global.tabsProvider.resetState(importedState);
       } else {
         const existing = Global.tabsProvider.getState();
-        Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
+        await Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
       }
 
       vscode.window.showInformationMessage("Imported current branch state successfully.");
