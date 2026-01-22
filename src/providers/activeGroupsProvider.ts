@@ -10,6 +10,7 @@ import { TabsState } from "../model/tabstate";
 import { Global } from "../global";
 import { TabItem } from "../model/tabitem";
 import { randomUUID } from "crypto";
+import { sendTabs } from "../utils/tab";
 
 export class TabsProvider
   implements
@@ -215,9 +216,6 @@ export class TabsProvider
       vscode.window.showWarningMessage('No matching tabs found to add to group');
       return;
     }
-
-    // Import the sendTabs utility
-    const { sendTabs } = await import('../utils/tab');
 
     // Determine the target group ID
     let targetGroupId: string | undefined;
