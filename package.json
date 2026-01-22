@@ -210,6 +210,12 @@
         "category": "Onetab"
       },
       {
+        "command": "onetab.branches.clone",
+        "title": "%onetab.branches.clone%",
+        "category": "Onetab",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "onetab.debug.GetState",
         "title": "%onetab.debug.GetState%",
         "category": "Onetab"
@@ -482,7 +488,7 @@
           "group": "context@3"
         },
         {
-          "command": "onetab.branches.restorebranch",
+          "command": "onetab.branches.clone",
           "when": "view =~ /^(branches)$/ && viewItem =~ /^(branch)$/",
           "group": "inline@0"
         },
