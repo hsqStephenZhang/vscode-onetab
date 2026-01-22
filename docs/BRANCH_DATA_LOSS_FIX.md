@@ -3,6 +3,7 @@
 ## Problem Summary
 
 After switching between git branches, group data was being lost. The symptoms were:
+
 - `branch:demo:groups` would show group IDs like `["873c93f3-..."]`
 - But the corresponding `group:data:873c93f3-...` would be missing
 - Branch change events were firing 5-8 times per switch
@@ -12,6 +13,7 @@ After switching between git branches, group data was being lost. The symptoms we
 ### 1. Duplicate Branch Change Processing
 
 The `reinitGitBranchGroups` function was being called multiple times:
+
 - Once by the initial setup
 - Multiple times by the GitFileWatcher detecting `.git` file changes during branch switch
 - Each call registered its own `onDidChange` listener
@@ -27,16 +29,17 @@ The critical bug was in `clearTabsGroups()`:
 // BEFORE (BUG):
 public async clearTabsGroups(branchName: string | null): Promise<void> {
     const groupIds = this.getBranchGroupIds(branchName);
-    
+
     for (const groupId of groupIds) {
         await this.deleteGroupData(groupId);  // ❌ Deletes globally!
     }
-    
+
     await this.setBranchGroupIds(branchName, []);
 }
 ```
 
 **What happened:**
+
 1. When switching from `demo` to `b1`:
    - Active state has groups with IDs `[A, B]` (branch_name = null)
    - Clone state with `deepClone(true)` preserving IDs → still `[A, B]`
@@ -65,23 +68,25 @@ public async clearTabsGroups(branchName: string | null): Promise<void> {
 let isProcessingBranchChange = false;
 
 export function reinitGitBranchGroups(git: API): vscode.Disposable | void {
-    // ... setup code ...
-    
-    return repo.state.onDidChange(async () => {
-        if (repo.state.HEAD?.name !== Global.branchName) {
-            if (isProcessingBranchChange) {
-                Global.logger.debug(`Branch change already in progress, skipping duplicate event`);
-                return;  // ✅ Skip duplicate events
-            }
-            
-            isProcessingBranchChange = true;
-            try {
-                // ... branch switch logic ...
-            } finally {
-                isProcessingBranchChange = false;
-            }
-        }
-    });
+  // ... setup code ...
+
+  return repo.state.onDidChange(async () => {
+    if (repo.state.HEAD?.name !== Global.branchName) {
+      if (isProcessingBranchChange) {
+        Global.logger.debug(
+          `Branch change already in progress, skipping duplicate event`,
+        );
+        return; // ✅ Skip duplicate events
+      }
+
+      isProcessingBranchChange = true;
+      try {
+        // ... branch switch logic ...
+      } finally {
+        isProcessingBranchChange = false;
+      }
+    }
+  });
 }
 ```
 
@@ -99,7 +104,7 @@ public async clearTabsGroups(branchName: string | null): Promise<void> {
     const activeGroupIds = this.getBranchGroupIds(null);
     const allBranchIds = this.getBranchIds();
     const otherBranchGroupIds = new Set<string>();
-    
+
     activeGroupIds.forEach(id => otherBranchGroupIds.add(id));
     for (const otherBranch of allBranchIds) {
         if (otherBranch !== branchName) {
@@ -133,7 +138,7 @@ public async saveToStorage(): Promise<void> {
 
     // ✅ Collect all data FIRST
     const groupsToSave: Array<{ row: TabsGroupRow; tabs: TabItemRow[] }> = [];
-    
+
     for (const group of this.getAllTabsGroupsSorted()) {
         // ... collect group and tab data ...
         groupsToSave.push({ row, tabs });
@@ -154,6 +159,7 @@ public async saveToStorage(): Promise<void> {
 ## Testing
 
 After these fixes:
+
 1. Branch change events should only be processed once (you'll see only one "Branch changed" log)
 2. Group data should be preserved after branch switches
 3. Switching between branches multiple times should maintain all group data
@@ -162,5 +168,6 @@ After these fixes:
 ## Related Issues
 
 This fix complements the earlier `deepClone(preserveId)` fix that prevented duplicate group creation. Together, they ensure:
+
 - Group IDs are preserved when saving branches (no duplicates)
 - Group data is preserved when switching branches (no data loss)

@@ -1,6 +1,7 @@
 # Reorder Tabs by OneTab Groups Feature
 
 ## Overview
+
 This feature allows you to organize currently open tabs based on your saved OneTab TabsGroups. Tabs belonging to the same OneTab group will be placed together, making your workspace clean and organized.
 
 ## Features
@@ -63,6 +64,7 @@ When using "Reorder Tabs By Groups (Select Groups)":
 ## Example
 
 **Your OneTab Groups:**
+
 - "React Components" - containing: Header.tsx, Footer.tsx, Button.tsx
 - "API Routes" - containing: auth.ts, users.ts
 - "Tests" - containing: auth.test.ts, users.test.ts
@@ -70,6 +72,7 @@ When using "Reorder Tabs By Groups (Select Groups)":
 **Scenario: You want Tests first, then React, then API**
 
 **Before (tabs are mixed):**
+
 ```
 Open Tabs:
 1. Header.tsx 📌 (pinned)
@@ -82,6 +85,7 @@ Open Tabs:
 ```
 
 **After selecting groups and customizing order (Tests → React → API):**
+
 ```
 Open Tabs:
 1. Header.tsx 📌 (pinned - in React Components group)

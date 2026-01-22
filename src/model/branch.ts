@@ -5,24 +5,24 @@ import { randomUUID } from "crypto";
 import { CONTEXT_BRANCH } from "../constant";
 
 export class BranchStates {
-    public branches: Map<string, TabsState>;
+  public branches: Map<string, TabsState>;
 
-    constructor() {
-        this.branches = new Map();
-    }
+  constructor() {
+    this.branches = new Map();
+  }
 }
 
 export class Branch extends Node {
-    tabsState: TabsState;
+  tabsState: TabsState;
 
-    constructor(branchName: string, tabsState: TabsState) {
-        let id = randomUUID();
-        super(id, branchName, vscode.TreeItemCollapsibleState.Collapsed);
-        this.contextValue = CONTEXT_BRANCH;
-        this.tabsState = tabsState;
-    }
+  constructor(branchName: string, tabsState: TabsState) {
+    let id = randomUUID();
+    super(id, branchName, vscode.TreeItemCollapsibleState.Collapsed);
+    this.contextValue = CONTEXT_BRANCH;
+    this.tabsState = tabsState;
+  }
 
-    public getChildren(): Node[] | Promise<Node[]> {
-        return this.tabsState.getAllTabsGroupsSorted();
-    }
+  public getChildren(): Node[] | Promise<Node[]> {
+    return this.tabsState.getAllTabsGroupsSorted();
+  }
 }

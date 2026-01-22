@@ -11,7 +11,6 @@ import { listAllKeys } from "./debug";
 import * as path from "path";
 import { blacklistService } from "./blacklistService";
 
-
 // Helper type for tabs that have a URI we can save
 type SupportedTabInput =
   | vscode.TabInputText
@@ -90,7 +89,9 @@ export function getAllTabsWithoutBlackList(): vscode.Tab[] | undefined {
   }
 }
 
-export function getOtherTabsWithBlacklist(uri: vscode.Uri): vscode.Tab[] | undefined {
+export function getOtherTabsWithBlacklist(
+  uri: vscode.Uri,
+): vscode.Tab[] | undefined {
   let currentTab = getActiveTab(uri);
   const tabs = vscode.window.tabGroups.all
     .map((group) => group.tabs)
@@ -133,7 +134,9 @@ export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
     .filter(isSaveableTab);
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
-    const rightTabs = tabs.slice(currentIdx, tabs.length).filter(notInBlackList);
+    const rightTabs = tabs
+      .slice(currentIdx, tabs.length)
+      .filter(notInBlackList);
     if (rightTabs.length === 0) {
       return undefined;
     } else {
@@ -206,11 +209,14 @@ function getRelativeTabLabel(uri: vscode.Uri, fallbackLabel?: string): string {
 }
 
 // Generate descriptive label based on tab type
-function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType }): string {
+function getTabLabel(
+  tab: vscode.Tab,
+  info: { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType },
+): string {
   const baseLabel = getRelativeTabLabel(info.uri, tab.label);
 
   switch (info.tabType) {
-    case 'diff':
+    case "diff":
       if (info.originalUri) {
         const originalName = path.basename(info.originalUri.fsPath);
         const modifiedName = path.basename(info.uri.fsPath);
@@ -223,7 +229,7 @@ function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vsc
       }
       return `${baseLabel} ↔ diff`;
 
-    case 'notebookDiff':
+    case "notebookDiff":
       if (info.originalUri) {
         const originalName = path.basename(info.originalUri.fsPath);
         const modifiedName = path.basename(info.uri.fsPath);
@@ -234,51 +240,65 @@ function getTabLabel(tab: vscode.Tab, info: { uri: vscode.Uri; originalUri?: vsc
       }
       return `📓 ${baseLabel} ↔ diff`;
 
-    case 'notebook':
+    case "notebook":
       return `📓 ${baseLabel}`;
 
-    case 'custom':
+    case "custom":
       // Could be image, PDF, etc.
       return baseLabel;
 
-    case 'text':
+    case "text":
     default:
       return baseLabel;
   }
 }
 
 // Helper to get tab type and URIs
-export function getTabInfo(tab: vscode.Tab): { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType } | undefined {
+export function getTabInfo(
+  tab: vscode.Tab,
+): { uri: vscode.Uri; originalUri?: vscode.Uri; tabType: TabType } | undefined {
   const input = tab.input;
 
   if (input instanceof vscode.TabInputText) {
-    return { uri: input.uri, tabType: 'text' };
+    return { uri: input.uri, tabType: "text" };
   }
   if (input instanceof vscode.TabInputTextDiff) {
-    return { uri: input.modified, originalUri: input.original, tabType: 'diff' };
+    return {
+      uri: input.modified,
+      originalUri: input.original,
+      tabType: "diff",
+    };
   }
   if (input instanceof vscode.TabInputCustom) {
-    return { uri: input.uri, tabType: 'custom' };
+    return { uri: input.uri, tabType: "custom" };
   }
   if (input instanceof vscode.TabInputNotebook) {
-    return { uri: input.uri, tabType: 'notebook' };
+    return { uri: input.uri, tabType: "notebook" };
   }
   if (input instanceof vscode.TabInputNotebookDiff) {
-    return { uri: input.modified, originalUri: input.original, tabType: 'notebookDiff' };
+    return {
+      uri: input.modified,
+      originalUri: input.original,
+      tabType: "notebookDiff",
+    };
   }
 
   return undefined;
 }
 
 // Update sendTabs to use the new label helper
-export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?: string) {
+export async function sendTabs(
+  tabs: vscode.Tab[],
+  groupId?: string,
+  groupName?: string,
+) {
   const tabItems = tabs
     .map((tab) => {
       const info = getTabInfo(tab);
       if (!info) return null;
 
       let item = new TabItem();
-      item.setLabel(getTabLabel(tab, info));  // Use new label generator
+      item.setLabel(getTabLabel(tab, info)); // Use new label generator
       item.setFileUri(info.uri);
       item.setTabType(info.tabType);
 
@@ -325,12 +345,15 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
         await vscode.window.tabGroups.close(tabsToClose);
       } catch (error) {
         // If batch close fails, fall back to closing one by one
-        console.error('Batch close failed, trying individual close:', error);
+        console.error("Batch close failed, trying individual close:", error);
         for (const tab of tabsToClose) {
           try {
             await vscode.window.tabGroups.close(tab);
           } catch (err) {
-            console.error(`Failed to close tab: ${getTabUri(tab)?.toString()}`, err);
+            console.error(
+              `Failed to close tab: ${getTabUri(tab)?.toString()}`,
+              err,
+            );
           }
         }
       }
@@ -343,29 +366,37 @@ export async function sendTabs(tabs: vscode.Tab[], groupId?: string, groupName?:
  * This organizes the editor to match your saved OneTab groups
  * @param selectedGroupIds Optional array of OneTab group IDs to use for organizing. Order matters - tabs will be organized in this group order.
  */
-export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Promise<void> {
+export async function reorderTabsByOnetabGroups(
+  selectedGroupIds?: string[],
+): Promise<void> {
   // Get all currently open tabs across all editor groups
   const allVSCodeTabGroups = vscode.window.tabGroups.all;
-  
+
   if (allVSCodeTabGroups.length === 0) {
-    vscode.window.showInformationMessage('No tabs are currently open');
+    vscode.window.showInformationMessage("No tabs are currently open");
     return;
   }
 
   // Get OneTab groups to use for organizing, preserving order
-  const onetabGroupsInOrder: Array<{ id: string; label: string; tabs: Array<{ uri: string }> }> = [];
+  const onetabGroupsInOrder: Array<{
+    id: string;
+    label: string;
+    tabs: Array<{ uri: string }>;
+  }> = [];
   const onetabGroupsMap = new Map<string, number>(); // Maps groupId to order index
-  
+
   Global.tabsProvider.updateState((state) => {
-    const groupsToUse = selectedGroupIds 
-      ? selectedGroupIds.map(id => state.groups.get(id)).filter(g => g !== undefined) as TabsGroup[]
+    const groupsToUse = selectedGroupIds
+      ? (selectedGroupIds
+          .map((id) => state.groups.get(id))
+          .filter((g) => g !== undefined) as TabsGroup[])
       : Array.from(state.groups.values());
-    
+
     groupsToUse.forEach((group, index) => {
       const groupData = {
         id: group.id!,
         label: group.getLabel(),
-        tabs: group.tabs.map(t => ({ uri: t.fileUri.toString() }))
+        tabs: group.tabs.map((t) => ({ uri: t.fileUri.toString() })),
       };
       onetabGroupsInOrder.push(groupData);
       onetabGroupsMap.set(group.id!, index);
@@ -373,14 +404,14 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
   });
 
   if (onetabGroupsInOrder.length === 0) {
-    vscode.window.showInformationMessage('No OneTab groups to organize by');
+    vscode.window.showInformationMessage("No OneTab groups to organize by");
     return;
   }
 
   // Process each VS Code editor group (split view) separately
   for (const vscodeTabGroup of allVSCodeTabGroups) {
     const currentTabs = [...vscodeTabGroup.tabs];
-    
+
     if (currentTabs.length === 0) {
       continue;
     }
@@ -412,10 +443,11 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
 
       // Check which OneTab group this tab belongs to
       for (const groupData of onetabGroupsInOrder) {
-        if (groupData.tabs.some(t => t.uri === uriString)) {
+        if (groupData.tabs.some((t) => t.uri === uriString)) {
           foundGroupId = groupData.id;
           foundGroupLabel = groupData.label;
-          foundGroupOrder = onetabGroupsMap.get(groupData.id) ?? Number.MAX_SAFE_INTEGER;
+          foundGroupOrder =
+            onetabGroupsMap.get(groupData.id) ?? Number.MAX_SAFE_INTEGER;
           break;
         }
       }
@@ -427,15 +459,23 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
         isActive: tab === activeTab,
         onetabGroupId: foundGroupId,
         onetabGroupLabel: foundGroupLabel,
-        onetabGroupOrder: foundGroupOrder
+        onetabGroupOrder: foundGroupOrder,
       });
     }
 
     // Organize tabs: pinned grouped, pinned ungrouped, unpinned grouped, unpinned ungrouped
-    const pinnedGrouped = categorizedTabs.filter(t => t.isPinned && t.onetabGroupId);
-    const pinnedUngrouped = categorizedTabs.filter(t => t.isPinned && !t.onetabGroupId);
-    const unpinnedGrouped = categorizedTabs.filter(t => !t.isPinned && t.onetabGroupId);
-    const unpinnedUngrouped = categorizedTabs.filter(t => !t.isPinned && !t.onetabGroupId);
+    const pinnedGrouped = categorizedTabs.filter(
+      (t) => t.isPinned && t.onetabGroupId,
+    );
+    const pinnedUngrouped = categorizedTabs.filter(
+      (t) => t.isPinned && !t.onetabGroupId,
+    );
+    const unpinnedGrouped = categorizedTabs.filter(
+      (t) => !t.isPinned && t.onetabGroupId,
+    );
+    const unpinnedUngrouped = categorizedTabs.filter(
+      (t) => !t.isPinned && !t.onetabGroupId,
+    );
 
     // Sort grouped tabs by their OneTab group order (user-specified)
     pinnedGrouped.sort((a, b) => a.onetabGroupOrder - b.onetabGroupOrder);
@@ -446,11 +486,11 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
       ...pinnedGrouped,
       ...pinnedUngrouped,
       ...unpinnedGrouped,
-      ...unpinnedUngrouped
+      ...unpinnedUngrouped,
     ];
 
     // Find which tab should be active after reordering
-    const activeTabIndex = reorderedTabs.findIndex(t => t.isActive);
+    const activeTabIndex = reorderedTabs.findIndex((t) => t.isActive);
 
     // Close ALL tabs (we'll reopen them in the correct order)
     // This is necessary because VS Code doesn't have an API to move tabs
@@ -466,16 +506,18 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
 
       try {
         // Open the tab
-        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(catTab.uri));
+        const doc = await vscode.workspace.openTextDocument(
+          vscode.Uri.parse(catTab.uri),
+        );
         await vscode.window.showTextDocument(doc, {
           viewColumn: vscodeTabGroup.viewColumn,
           preview: false,
-          preserveFocus: i !== activeTabIndex
+          preserveFocus: i !== activeTabIndex,
         });
 
         // Re-pin if it was pinned
         if (catTab.isPinned) {
-          await vscode.commands.executeCommand('workbench.action.pinEditor');
+          await vscode.commands.executeCommand("workbench.action.pinEditor");
         }
       } catch (error) {
         console.error(`Failed to reopen tab: ${catTab.uri}`, error);
@@ -487,10 +529,12 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
       const activeTabData = reorderedTabs[activeTabIndex];
       if (activeTabData) {
         try {
-          const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(activeTabData.uri));
+          const doc = await vscode.workspace.openTextDocument(
+            vscode.Uri.parse(activeTabData.uri),
+          );
           await vscode.window.showTextDocument(doc, {
             viewColumn: vscodeTabGroup.viewColumn,
-            preserveFocus: false
+            preserveFocus: false,
           });
         } catch (error) {
           console.error(`Failed to activate tab: ${activeTabData.uri}`, error);
@@ -501,7 +545,7 @@ export async function reorderTabsByOnetabGroups(selectedGroupIds?: string[]): Pr
 
   const groupCount = onetabGroupsInOrder.length;
   vscode.window.showInformationMessage(
-    `Tabs organized by ${groupCount} OneTab group${groupCount !== 1 ? 's' : ''}. ` +
-    `Order: pinned (grouped → ungrouped) → unpinned (grouped → ungrouped)`
+    `Tabs organized by ${groupCount} OneTab group${groupCount !== 1 ? "s" : ""}. ` +
+      `Order: pinned (grouped → ungrouped) → unpinned (grouped → ungrouped)`,
   );
 }

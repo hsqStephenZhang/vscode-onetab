@@ -8,7 +8,11 @@ import { Global } from "../global";
 import { TabItem } from "./tabitem";
 import { TabsGroup } from "./tabsgroup";
 import { TabsGroupRow, TabItemRow } from "../db/storageService";
-import { DEFAULT_SORTING_STRATEGY, SORTING_STRATEGY_CONFIG_KEY, SortingStrategy } from "../constant";
+import {
+  DEFAULT_SORTING_STRATEGY,
+  SORTING_STRATEGY_CONFIG_KEY,
+  SortingStrategy,
+} from "../constant";
 import { SortingService } from "../utils/sortingService";
 
 export class TabsState {
@@ -122,7 +126,7 @@ export class TabsState {
     // Collect all group IDs and data FIRST before any deletion
     const groupsToSave: Array<{ row: TabsGroupRow; tabs: TabItemRow[] }> = [];
     let sortOrder = 0;
-    
+
     for (const group of this.getAllTabsGroupsSorted()) {
       if (!group.id) continue;
 
@@ -150,7 +154,7 @@ export class TabsState {
         };
         tabs.push(tabRow);
       }
-      
+
       groupsToSave.push({ row, tabs });
     }
 
@@ -165,7 +169,7 @@ export class TabsState {
         await storage.insertTabItem(tabRow);
       }
     }
-    
+
     this.dirtyGroups.clear();
     this.deletedGroups.clear();
   }
@@ -257,16 +261,20 @@ export class TabsState {
   }
 
   public getTitledLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter((list) => !list.isUntitled());
+    return Array.from(this.groups.values()).filter(
+      (list) => !list.isUntitled(),
+    );
   }
 
   public getTaggedLists(): TabsGroup[] {
-    return Array.from(this.groups.values()).filter((list) => list.getTags().length !== 0);
+    return Array.from(this.groups.values()).filter(
+      (list) => list.getTags().length !== 0,
+    );
   }
 
   public filter(filters: ((list: TabsGroup) => boolean)[]): TabsGroup[] {
     return Array.from(this.groups.values()).filter((list) =>
-      filters.every((f) => f(list))
+      filters.every((f) => f(list)),
     );
   }
 
@@ -342,24 +350,37 @@ export class TabsState {
     }
   }
 
-  public reorderTabInGroup(groupId: string, sourceTab: TabItem, targetTab: TabItem) {
+  public reorderTabInGroup(
+    groupId: string,
+    sourceTab: TabItem,
+    targetTab: TabItem,
+  ) {
     const group = this.groups.get(groupId);
     if (!group) return;
 
     const tabs = group.getTabs();
-    const sourceIndex = tabs.findIndex((t) => t.fileUri.fsPath === sourceTab.fileUri.fsPath);
-    const targetIndex = tabs.findIndex((t) => t.fileUri.fsPath === targetTab.fileUri.fsPath);
+    const sourceIndex = tabs.findIndex(
+      (t) => t.fileUri.fsPath === sourceTab.fileUri.fsPath,
+    );
+    const targetIndex = tabs.findIndex(
+      (t) => t.fileUri.fsPath === targetTab.fileUri.fsPath,
+    );
 
-    if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+    if (
+      sourceIndex === -1 ||
+      targetIndex === -1 ||
+      sourceIndex === targetIndex
+    ) {
       return;
     }
 
     // Remove source tab
     const [movedTab] = tabs.splice(sourceIndex, 1);
-    
+
     // Insert at target position
     // If dragging down, insert after target; if dragging up, insert before target
-    const newTargetIndex = sourceIndex < targetIndex ? targetIndex : targetIndex;
+    const newTargetIndex =
+      sourceIndex < targetIndex ? targetIndex : targetIndex;
     tabs.splice(newTargetIndex, 0, movedTab);
 
     group.setTabs(tabs);
@@ -392,7 +413,9 @@ export class TabsState {
     for (const gid of groupsToRemove) {
       const group = this.groups.get(gid);
       if (group) {
-        group.setTabs(group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath));
+        group.setTabs(
+          group.getTabs().filter((t) => t.fileUri.fsPath !== fsPath),
+        );
         this.removeFromReverseIndex(fsPath, gid);
         if (group.getTabs().length === 0 && group.id) {
           this.groups.delete(group.id);
@@ -441,7 +464,9 @@ export class TabsState {
 
     if (merged_labels.length > 0) {
       dst.removeDuplicateTabs();
-      dst.setLabel(dst.label + " (merged with: " + merged_labels.join(", ") + ")");
+      dst.setLabel(
+        dst.label + " (merged with: " + merged_labels.join(", ") + ")",
+      );
       this.markDirty(dst_id);
     }
 
@@ -452,7 +477,8 @@ export class TabsState {
   public getAllTabsGroupsSorted(): TabsGroup[] {
     // Get the current sorting strategy from configuration
     const config = vscode.workspace.getConfiguration();
-    const strategy = (config.get<string>(SORTING_STRATEGY_CONFIG_KEY) ?? DEFAULT_SORTING_STRATEGY) as SortingStrategy;
+    const strategy = (config.get<string>(SORTING_STRATEGY_CONFIG_KEY) ??
+      DEFAULT_SORTING_STRATEGY) as SortingStrategy;
 
     const groups = Array.from(this.groups.values());
     return SortingService.sortGroups(groups, strategy);

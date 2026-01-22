@@ -12,6 +12,7 @@ Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/oneta
 ## Features
 
 ### Core Tab Management
+
 - **Save & Restore Tabs** - Quickly save individual tabs, multiple tabs, or entire groups
 - **Restore Options** - Choose to restore tabs with or without removing them from groups
 - **Smart Removal** - Remove tabs with automatic pin status detection and optional force remove with confirmation
@@ -20,14 +21,16 @@ Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/oneta
 - **Reorder Tabs** - Reorganize tabs within groups or reorder multiple groups at once
 
 ### Organization & Management
+
 - **Tag System** - Tag groups with multiple tags, filter by tags, and manage tags across all groups
 - **Rename Groups** - Give meaningful names to your tab groups
 - **Pin Groups** - Pin important groups to prevent accidental removal
 - **Collapse Groups** - Close all open tabs belonging to a specific group with one click
--  **Search & Filter** - Find tab groups by name or tags with powerful search functionality
+- **Search & Filter** - Find tab groups by name or tags with powerful search functionality
 - **Blacklist Support** - Exclude specific files or patterns from being saved
 
 ### Smart Features
+
 - **AI-Powered Auto-Grouping** - Automatically categorize tabs using Claude API
   - Group by directory hierarchy
   - Group by file extension
@@ -42,6 +45,7 @@ Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/oneta
 - **Import/Export** - Backup and restore your entire tab database
 
 ### Advanced Sorting
+
 - **Multiple Sorting Strategies** - Choose from:
   - **Default**: Pinned first, named, tagged, then by creation time
   - **LRU** (Least Recently Used): Recently accessed groups first
@@ -83,6 +87,7 @@ Inspired by the popular [OneTab](https://chrome.google.com/webstore/detail/oneta
 ![autogroup](images/autogroup.gif)
 
 There are three strategies for auto-grouping:
+
 1. **dir** - Files' directory hierarchy
 2. **ext** - File extension type (`.rs`, `.js`, etc.)
 3. **filename** - File names
@@ -122,4 +127,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Issues
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/hsqStephenZhang/vscode-onetab/issues) on GitHub.
-

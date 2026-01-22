@@ -7,7 +7,6 @@ import { TabsState } from "../model/tabstate";
 import { TabsGroup } from "../model/tabsgroup";
 import { TabItem } from "../model/tabitem";
 
-
 // =====================================================
 // DTOs for JSON Export/Import (backward compatible format)
 // =====================================================
@@ -95,7 +94,10 @@ function tabsGroupFromDTO(dto: TabsGroupDTO): TabsGroup {
   return group;
 }
 
-function tabsStateFromDTO(dto: TabsStateDTO, branchName: string | null = null): TabsState {
+function tabsStateFromDTO(
+  dto: TabsStateDTO,
+  branchName: string | null = null,
+): TabsState {
   const state = new TabsState(branchName);
 
   if (dto.groups) {
@@ -130,7 +132,9 @@ function isTabsStateDTO(value: any): value is TabsStateDTO {
   );
 }
 
-function isBranchesWrapper(value: any): value is { branches: Record<string, TabsStateDTO> } {
+function isBranchesWrapper(
+  value: any,
+): value is { branches: Record<string, TabsStateDTO> } {
   return (
     value &&
     typeof value === "object" &&
@@ -163,13 +167,26 @@ async function readJsonFile(uri: vscode.Uri): Promise<any> {
   return JSON.parse(text);
 }
 
-async function confirmReplaceMerge(scopeLabel: string): Promise<"replace" | "merge" | undefined> {
+async function confirmReplaceMerge(
+  scopeLabel: string,
+): Promise<"replace" | "merge" | undefined> {
   const picked = await vscode.window.showQuickPick(
     [
-      { label: "Replace", description: `Replace ${scopeLabel} completely with imported data`, value: "replace" as const },
-      { label: "Merge", description: `Merge imported data into ${scopeLabel} (may overwrite matching group IDs)`, value: "merge" as const },
+      {
+        label: "Replace",
+        description: `Replace ${scopeLabel} completely with imported data`,
+        value: "replace" as const,
+      },
+      {
+        label: "Merge",
+        description: `Merge imported data into ${scopeLabel} (may overwrite matching group IDs)`,
+        value: "merge" as const,
+      },
     ],
-    { title: `How should Onetab apply the imported data?`, ignoreFocusOut: true }
+    {
+      title: `How should Onetab apply the imported data?`,
+      ignoreFocusOut: true,
+    },
   );
   return picked?.value;
 }
@@ -209,11 +226,15 @@ export async function exportJsonData() {
     const currentDto = tabsStateToDTO(currentState);
     const currentDataStr = JSON.stringify(currentDto, null, 4);
 
-    Global.logger.info("Exporting Current Branch JSON data length: " + currentDataStr.length);
+    Global.logger.info(
+      "Exporting Current Branch JSON data length: " + currentDataStr.length,
+    );
 
     const uri = await vscode.window.showSaveDialog({
       title: "Export Current Branch State",
-      defaultUri: vscode.Uri.file(path.join(os.homedir(), "Downloads", "current-branch-tabs.json")),
+      defaultUri: vscode.Uri.file(
+        path.join(os.homedir(), "Downloads", "current-branch-tabs.json"),
+      ),
       filters: { "JSON files": ["json"] },
     });
 
@@ -222,7 +243,9 @@ export async function exportJsonData() {
         if (err) {
           vscode.window.showErrorMessage("Failed to save file: " + err.message);
         } else {
-          vscode.window.showInformationMessage("Current branch state saved successfully!");
+          vscode.window.showInformationMessage(
+            "Current branch state saved successfully!",
+          );
         }
       });
     }
@@ -247,11 +270,15 @@ export async function exportJsonData() {
     }
 
     const allDataStr = JSON.stringify(allStatesObj, null, 4);
-    Global.logger.info("Exporting All Branches JSON data length: " + allDataStr.length);
+    Global.logger.info(
+      "Exporting All Branches JSON data length: " + allDataStr.length,
+    );
 
     const uri2 = await vscode.window.showSaveDialog({
       title: "Export All Branches' States",
-      defaultUri: vscode.Uri.file(path.join(os.homedir(), "Downloads", "all-branches-tabs.json")),
+      defaultUri: vscode.Uri.file(
+        path.join(os.homedir(), "Downloads", "all-branches-tabs.json"),
+      ),
       filters: { "JSON files": ["json"] },
     });
 
@@ -260,11 +287,12 @@ export async function exportJsonData() {
         if (err) {
           vscode.window.showErrorMessage("Failed to save file: " + err.message);
         } else {
-          vscode.window.showInformationMessage("All branches' states saved successfully!");
+          vscode.window.showInformationMessage(
+            "All branches' states saved successfully!",
+          );
         }
       });
     }
-
   } catch (error: any) {
     Global.logger.error("Error during export: " + error.message);
     vscode.window.showErrorMessage("An error occurred during export.");
@@ -297,16 +325,23 @@ export async function importJsonData() {
         const importedState = tabsStateFromDTO(dto as TabsStateDTO, branchName);
 
         if (mode === "replace") {
-          Global.branchesProvider.insertOrUpdateBranch(branchName, importedState);
+          Global.branchesProvider.insertOrUpdateBranch(
+            branchName,
+            importedState,
+          );
         } else {
           const existing = Global.branchesProvider.getBranchState(branchName);
-          const merged = existing ? mergeTabsState(existing, importedState) : importedState;
+          const merged = existing
+            ? mergeTabsState(existing, importedState)
+            : importedState;
           merged.branchName = branchName;
           Global.branchesProvider.insertOrUpdateBranch(branchName, merged);
         }
       }
 
-      vscode.window.showInformationMessage("Imported branch states successfully.");
+      vscode.window.showInformationMessage(
+        "Imported branch states successfully.",
+      );
       return;
     }
 
@@ -316,16 +351,22 @@ export async function importJsonData() {
         [
           {
             label: "Import into Branches (recommended)",
-            description: "Load all branches into the Branches view (non-active branch store)",
+            description:
+              "Load all branches into the Branches view (non-active branch store)",
             value: "branches" as const,
           },
           {
             label: "Import into Current Branch only",
-            description: "Pick one branch from the file and load it as current state",
+            description:
+              "Pick one branch from the file and load it as current state",
             value: "current" as const,
           },
         ],
-        { title: "This file looks like multiple branches. Where should it be imported?", ignoreFocusOut: true }
+        {
+          title:
+            "This file looks like multiple branches. Where should it be imported?",
+          ignoreFocusOut: true,
+        },
       );
       if (!target) return;
 
@@ -333,19 +374,28 @@ export async function importJsonData() {
         const mode = await confirmReplaceMerge("saved branch states");
         if (!mode) return;
 
-        for (const [branchName, dto] of Object.entries(json as Record<string, TabsStateDTO>)) {
+        for (const [branchName, dto] of Object.entries(
+          json as Record<string, TabsStateDTO>,
+        )) {
           const importedState = tabsStateFromDTO(dto, branchName);
           if (mode === "replace") {
-            Global.branchesProvider.insertOrUpdateBranch(branchName, importedState);
+            Global.branchesProvider.insertOrUpdateBranch(
+              branchName,
+              importedState,
+            );
           } else {
             const existing = Global.branchesProvider.getBranchState(branchName);
-            const merged = existing ? mergeTabsState(existing, importedState) : importedState;
+            const merged = existing
+              ? mergeTabsState(existing, importedState)
+              : importedState;
             merged.branchName = branchName;
             Global.branchesProvider.insertOrUpdateBranch(branchName, merged);
           }
         }
 
-        vscode.window.showInformationMessage("Imported branches file into Branches successfully.");
+        vscode.window.showInformationMessage(
+          "Imported branches file into Branches successfully.",
+        );
         return;
       } else {
         const branchNames = Object.keys(json);
@@ -358,15 +408,22 @@ export async function importJsonData() {
         const mode = await confirmReplaceMerge("current branch state");
         if (!mode) return;
 
-        const importedState = tabsStateFromDTO((json as any)[pickedBranch], null);
+        const importedState = tabsStateFromDTO(
+          (json as any)[pickedBranch],
+          null,
+        );
         if (mode === "replace") {
           await Global.tabsProvider.resetState(importedState);
         } else {
           const existing = Global.tabsProvider.getState();
-          await Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
+          await Global.tabsProvider.resetState(
+            mergeTabsState(existing, importedState),
+          );
         }
 
-        vscode.window.showInformationMessage(`Imported '${pickedBranch}' into Current Branch successfully.`);
+        vscode.window.showInformationMessage(
+          `Imported '${pickedBranch}' into Current Branch successfully.`,
+        );
         return;
       }
     }
@@ -381,18 +438,26 @@ export async function importJsonData() {
         await Global.tabsProvider.resetState(importedState);
       } else {
         const existing = Global.tabsProvider.getState();
-        await Global.tabsProvider.resetState(mergeTabsState(existing, importedState));
+        await Global.tabsProvider.resetState(
+          mergeTabsState(existing, importedState),
+        );
       }
 
-      vscode.window.showInformationMessage("Imported current branch state successfully.");
+      vscode.window.showInformationMessage(
+        "Imported current branch state successfully.",
+      );
       return;
     }
 
     vscode.window.showErrorMessage(
-      "Unrecognized Onetab JSON format. Expected a TabsState JSON or a branches map."
+      "Unrecognized Onetab JSON format. Expected a TabsState JSON or a branches map.",
     );
   } catch (error: any) {
-    Global.logger.error("Error during import: " + (error?.message ?? String(error)));
-    vscode.window.showErrorMessage("An error occurred during import. See output for details.");
+    Global.logger.error(
+      "Error during import: " + (error?.message ?? String(error)),
+    );
+    vscode.window.showErrorMessage(
+      "An error occurred during import. See output for details.",
+    );
   }
 }

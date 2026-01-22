@@ -14,7 +14,9 @@ import { sendTabs } from "../utils/tab";
 
 export class TabsProvider
   implements
-  vscode.TreeDataProvider<Node>, vscode.TreeDragAndDropController<Node> {
+    vscode.TreeDataProvider<Node>,
+    vscode.TreeDragAndDropController<Node>
+{
   rootPath: string | undefined;
   filterArgs: any[];
   viewer: vscode.TreeView<Node> | undefined;
@@ -25,7 +27,11 @@ export class TabsProvider
   readonly onDidChangeTreeData: vscode.Event<any | void> =
     this._onDidChangeTreeData.event;
 
-  constructor(rootPath: string | undefined, context: vscode.ExtensionContext, tabsState?: TabsState) {
+  constructor(
+    rootPath: string | undefined,
+    context: vscode.ExtensionContext,
+    tabsState?: TabsState,
+  ) {
     this.rootPath = rootPath;
     this.filterArgs = [];
     if (!tabsState) {
@@ -70,19 +76,32 @@ export class TabsProvider
   dropMimeTypes: readonly string[] = [
     "text/plain",
     "application/vnd.code.tree.testViewDragAndDrop",
-    "text/uri-list" // VSCode tabs use this MIME type
+    "text/uri-list", // VSCode tabs use this MIME type
   ];
   dragMimeTypes: readonly string[] = ["text/plain"];
 
-  handleDrag?(source: readonly Node[], dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
+  handleDrag?(
+    source: readonly Node[],
+    dataTransfer: vscode.DataTransfer,
+    token: vscode.CancellationToken,
+  ): void | Thenable<void> {
     Global.logger.info("handleDrag: " + source);
-    dataTransfer.set('application/vnd.code.tree.testViewDragAndDrop', new vscode.DataTransferItem(source));
+    dataTransfer.set(
+      "application/vnd.code.tree.testViewDragAndDrop",
+      new vscode.DataTransferItem(source),
+    );
   }
 
-  async handleDrop?(dst: Node | undefined, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): Promise<void> {
+  async handleDrop?(
+    dst: Node | undefined,
+    dataTransfer: vscode.DataTransfer,
+    token: vscode.CancellationToken,
+  ): Promise<void> {
     // First check if this is an internal tree drag/drop
-    const transfered = dataTransfer.get('application/vnd.code.tree.testViewDragAndDrop');
-    
+    const transfered = dataTransfer.get(
+      "application/vnd.code.tree.testViewDragAndDrop",
+    );
+
     // If internal drag/drop
     if (transfered) {
       const src: Node[] = transfered.value;
@@ -91,7 +110,7 @@ export class TabsProvider
     }
 
     // Check if this is a tab dropped from the editor
-    const uriListData = dataTransfer.get('text/uri-list');
+    const uriListData = dataTransfer.get("text/uri-list");
     if (uriListData) {
       await this._handleEditorTabDrop(dst, uriListData);
       return;
@@ -108,13 +127,21 @@ export class TabsProvider
       }
       if (dstId) {
         // Check if this is a reordering operation within the same group
-        if (dst instanceof TabItem && src.length === 1 && src[0] instanceof TabItem) {
+        if (
+          dst instanceof TabItem &&
+          src.length === 1 &&
+          src[0] instanceof TabItem
+        ) {
           const sourceTab = src[0] as TabItem;
           const targetTab = dst as TabItem;
-          
+
           // If both tabs are in the same group, reorder instead of moving
           if (sourceTab.parentId === targetTab.parentId && sourceTab.parentId) {
-            this.tabsState.reorderTabInGroup(sourceTab.parentId, sourceTab, targetTab);
+            this.tabsState.reorderTabInGroup(
+              sourceTab.parentId,
+              sourceTab,
+              targetTab,
+            );
             this.refresh();
             return;
           }
@@ -137,8 +164,16 @@ export class TabsProvider
 
         for (const tabItem of excludeSelfTabs) {
           // only remove from src group if not pinned
-          if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
-            this.tabsState.removeTabFromGroup(tabItem.parentId, tabItem.fileUri.fsPath);
+          if (
+            tabItem.parentId &&
+            !Global.tabsProvider.tabsState
+              .getGroup(tabItem.parentId)
+              ?.isPinned()
+          ) {
+            this.tabsState.removeTabFromGroup(
+              tabItem.parentId,
+              tabItem.fileUri.fsPath,
+            );
           }
         }
 
@@ -157,14 +192,22 @@ export class TabsProvider
         });
       }
     } else if (dst === undefined) {
-      let tabItems = src.filter((node) => node instanceof TabItem).map(node => node as TabItem);
+      let tabItems = src
+        .filter((node) => node instanceof TabItem)
+        .map((node) => node as TabItem);
       if (tabItems.length === 0) {
         return;
       }
 
       for (const tabItem of tabItems) {
-        if (tabItem.parentId && !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()) {
-          this.tabsState.removeTabFromGroup(tabItem.parentId, tabItem.fileUri.fsPath);
+        if (
+          tabItem.parentId &&
+          !Global.tabsProvider.tabsState.getGroup(tabItem.parentId)?.isPinned()
+        ) {
+          this.tabsState.removeTabFromGroup(
+            tabItem.parentId,
+            tabItem.fileUri.fsPath,
+          );
         }
       }
 
@@ -185,35 +228,43 @@ export class TabsProvider
     }
   }
 
-  private async _handleEditorTabDrop(dst: Node | undefined, uriListData: vscode.DataTransferItem): Promise<void> {
+  private async _handleEditorTabDrop(
+    dst: Node | undefined,
+    uriListData: vscode.DataTransferItem,
+  ): Promise<void> {
     const uriListText = await uriListData.asString();
     if (!uriListText) {
       return;
     }
 
     // Parse the URI list (can be multiple URIs separated by newlines)
-    const uriStrings = uriListText.split('\n').filter(s => s.trim());
+    const uriStrings = uriListText.split("\n").filter((s) => s.trim());
     if (uriStrings.length === 0) {
       return;
     }
 
     // Find the actual VSCode tabs that match these URIs
     const allOpenTabs = vscode.window.tabGroups.all
-      .flatMap(group => group.tabs)
-      .filter(tab => {
+      .flatMap((group) => group.tabs)
+      .filter((tab) => {
         const tabUri = this._getTabUri(tab);
-        return tabUri && uriStrings.some(uriStr => {
-          try {
-            const droppedUri = vscode.Uri.parse(uriStr.trim());
-            return tabUri.toString() === droppedUri.toString();
-          } catch {
-            return false;
-          }
-        });
+        return (
+          tabUri &&
+          uriStrings.some((uriStr) => {
+            try {
+              const droppedUri = vscode.Uri.parse(uriStr.trim());
+              return tabUri.toString() === droppedUri.toString();
+            } catch {
+              return false;
+            }
+          })
+        );
       });
 
     if (allOpenTabs.length === 0) {
-      vscode.window.showWarningMessage('No matching tabs found to add to group');
+      vscode.window.showWarningMessage(
+        "No matching tabs found to add to group",
+      );
       return;
     }
 

@@ -16,8 +16,8 @@ export const CONTEXT_BRANCH = "branch";
 // Sorting strategy constants
 export enum SortingStrategy {
   DEFAULT = "default",
-  LRU = "lru",      // Least Recently Used
-  LFU = "lfu"       // Least Frequently Used
+  LRU = "lru", // Least Recently Used
+  LFU = "lfu", // Least Frequently Used
 }
 
 export const SORTING_STRATEGY_CONFIG_KEY = "onetab.sortingStrategy";

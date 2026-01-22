@@ -5,26 +5,25 @@
 
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { 
-  tabIsTextInput, 
-  getTabUri, 
+import {
+  tabIsTextInput,
+  getTabUri,
   isSaveableTab,
-  tabIsSaveable 
+  tabIsSaveable,
 } from "../../../utils/tab";
 
 suite("Tab Utils Test Suite", () => {
-  
   // ==========================================
   // getTabUri Tests
   // ==========================================
-  
+
   suite("getTabUri", () => {
     test("should extract URI from TabInputText", () => {
       const uri = vscode.Uri.file("/path/to/file.ts");
       const mockTab = {
         input: new vscode.TabInputText(uri),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result?.path, uri.path);
     });
@@ -35,7 +34,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputTextDiff(original, modified),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result?.path, modified.path);
     });
@@ -45,7 +44,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputCustom(uri, "imagePreview.view"),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result?.path, uri.path);
     });
@@ -55,7 +54,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputNotebook(uri, "jupyter-notebook"),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result?.path, uri.path);
     });
@@ -64,9 +63,13 @@ suite("Tab Utils Test Suite", () => {
       const original = vscode.Uri.file("/path/to/notebook.original.ipynb");
       const modified = vscode.Uri.file("/path/to/notebook.modified.ipynb");
       const mockTab = {
-        input: new vscode.TabInputNotebookDiff(original, modified, "jupyter-notebook"),
+        input: new vscode.TabInputNotebookDiff(
+          original,
+          modified,
+          "jupyter-notebook",
+        ),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result?.path, modified.path);
     });
@@ -75,7 +78,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputWebview("webview-id"),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result, undefined);
     });
@@ -84,7 +87,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputTerminal(),
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result, undefined);
     });
@@ -93,7 +96,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: { unknown: true },
       } as vscode.Tab;
-      
+
       const result = getTabUri(mockTab);
       assert.strictEqual(result, undefined);
     });
@@ -108,7 +111,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputText(vscode.Uri.file("/file.ts")),
       } as vscode.Tab;
-      
+
       assert.strictEqual(isSaveableTab(mockTab), true);
     });
 
@@ -116,10 +119,10 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputTextDiff(
           vscode.Uri.file("/a.ts"),
-          vscode.Uri.file("/b.ts")
+          vscode.Uri.file("/b.ts"),
         ),
       } as vscode.Tab;
-      
+
       assert.strictEqual(isSaveableTab(mockTab), true);
     });
 
@@ -127,10 +130,10 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputNotebook(
           vscode.Uri.file("/notebook.ipynb"),
-          "jupyter-notebook"
+          "jupyter-notebook",
         ),
       } as vscode.Tab;
-      
+
       assert.strictEqual(isSaveableTab(mockTab), true);
     });
 
@@ -138,7 +141,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputTerminal(),
       } as vscode.Tab;
-      
+
       assert.strictEqual(isSaveableTab(mockTab), false);
     });
 
@@ -146,7 +149,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputWebview("some-id"),
       } as vscode.Tab;
-      
+
       assert.strictEqual(isSaveableTab(mockTab), false);
     });
   });
@@ -160,7 +163,7 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputText(vscode.Uri.file("/file.ts")),
       } as vscode.Tab;
-      
+
       assert.strictEqual(tabIsTextInput(mockTab), true);
     });
 
@@ -168,10 +171,10 @@ suite("Tab Utils Test Suite", () => {
       const mockTab = {
         input: new vscode.TabInputNotebook(
           vscode.Uri.file("/notebook.ipynb"),
-          "jupyter-notebook"
+          "jupyter-notebook",
         ),
       } as vscode.Tab;
-      
+
       assert.strictEqual(tabIsTextInput(mockTab), false);
     });
   });

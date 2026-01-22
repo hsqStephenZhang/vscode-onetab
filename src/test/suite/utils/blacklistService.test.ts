@@ -20,7 +20,7 @@ suite("Blacklist Service Test Suite", () => {
     await vscode.workspace
       .getConfiguration()
       .update("onetab.blacklist", originalConfig, true);
-    
+
     // Clear module cache to get fresh instance in next test
     delete require.cache[require.resolve("../../../utils/blacklistService")];
   });
@@ -176,7 +176,11 @@ suite("Blacklist Service Test Suite", () => {
     test("should match complex regex patterns", async () => {
       await vscode.workspace
         .getConfiguration()
-        .update("onetab.blacklist", ["regex:^/node_modules/|^/dist/|.*\\.tmp$"], true);
+        .update(
+          "onetab.blacklist",
+          ["regex:^/node_modules/|^/dist/|.*\\.tmp$"],
+          true,
+        );
 
       const { blacklistService } = require("../../../utils/blacklistService");
       blacklistService.initialize();
@@ -223,7 +227,7 @@ suite("Blacklist Service Test Suite", () => {
             "regex:.*\\.log$",
             "file:/node_modules/**",
           ],
-          true
+          true,
         );
 
       const { blacklistService } = require("../../../utils/blacklistService");
@@ -270,7 +274,7 @@ suite("Blacklist Service Test Suite", () => {
       const updatedConfig = vscode.workspace
         .getConfiguration()
         .get("onetab.blacklist") as string[];
-      
+
       assert.strictEqual(updatedConfig.length, 1);
 
       blacklistService.dispose();
@@ -283,15 +287,12 @@ suite("Blacklist Service Test Suite", () => {
         .getConfiguration()
         .update(
           "onetab.blacklist",
-          [
-            "file:/blacklisted/file.ts",
-            "regex:.*\\.log$",
-          ],
-          true
+          ["file:/blacklisted/file.ts", "regex:.*\\.log$"],
+          true,
         );
 
       delete require.cache[require.resolve("../../../utils/tab")];
-      
+
       const { blacklistService } = require("../../../utils/blacklistService");
       const { notInBlackList } = require("../../../utils/tab");
 

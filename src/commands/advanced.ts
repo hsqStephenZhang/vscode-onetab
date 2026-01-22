@@ -148,7 +148,9 @@ export async function sendToBlackList(uri: vscode.Uri) {
   const ruleTypes = [
     {
       label: "File Pattern",
-      description: isDirectory ? "Match this directory and all its contents" : "Match this specific file",
+      description: isDirectory
+        ? "Match this directory and all its contents"
+        : "Match this specific file",
       value: "file",
     },
     {
@@ -170,13 +172,15 @@ export async function sendToBlackList(uri: vscode.Uri) {
 
   if (selected.value === "file") {
     // Format the pattern: use "dir/**" for directories, plain path for files
-    const pattern = isDirectory ? uri.path.replace(/\/$/, "") + "/**" : uri.path;
+    const pattern = isDirectory
+      ? uri.path.replace(/\/$/, "") + "/**"
+      : uri.path;
     rule = `file:${pattern}`;
   } else {
     // Prompt user for regex pattern
-    const defaultPattern = isDirectory 
-      ? `^${uri.path.replace(/\/$/, "").replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/.*`
-      : `^${uri.path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`;
+    const defaultPattern = isDirectory
+      ? `^${uri.path.replace(/\/$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/.*`
+      : `^${uri.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`;
 
     const userPattern = await vscode.window.showInputBox({
       prompt: "Enter regex pattern for blacklist",
@@ -204,9 +208,7 @@ export async function sendToBlackList(uri: vscode.Uri) {
   // Add the rule using the blacklist service
   await blacklistService.addRule(rule);
 
-  vscode.window.showInformationMessage(
-    `Added to blacklist: ${rule}`
-  );
+  vscode.window.showInformationMessage(`Added to blacklist: ${rule}`);
 
   Global.logger.debug(`Blacklist rule added: ${rule}`);
 }

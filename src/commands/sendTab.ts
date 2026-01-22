@@ -17,15 +17,11 @@ import {
 
 export async function sendThisTab(uri: vscode.Uri) {
   let tab = getActiveTab(uri);
-  if (
-    tab &&
-    isSaveableTab(tab) &&
-    notInBlackList(tab)
-  ) {
+  if (tab && isSaveableTab(tab) && notInBlackList(tab)) {
     await sendTabs([tab]);
   } else {
     vscode.window.showWarningMessage(
-      "This tab cannot be saved (not a file-based tab or in blacklist)"
+      "This tab cannot be saved (not a file-based tab or in blacklist)",
     );
   }
 }

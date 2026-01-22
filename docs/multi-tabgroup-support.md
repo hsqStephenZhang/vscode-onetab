@@ -7,6 +7,7 @@ This extension now fully supports VSCode's multiple editor groups (split views).
 ## What Changed
 
 ### 1. ViewColumn Tracking
+
 - **TabItem Model**: Added `viewColumn` property to track which VSCode editor group a tab belongs to
 - **Storage**: Extended `TabItemRow` interface to persist `view_column` information
 - **Send Operations**: When sending tabs to OneTab, the extension now captures and saves the `viewColumn` for each tab
@@ -15,19 +16,25 @@ This extension now fully supports VSCode's multiple editor groups (split views).
 ### 2. How It Works
 
 #### Saving Tabs
+
 When you use any "Send to OneTab" command:
+
 1. The extension collects tabs from **all** editor groups (flattened)
 2. For each tab, it captures the `viewColumn` (which editor group it's in)
 3. This information is stored alongside the tab's URI and other metadata
 
 #### Restoring Tabs
+
 When you restore tabs or tab groups:
+
 1. The extension reads the saved `viewColumn` for each tab
 2. Opens the tab in the corresponding editor group using `vscode.window.showTextDocument(doc, viewColumn)`
 3. Falls back to `ViewColumn.Active` if no viewColumn was saved
 
 #### Reordering Tabs
+
 The `reorderTabsByOnetabGroups` command:
+
 - Processes each VSCode editor group **independently**
 - Reorders tabs within each group based on your OneTab group organization
 - Preserves the editor group structure (doesn't move tabs between splits)
@@ -88,20 +95,23 @@ Editor Layout:
 ```
 
 When you run "Send All Tabs", all 4 tabs are saved with their viewColumn info:
+
 - file1.ts → viewColumn: 1
-- file2.ts → viewColumn: 1  
+- file2.ts → viewColumn: 1
 - file3.ts → viewColumn: 2
 - file4.ts → viewColumn: 2
 
 ### Example 2: Restore Tabs to Original Splits
 
 When you restore the saved group, tabs reopen in their original columns:
+
 - file1.ts, file2.ts → Open in Column 1
 - file3.ts, file4.ts → Open in Column 2
 
 ### Example 3: Reorder Tabs Per Editor Group
 
 The reorder command organizes tabs within each split independently:
+
 ```
 Before:
 ├─ Column 1: [utils.ts, main.ts, config.ts]
@@ -121,6 +131,7 @@ After reordering by OneTab groups "Main Code", "Tests":
 ## Future Enhancements
 
 Potential improvements:
+
 1. **Smart Multi-Column Restore**: Option to restore tabs in a specific layout (e.g., "restore this group across 2 columns")
 2. **Column-Aware Send**: Option to send only tabs from the current editor group
 3. **Layout Templates**: Save and restore complete editor layouts with splits

@@ -16,8 +16,8 @@ export abstract class Node extends vscode.TreeItem {
 
   constructor(
     id: string,
-    public label: string| vscode.TreeItemLabel,
-    public collapsibleState: vscode.TreeItemCollapsibleState
+    public label: string | vscode.TreeItemLabel,
+    public collapsibleState: vscode.TreeItemCollapsibleState,
   ) {
     super(label, collapsibleState);
     this.id = id;

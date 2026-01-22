@@ -25,12 +25,22 @@ import {
   advancedSendThisTab,
   sendToBlackList,
 } from "./commands/advanced";
-import { tabRemove, tabRestore, tabRestoreKeep, tabForceRemove } from "./commands/tab";
+import {
+  tabRemove,
+  tabRestore,
+  tabRestoreKeep,
+  tabForceRemove,
+} from "./commands/tab";
 import { DEFAULT_BRANCH_NAME } from "./constant";
 import { exportJsonData, importJsonData } from "./import_export";
-import { searchGroup, filterByTag, filterByTagDirect, removeTagFromAllGroups } from "./commands/search";
+import {
+  searchGroup,
+  filterByTag,
+  filterByTagDirect,
+  removeTagFromAllGroups,
+} from "./commands/search";
 import { GitExtension } from "./typings/git";
-import { FeedbackProvider, } from "./providers/feedbackProvider";
+import { FeedbackProvider } from "./providers/feedbackProvider";
 import { GitFileWatcher, reinitGitBranchGroups } from "./utils/git";
 import { clearState, debugState } from "./commands/debug";
 import { archive, cloneBranch, pickAndClone } from "./commands/branches";
@@ -40,7 +50,10 @@ import { autoGroup, manageCustomStrategies } from "./autogroup";
 import { TagsProvider } from "./providers/tagsProvider";
 import { StorageService } from "./db/storageService";
 import { blacklistService } from "./utils/blacklistService";
-import { reorderTabsByGroupsCommand, reorderAllTabsByGroupsCommand } from "./commands/reorder";
+import {
+  reorderTabsByGroupsCommand,
+  reorderAllTabsByGroupsCommand,
+} from "./commands/reorder";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -65,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const rootPath =
     vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
+    vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
@@ -85,9 +98,11 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(tagsTreeView);
 
   const feedbackItems = [
-    new ReportIssueLink("https://github.com/hsqStephenZhang/vscode-onetab/issues/new"),
-    new SupportLink("https://ko-fi.com/babystepping")
-  ]
+    new ReportIssueLink(
+      "https://github.com/hsqStephenZhang/vscode-onetab/issues/new",
+    ),
+    new SupportLink("https://ko-fi.com/babystepping"),
+  ];
   new FeedbackProvider(context, "oneTabFeedback", feedbackItems);
 
   // initialization of `Global` is done here
@@ -103,29 +118,29 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.edit.blacklist", () => {
     vscode.commands.executeCommand(
       "workbench.action.openWorkspaceSettings",
-      "onetab.blacklist"
+      "onetab.blacklist",
     );
   });
 
   vscode.commands.registerCommand(
     "onetab.advanced.send.thisTab",
-    advancedSendThisTab
+    advancedSendThisTab,
   );
   vscode.commands.registerCommand(
     "onetab.advanced.send.otherTabs",
-    advancedSendOtherTabs
+    advancedSendOtherTabs,
   );
   vscode.commands.registerCommand(
     "onetab.advanced.send.leftTabs",
-    advancedSendLeftTabs
+    advancedSendLeftTabs,
   );
   vscode.commands.registerCommand(
     "onetab.advanced.send.rightTabs",
-    advancedSendRightTabs
+    advancedSendRightTabs,
   );
   vscode.commands.registerCommand(
     "onetab.advanced.send.allTabs",
-    advancedSendAllTabs
+    advancedSendAllTabs,
   );
 
   vscode.commands.registerCommand("onetab.debug.GetState", debugState);
@@ -135,7 +150,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register tag filter commands
   vscode.commands.registerCommand("onetab.filterByTag", filterByTag);
-  vscode.commands.registerCommand("onetab.filterByTagDirect", filterByTagDirect);
+  vscode.commands.registerCommand(
+    "onetab.filterByTagDirect",
+    filterByTagDirect,
+  );
   vscode.commands.registerCommand("onetab.tag.remove", removeTagFromAllGroups);
 
   // tabs group related commands
@@ -149,32 +167,45 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
   vscode.commands.registerCommand("onetab.tabsGroup.tag", tabsGroupTags);
-  vscode.commands.registerCommand("onetab.tabsGroup.collapse", tabsGroupCollapse);
+  vscode.commands.registerCommand(
+    "onetab.tabsGroup.collapse",
+    tabsGroupCollapse,
+  );
   vscode.commands.registerCommand("onetab.export", exportJsonData);
   vscode.commands.registerCommand("onetab.import", importJsonData);
 
   // archive: the active state, store it into the non-active branches
   // migrate: clone  a non-active branch state to the current active state
   vscode.commands.registerCommand("onetab.branches.archive", archive);
-  vscode.commands.registerCommand("onetab.branches.pickandrestore", pickAndClone);
+  vscode.commands.registerCommand(
+    "onetab.branches.pickandrestore",
+    pickAndClone,
+  );
   vscode.commands.registerCommand("onetab.branches.clone", cloneBranch);
 
   vscode.commands.registerCommand("onetab.autogroup", autoGroup);
-  vscode.commands.registerCommand("onetab.autogroup.manageStrategies", manageCustomStrategies);
+  vscode.commands.registerCommand(
+    "onetab.autogroup.manageStrategies",
+    manageCustomStrategies,
+  );
 
   // Reorder tabs commands
-  vscode.commands.registerCommand("onetab.reorder.selectGroups", reorderTabsByGroupsCommand);
+  vscode.commands.registerCommand(
+    "onetab.reorder.selectGroups",
+    reorderTabsByGroupsCommand,
+  );
 
-  const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git')?.exports;
+  const gitExtension =
+    vscode.extensions.getExtension<GitExtension>("vscode.git")?.exports;
   const git = gitExtension?.getAPI(1);
   let repoOnDidChangeDisposable: vscode.Disposable | void;
 
-  if (git?.state === 'initialized') {
+  if (git?.state === "initialized") {
     repoOnDidChangeDisposable = reinitGitBranchGroups(git);
   }
 
-  git?.onDidChangeState(e => {
-    if (e === 'initialized') {
+  git?.onDidChangeState((e) => {
+    if (e === "initialized") {
       repoOnDidChangeDisposable = reinitGitBranchGroups(git);
     } else {
       if (repoOnDidChangeDisposable) {

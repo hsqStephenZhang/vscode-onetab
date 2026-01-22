@@ -10,12 +10,12 @@ import { Node } from "./node";
 import { TabItemRow } from "../db/storageService";
 
 // Tab types that can be restored
-export type TabType = 'text' | 'diff' | 'notebook' | 'notebookDiff' | 'custom';
+export type TabType = "text" | "diff" | "notebook" | "notebookDiff" | "custom";
 
 export class TabItem extends Node {
   public fileUri: vscode.Uri;
-  public originalUri?: vscode.Uri;  // For diff views
-  public tabType: TabType = 'text';
+  public originalUri?: vscode.Uri; // For diff views
+  public tabType: TabType = "text";
 
   constructor(uri?: vscode.Uri, id?: string, label?: string) {
     const itemId = id ?? randomUUID();
@@ -68,11 +68,11 @@ export class TabItem extends Node {
 
   private updateIcon() {
     switch (this.tabType) {
-      case 'diff':
+      case "diff":
         this.iconPath = new vscode.ThemeIcon("diff");
         break;
-      case 'notebook':
-      case 'notebookDiff':
+      case "notebook":
+      case "notebookDiff":
         this.iconPath = new vscode.ThemeIcon("notebook");
         break;
       default:
@@ -96,82 +96,84 @@ export class TabItem extends Node {
 
   private getIconForFile(fileName: string): vscode.ThemeIcon {
     // Get file extension
-    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    const ext = fileName.split(".").pop()?.toLowerCase() || "";
 
     // Map common extensions to appropriate theme icons
     switch (ext) {
-      case 'js':
-      case 'jsx':
-      case 'ts':
-      case 'tsx':
-      case 'mjs':
-      case 'cjs':
-        return new vscode.ThemeIcon('symbol-method'); // Code file
-      case 'json':
-      case 'jsonc':
-        return new vscode.ThemeIcon('json');
-      case 'md':
-      case 'markdown':
-        return new vscode.ThemeIcon('markdown');
-      case 'html':
-      case 'htm':
-        return new vscode.ThemeIcon('code');
-      case 'css':
-      case 'scss':
-      case 'sass':
-      case 'less':
-        return new vscode.ThemeIcon('symbol-color');
-      case 'py':
-      case 'pyc':
-      case 'pyo':
-        return new vscode.ThemeIcon('symbol-method');
-      case 'java':
-      case 'class':
-        return new vscode.ThemeIcon('symbol-class');
-      case 'xml':
-      case 'svg':
-        return new vscode.ThemeIcon('symbol-structure');
-      case 'yml':
-      case 'yaml':
-        return new vscode.ThemeIcon('symbol-namespace');
-      case 'rs':
-      case 'go':
-      case 'c':
-      case 'cpp':
-      case 'h':
-      case 'hpp':
-        return new vscode.ThemeIcon('symbol-method');
-      case 'sh':
-      case 'bash':
-      case 'zsh':
-        return new vscode.ThemeIcon('terminal');
-      case 'sql':
-        return new vscode.ThemeIcon('database');
-      case 'log':
-        return new vscode.ThemeIcon('output');
-      case 'txt':
-        return new vscode.ThemeIcon('file-text');
-      case 'pdf':
-        return new vscode.ThemeIcon('file-pdf');
-      case 'png':
-      case 'jpg':
-      case 'jpeg':
-      case 'gif':
-      case 'bmp':
-      case 'ico':
-        return new vscode.ThemeIcon('file-media');
-      case 'zip':
-      case 'tar':
-      case 'gz':
-      case 'rar':
-        return new vscode.ThemeIcon('file-zip');
+      case "js":
+      case "jsx":
+      case "ts":
+      case "tsx":
+      case "mjs":
+      case "cjs":
+        return new vscode.ThemeIcon("symbol-method"); // Code file
+      case "json":
+      case "jsonc":
+        return new vscode.ThemeIcon("json");
+      case "md":
+      case "markdown":
+        return new vscode.ThemeIcon("markdown");
+      case "html":
+      case "htm":
+        return new vscode.ThemeIcon("code");
+      case "css":
+      case "scss":
+      case "sass":
+      case "less":
+        return new vscode.ThemeIcon("symbol-color");
+      case "py":
+      case "pyc":
+      case "pyo":
+        return new vscode.ThemeIcon("symbol-method");
+      case "java":
+      case "class":
+        return new vscode.ThemeIcon("symbol-class");
+      case "xml":
+      case "svg":
+        return new vscode.ThemeIcon("symbol-structure");
+      case "yml":
+      case "yaml":
+        return new vscode.ThemeIcon("symbol-namespace");
+      case "rs":
+      case "go":
+      case "c":
+      case "cpp":
+      case "h":
+      case "hpp":
+        return new vscode.ThemeIcon("symbol-method");
+      case "sh":
+      case "bash":
+      case "zsh":
+        return new vscode.ThemeIcon("terminal");
+      case "sql":
+        return new vscode.ThemeIcon("database");
+      case "log":
+        return new vscode.ThemeIcon("output");
+      case "txt":
+        return new vscode.ThemeIcon("file-text");
+      case "pdf":
+        return new vscode.ThemeIcon("file-pdf");
+      case "png":
+      case "jpg":
+      case "jpeg":
+      case "gif":
+      case "bmp":
+      case "ico":
+        return new vscode.ThemeIcon("file-media");
+      case "zip":
+      case "tar":
+      case "gz":
+      case "rar":
+        return new vscode.ThemeIcon("file-zip");
       default:
         // Default file icon from theme
-        return new vscode.ThemeIcon('file');
+        return new vscode.ThemeIcon("file");
     }
   }
 
   public getLabel(): string {
-    return typeof this.label === 'string' ? this.label : (this.label?.label || DEFAULT_TAB_LABEL);
+    return typeof this.label === "string"
+      ? this.label
+      : this.label?.label || DEFAULT_TAB_LABEL;
   }
 }

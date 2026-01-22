@@ -29,7 +29,7 @@ suite("Git Utilities Test Suite", () => {
   test("Global.branchName should be settable", () => {
     Global.branchName = "feature-branch";
     assert.strictEqual(Global.branchName, "feature-branch");
-    
+
     Global.branchName = DEFAULT_BRANCH_NAME;
     assert.strictEqual(Global.branchName, DEFAULT_BRANCH_NAME);
   });
@@ -37,10 +37,10 @@ suite("Git Utilities Test Suite", () => {
   test("Branch name should persist across operations", () => {
     const testBranch = "test-feature-branch";
     Global.branchName = testBranch;
-    
+
     // Simulate some operations
     const state = new TabsState(testBranch);
-    
+
     assert.strictEqual(Global.branchName, testBranch);
     assert.strictEqual(state.branchName, testBranch);
   });

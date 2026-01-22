@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
 import { Node } from "./node";
 import { TabItem } from "./tabitem";
 import { CONTEXT_TAB_GROUP, DEFAULT_TAB_GROUP_LABEL } from "../constant";
-import { Global } from '../global';
+import { Global } from "../global";
 import { TabsGroupRow } from "../db/storageService";
 
 export class TabsGroup extends Node {
@@ -36,14 +36,14 @@ export class TabsGroup extends Node {
   public static fromRow(row: TabsGroupRow): TabsGroup {
     const group = new TabsGroup(row.id, row.label);
     group.createTime = row.create_time;
-    
+
     // Parse tags from JSON string
     try {
       group.tags = JSON.parse(row.tags) || [];
     } catch {
-      group.tags = row.tags ? row.tags.split(',').filter(t => t) : [];
+      group.tags = row.tags ? row.tags.split(",").filter((t) => t) : [];
     }
-    
+
     group.setPin(row.pinned === 1);
     group.updateTooltip();
     group.updateDescription();
@@ -55,7 +55,9 @@ export class TabsGroup extends Node {
   }
 
   public deepClone(preserveId: boolean = false): TabsGroup {
-    const newGroup = preserveId ? new TabsGroup(this.id, this.label) : new TabsGroup();
+    const newGroup = preserveId
+      ? new TabsGroup(this.id, this.label)
+      : new TabsGroup();
     if (!preserveId) {
       newGroup.label = this.label;
     }
@@ -73,11 +75,18 @@ export class TabsGroup extends Node {
   }
 
   public getLabel(): string {
-    return typeof this.label === 'string' ? this.label : (this.label?.label || DEFAULT_TAB_GROUP_LABEL);
+    return typeof this.label === "string"
+      ? this.label
+      : this.label?.label || DEFAULT_TAB_GROUP_LABEL;
   }
 
   public getText(): string {
-    return "label: " + this.label + ", tags: " + (this.tags.length === 0 ? "empty" : this.tags.join(", "));
+    return (
+      "label: " +
+      this.label +
+      ", tags: " +
+      (this.tags.length === 0 ? "empty" : this.tags.join(", "))
+    );
   }
 
   public isPinned(): boolean {
@@ -88,8 +97,16 @@ export class TabsGroup extends Node {
     this.pinned = pin;
     if (pin) {
       this.iconPath = {
-        dark: vscode.Uri.joinPath(Global.context.extensionUri, "asset", "pin-light.svg"),
-        light: vscode.Uri.joinPath(Global.context.extensionUri, "asset", "pin-dark.svg"),
+        dark: vscode.Uri.joinPath(
+          Global.context.extensionUri,
+          "asset",
+          "pin-light.svg",
+        ),
+        light: vscode.Uri.joinPath(
+          Global.context.extensionUri,
+          "asset",
+          "pin-dark.svg",
+        ),
       };
     } else {
       this.iconPath = undefined;
@@ -114,7 +131,7 @@ export class TabsGroup extends Node {
 
   private updateDescription() {
     if (this.tags.length > 0) {
-      this.description = this.tags.map(t => `#${t}`).join(' ');
+      this.description = this.tags.map((t) => `#${t}`).join(" ");
     } else {
       this.description = undefined;
     }
@@ -126,12 +143,17 @@ export class TabsGroup extends Node {
   }
 
   private updateTooltip() {
-    const labelText = typeof this.label === 'string' ? this.label : (this.label?.label || '');
-    this.tooltip = labelText + ", tags: " + (this.tags.length === 0 ? "none" : this.tags.join(", "));
+    const labelText =
+      typeof this.label === "string" ? this.label : this.label?.label || "";
+    this.tooltip =
+      labelText +
+      ", tags: " +
+      (this.tags.length === 0 ? "none" : this.tags.join(", "));
   }
 
   public isUntitled(): boolean {
-    const labelText = typeof this.label === 'string' ? this.label : (this.label?.label || '');
+    const labelText =
+      typeof this.label === "string" ? this.label : this.label?.label || "";
     return labelText.indexOf(DEFAULT_TAB_GROUP_LABEL) !== -1;
   }
 

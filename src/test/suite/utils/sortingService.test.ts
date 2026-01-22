@@ -45,7 +45,7 @@
 //     group1.setTags(["tag1"]);
 //     group2.setTags(["tag2"]);
 //     group3.setPin(true);
-    
+
 //     const groups = [group4, group2, group3, group1];
 //     const sorted = SortingService.sortGroups(groups, SortingStrategy.DEFAULT);
 

@@ -17,7 +17,7 @@ suite("Tab Types Integration Test Suite", () => {
   suiteSetup(async () => {
     // Create temp directory with test files
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "onetab-test-"));
-    
+
     // Create test files of different types
     testFiles = {
       typescript: path.join(tempDir, "test.ts"),
@@ -25,22 +25,25 @@ suite("Tab Types Integration Test Suite", () => {
       json: path.join(tempDir, "test.json"),
     };
 
-    fs.writeFileSync(testFiles.typescript, 'const x = 1;');
-    fs.writeFileSync(testFiles.notebook, JSON.stringify({
-      cells: [],
-      metadata: {},
-      nbformat: 4,
-      nbformat_minor: 2
-    }));
+    fs.writeFileSync(testFiles.typescript, "const x = 1;");
+    fs.writeFileSync(
+      testFiles.notebook,
+      JSON.stringify({
+        cells: [],
+        metadata: {},
+        nbformat: 4,
+        nbformat_minor: 2,
+      }),
+    );
     fs.writeFileSync(testFiles.json, '{"test": true}');
   });
 
   suiteTeardown(async () => {
     // Close all editors
-    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-    
+    await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+
     // Clean up temp files
-    Object.values(testFiles).forEach(file => {
+    Object.values(testFiles).forEach((file) => {
       if (fs.existsSync(file)) {
         fs.unlinkSync(file);
       }
@@ -52,83 +55,97 @@ suite("Tab Types Integration Test Suite", () => {
 
   test("should open and identify text file tab", async () => {
     const uri = vscode.Uri.file(testFiles.typescript);
-    await vscode.commands.executeCommand('vscode.open', uri);
-    
+    await vscode.commands.executeCommand("vscode.open", uri);
+
     // Wait for tab to be created
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
     assert.ok(activeTab, "Active tab should exist");
-    assert.ok(activeTab.input instanceof vscode.TabInputText, "Should be TabInputText");
-    
+    assert.ok(
+      activeTab.input instanceof vscode.TabInputText,
+      "Should be TabInputText",
+    );
+
     const extractedUri = getTabUri(activeTab);
     assert.strictEqual(extractedUri?.fsPath, uri.fsPath);
     assert.strictEqual(isSaveableTab(activeTab), true);
-    
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   });
 
-  test("should open and identify notebook file tab", async function() {
+  test("should open and identify notebook file tab", async function () {
     // Skip if Jupyter extension is not installed
-    const jupyterExt = vscode.extensions.getExtension('ms-toolsai.jupyter');
+    const jupyterExt = vscode.extensions.getExtension("ms-toolsai.jupyter");
     if (!jupyterExt) {
       this.skip();
       return;
     }
-    
+
     const uri = vscode.Uri.file(testFiles.notebook);
-    await vscode.commands.executeCommand('vscode.open', uri);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await vscode.commands.executeCommand("vscode.open", uri);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
     assert.ok(activeTab, "Active tab should exist");
-    
+
     // Note: May be TabInputNotebook or TabInputText depending on extension
     const extractedUri = getTabUri(activeTab);
     assert.ok(extractedUri, "Should extract URI from notebook tab");
     assert.strictEqual(isSaveableTab(activeTab), true);
-    
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   });
 
   test("should handle diff view tabs", async () => {
     const uri1 = vscode.Uri.file(testFiles.typescript);
     const uri2 = vscode.Uri.file(testFiles.json);
-    
+
     // Open diff view
-    await vscode.commands.executeCommand('vscode.diff', uri1, uri2, 'Diff Test');
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await vscode.commands.executeCommand(
+      "vscode.diff",
+      uri1,
+      uri2,
+      "Diff Test",
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
     assert.ok(activeTab, "Active tab should exist");
-    
+
     if (activeTab.input instanceof vscode.TabInputTextDiff) {
       const extractedUri = getTabUri(activeTab);
       assert.ok(extractedUri, "Should extract URI from diff tab");
-      assert.strictEqual(extractedUri.fsPath, uri2.fsPath, "Should return modified URI");
+      assert.strictEqual(
+        extractedUri.fsPath,
+        uri2.fsPath,
+        "Should return modified URI",
+      );
     }
-    
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+
+    await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   });
 
   test("should identify terminal as non-saveable", async () => {
     // Create a terminal
-    const terminal = vscode.window.createTerminal('Test Terminal');
+    const terminal = vscode.window.createTerminal("Test Terminal");
     terminal.show();
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     // Find the terminal tab
-    const allTabs = vscode.window.tabGroups.all.flatMap(g => g.tabs);
-    const terminalTab = allTabs.find(t => t.input instanceof vscode.TabInputTerminal);
-    
+    const allTabs = vscode.window.tabGroups.all.flatMap((g) => g.tabs);
+    const terminalTab = allTabs.find(
+      (t) => t.input instanceof vscode.TabInputTerminal,
+    );
+
     if (terminalTab) {
       assert.strictEqual(getTabUri(terminalTab), undefined);
       assert.strictEqual(isSaveableTab(terminalTab), false);
     }
-    
+
     terminal.dispose();
   });
 });

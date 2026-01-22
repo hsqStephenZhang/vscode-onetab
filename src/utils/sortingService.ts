@@ -6,7 +6,10 @@ export class SortingService {
   /**
    * Sort tab groups based on the specified strategy
    */
-  public static sortGroups(groups: TabsGroup[], strategy: SortingStrategy): TabsGroup[] {
+  public static sortGroups(
+    groups: TabsGroup[],
+    strategy: SortingStrategy,
+  ): TabsGroup[] {
     switch (strategy) {
       case SortingStrategy.LRU:
         return this.sortByLRU(groups);
@@ -73,15 +76,23 @@ export class SortingService {
 
     // Sort pinned by last access time (most recent first)
     pinned.sort((a, b) => {
-      const aTime = (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ?? a.createTime;
-      const bTime = (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ?? b.createTime
+      const aTime =
+        (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ??
+        a.createTime;
+      const bTime =
+        (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ??
+        b.createTime;
       return bTime - aTime;
     });
 
     // Sort unpinned by last access time (most recent first)
     unpinned.sort((a, b) => {
-      const aTime = (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ?? a.createTime;
-      const bTime = (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ?? b.createTime
+      const aTime =
+        (a.id ? AccessTrackingService.getLastAccessTime(a.id) : undefined) ??
+        a.createTime;
+      const bTime =
+        (b.id ? AccessTrackingService.getLastAccessTime(b.id) : undefined) ??
+        b.createTime;
       return bTime - aTime;
     });
 
