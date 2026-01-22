@@ -8,7 +8,7 @@
     "email": "2250015961@qq.com"
   },
   "icon": "icon.png",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "engines": {
     "vscode": "^1.90.0"
   },
