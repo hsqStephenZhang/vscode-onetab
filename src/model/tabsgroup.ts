@@ -55,8 +55,12 @@ export class TabsGroup extends Node {
   }
 
   public deepClone(preserveId: boolean = false): TabsGroup {
+    const labelOf = (label: string | vscode.TreeItemLabel): string => {
+      return typeof label === "string" ? label : label?.label || "";
+    };
+
     const newGroup = preserveId
-      ? new TabsGroup(this.id, this.label)
+      ? new TabsGroup(this.id, labelOf(this.label))
       : new TabsGroup();
     if (!preserveId) {
       newGroup.label = this.label;
