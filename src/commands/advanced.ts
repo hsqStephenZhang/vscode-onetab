@@ -75,7 +75,7 @@ export async function advancedSendOtherTabs(uri: vscode.Uri) {
     return; // User cancelled
   }
 
-  let otherTabs = getOtherTabsWithBlacklist(uri, selectedGroups);
+  let otherTabs = getOtherTabsWithBlacklist(uri, [...selectedGroups]);
   if (!otherTabs) {
     vscode.window.showWarningMessage("No tabs to be saved");
     return;
@@ -96,7 +96,7 @@ export async function advancedSendLeftTabs(uri: vscode.Uri) {
     return; // User cancelled
   }
 
-  let leftTabs = getLeftTabs(uri, selectedGroups);
+  let leftTabs = getLeftTabs(uri, [...selectedGroups]);
   if (!leftTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;
@@ -117,7 +117,7 @@ export async function advancedSendRightTabs(uri: vscode.Uri) {
     return; // User cancelled
   }
 
-  let rightTabs = getRightTabs(uri, selectedGroups);
+  let rightTabs = getRightTabs(uri, [...selectedGroups]);
   if (!rightTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;
@@ -138,7 +138,7 @@ export async function advancedSendAllTabs() {
     return; // User cancelled
   }
 
-  let allTabs = getAllTabsWithBlackList(selectedGroups);
+  let allTabs = getAllTabsWithBlackList([...selectedGroups]);
   if (!allTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;

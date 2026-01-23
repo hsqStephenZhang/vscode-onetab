@@ -1,0 +1,51 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": true,
+    "requireBranch": "main",
+    "push": true,
+    "commit": true,
+    "tag": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}",
+    "draft": false,
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": ["pnpm run lint", "pnpm test"],
+    "after:bump": "pnpm run vscode:prepublish",
+    "after:release": "echo Successfully released ${name} v${version} to ${repo.repository}."
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "Features" },
+          { "type": "feature", "section": "Features" },
+          { "type": "fix", "section": "Bug Fixes" },
+          { "type": "perf", "section": "Performance Improvements" },
+          { "type": "revert", "section": "Reverts" },
+          { "type": "docs", "section": "Documentation", "hidden": false },
+          { "type": "style", "section": "Styles", "hidden": true },
+          { "type": "chore", "section": "Miscellaneous Chores", "hidden": true },
+          { "type": "refactor", "section": "Code Refactoring", "hidden": false },
+          { "type": "test", "section": "Tests", "hidden": true },
+          { "type": "build", "section": "Build System", "hidden": true },
+          { "type": "ci", "section": "Continuous Integration", "hidden": true }
+        ]
+      },
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog",
+      "gitRawCommitsOpts": {
+        "path": "."
+      }
+    }
+  }
+}

@@ -48,13 +48,7 @@ const config = {
   },
   performance: {
     hints: false,
-  },
-  plugins: [
-    new webpack.DefinePlugin({
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
-    }),
-  ],
+  }
 };
 
 /* EXPORT */
