@@ -32,7 +32,7 @@ export async function sendOtherTabs(uri: vscode.Uri) {
   if (selectedGroups === undefined) {
     return; // User cancelled
   }
-  
+
   let otherTabs = getOtherTabsWithBlacklist(uri, selectedGroups);
   if (otherTabs) {
     await sendTabs(otherTabs);
@@ -46,7 +46,7 @@ export async function sendLeftTabs(uri: vscode.Uri) {
   if (selectedGroups === undefined) {
     return; // User cancelled
   }
-  
+
   let leftTabs = getLeftTabs(uri, selectedGroups);
   if (leftTabs) {
     await sendTabs(leftTabs);
@@ -60,7 +60,7 @@ export async function sendRightTabs(uri: vscode.Uri) {
   if (selectedGroups === undefined) {
     return; // User cancelled
   }
-  
+
   let rightTabs = getRightTabs(uri, selectedGroups);
   if (rightTabs) {
     await sendTabs(rightTabs);
@@ -74,7 +74,7 @@ export async function sendAllTabs() {
   if (selectedGroups === undefined) {
     return; // User cancelled
   }
-  
+
   let allTabs = getAllTabsWithBlackList(selectedGroups);
   if (allTabs) {
     await sendTabs(allTabs);

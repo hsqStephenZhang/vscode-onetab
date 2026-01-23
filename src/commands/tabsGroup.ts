@@ -70,9 +70,7 @@ export async function tabsGroupRestoreInNewGroup(tabsGroup?: TabsGroup) {
       if (selectedItem instanceof TabsGroup) {
         tabsGroup = selectedItem;
       } else {
-        vscode.window.showErrorMessage(
-          "Please select a tab group to restore",
-        );
+        vscode.window.showErrorMessage("Please select a tab group to restore");
         return;
       }
     } else {
@@ -121,9 +119,7 @@ export async function tabsGroupRestoreInNewGroup(tabsGroup?: TabsGroup) {
   } else {
     // Open in a new column (split right)
     // First, create a new editor group to the side
-    await vscode.commands.executeCommand(
-      "workbench.action.newGroupRight",
-    );
+    await vscode.commands.executeCommand("workbench.action.newGroupRight");
 
     // Open all tabs in the new group
     for (const tab of tabs) {
