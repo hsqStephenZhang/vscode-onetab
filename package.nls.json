@@ -19,6 +19,7 @@
   "onetab.tab.remove": "Remove",
   "onetab.tab.forceRemove": "Force Remove (Even if Pinned)",
   "onetab.tabsGroup.restore": "Restore Tabs",
+  "onetab.tabsGroup.restoreInNewGroup": "Restore Tabs in New Tab Group",
   "onetab.tabsGroup.rename": "Rename Tabs Group",
   "onetab.tabsGroup.pin": "Pin/Unpin Tabs Group",
   "onetab.tabsGroup.remove": "Remove Tabs Group",

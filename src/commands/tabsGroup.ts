@@ -60,6 +60,82 @@ export async function tabsGroupRestore(tabsGroup: TabsGroup) {
   }
 }
 
+export async function tabsGroupRestoreInNewGroup(tabsGroup?: TabsGroup) {
+  // If tabsGroup is not provided (e.g., called from keyboard binding),
+  // get the selected item from the tree view
+  if (!tabsGroup) {
+    const selection = Global.tabsProvider.viewer?.selection;
+    if (selection && selection.length > 0) {
+      const selectedItem = selection[0];
+      if (selectedItem instanceof TabsGroup) {
+        tabsGroup = selectedItem;
+      } else {
+        vscode.window.showErrorMessage(
+          "Please select a tab group to restore",
+        );
+        return;
+      }
+    } else {
+      vscode.window.showErrorMessage("Please select a tab group to restore");
+      return;
+    }
+  }
+
+  if (!tabsGroup.id) {
+    return;
+  }
+  await AccessTrackingService.recordAccess(tabsGroup.id);
+
+  // Ask user where to restore
+  const options = [
+    { label: "New Column (Split Right)", value: "column" },
+    { label: "New Window", value: "window" },
+  ];
+
+  const selected = await vscode.window.showQuickPick(options, {
+    placeHolder: "Where would you like to restore the tabs?",
+  });
+
+  if (!selected) {
+    return;
+  }
+
+  const tabs = tabsGroup.getTabs();
+  if (tabs.length === 0) {
+    return;
+  }
+
+  if (selected.value === "window") {
+    // Open in a new window
+    for (const tab of tabs) {
+      await vscode.commands.executeCommand(
+        "vscode.openWith",
+        tab.fileUri,
+        "default",
+        { viewColumn: vscode.ViewColumn.Active, preserveFocus: false },
+      );
+      await vscode.commands.executeCommand(
+        "workbench.action.moveEditorToNewWindow",
+      );
+    }
+  } else {
+    // Open in a new column (split right)
+    // First, create a new editor group to the side
+    await vscode.commands.executeCommand(
+      "workbench.action.newGroupRight",
+    );
+
+    // Open all tabs in the new group
+    for (const tab of tabs) {
+      await openTabItem(tab);
+    }
+  }
+
+  if (!tabsGroup.isPinned()) {
+    removeInner(tabsGroup.id);
+  }
+}
+
 export async function tabsGroupTags(group: TabsGroup) {
   if (!group.id) {
     return;

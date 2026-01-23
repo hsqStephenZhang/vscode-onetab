@@ -150,6 +150,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "onetab.tabsGroup.restoreInNewGroup",
+        "title": "%onetab.tabsGroup.restoreInNewGroup%",
+        "category": "Onetab"
+      },
+      {
         "command": "onetab.tabsGroup.rename",
         "title": "%onetab.tabsGroup.rename%",
         "category": "Onetab",
@@ -443,14 +448,19 @@
           "group": "context@3"
         },
         {
-          "command": "onetab.tabsGroup.collapse",
+          "command": "onetab.tabsGroup.restoreInNewGroup",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "context@4"
         },
         {
-          "command": "onetab.tabsGroup.remove",
+          "command": "onetab.tabsGroup.collapse",
           "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
           "group": "context@5"
+        },
+        {
+          "command": "onetab.tabsGroup.remove",
+          "when": "view =~ /^(main)$/ && viewItem =~ /^(tabsGroup)$/",
+          "group": "context@6"
         },
         {
           "command": "onetab.tab.restore",

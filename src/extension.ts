@@ -7,6 +7,7 @@ import {
   tabsGroupRemove,
   tabsGroupRename,
   tabsGroupRestore,
+  tabsGroupRestoreInNewGroup,
   tabsGroupTags,
   tabsGroupCollapse,
 } from "./commands/tabsGroup";
@@ -163,6 +164,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand("onetab.tab.forceRemove", tabForceRemove);
 
   vscode.commands.registerCommand("onetab.tabsGroup.restore", tabsGroupRestore);
+  vscode.commands.registerCommand("onetab.tabsGroup.restoreInNewGroup", tabsGroupRestoreInNewGroup);
   vscode.commands.registerCommand("onetab.tabsGroup.rename", tabsGroupRename);
   vscode.commands.registerCommand("onetab.tabsGroup.pin", tabsGroupPin);
   vscode.commands.registerCommand("onetab.tabsGroup.remove", tabsGroupRemove);
