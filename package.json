@@ -589,7 +589,9 @@
     "pretest": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "deploy": "vsce publish --no-dependencies"
+    "deploy": "vsce publish --no-dependencies",
+    "prettier": "prettier --write src",
+    "eslint": "eslint . --fix"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",

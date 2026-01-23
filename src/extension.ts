@@ -62,7 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Global.context = context;
 
   let level = LogLevel.INFO;
-  if (context.extensionMode == vscode.ExtensionMode.Development) {
+  if (context.extensionMode === vscode.ExtensionMode.Development) {
     console.log("debug mode is on");
     level = LogLevel.DEBUG;
   }
