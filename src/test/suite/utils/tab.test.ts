@@ -9,7 +9,6 @@ import {
   tabIsTextInput,
   getTabUri,
   isSaveableTab,
-  tabIsSaveable,
 } from "../../../utils/tab";
 
 suite("Tab Utils Test Suite", () => {

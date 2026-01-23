@@ -11,14 +11,6 @@ import { listAllKeys } from "./debug";
 import * as path from "path";
 import { blacklistService } from "./blacklistService";
 
-// Helper type for tabs that have a URI we can save
-type SupportedTabInput =
-  | vscode.TabInputText
-  | vscode.TabInputTextDiff
-  | vscode.TabInputCustom
-  | vscode.TabInputNotebook
-  | vscode.TabInputNotebookDiff;
-
 // Extract URI from different tab input types
 export function getTabUri(tab: vscode.Tab): vscode.Uri | undefined {
   const input = tab.input;
@@ -48,17 +40,12 @@ export function isSaveableTab(tab: vscode.Tab): boolean {
   return getTabUri(tab) !== undefined;
 }
 
-// Replace tabIsTextInput with a more generic version
+// Check if tab is a text input (used for backward compatibility in some commands)
 export function tabIsTextInput(tab: vscode.Tab): boolean {
   return tab.input instanceof vscode.TabInputText;
 }
 
-// New: Check if tab is any supported type
-export function tabIsSaveable(tab: vscode.Tab): boolean {
-  return isSaveableTab(tab);
-}
-
-// Updated notInBlackList to work with any saveable tab
+// Check if a tab is not in the blacklist
 export function notInBlackList(tab: vscode.Tab): boolean {
   const uri = getTabUri(tab);
   if (!uri) return false;
@@ -122,7 +109,6 @@ function getTabsFromGroups(tabGroups?: vscode.TabGroup[]): vscode.Tab[] {
   return groups.map((group) => group.tabs).flat(1);
 }
 
-// Updated to support all saveable tab types
 export function getAllTabsWithBlackList(
   tabGroups?: vscode.TabGroup[],
 ): vscode.Tab[] | undefined {
@@ -136,90 +122,54 @@ export function getAllTabsWithoutBlackList(
   tabGroups?: vscode.TabGroup[],
 ): vscode.Tab[] | undefined {
   const tabs = getTabsFromGroups(tabGroups).filter(isSaveableTab);
-  if (tabs.length === 0) {
-    return undefined;
-  } else {
-    return tabs;
-  }
+  return tabs.length === 0 ? undefined : tabs;
 }
 
 export function getOtherTabsWithBlacklist(
   uri: vscode.Uri,
   tabGroups?: vscode.TabGroup[],
 ): vscode.Tab[] | undefined {
-  let currentTab = getActiveTab(uri);
+  const currentTab = getActiveTab(uri);
   const tabs = getTabsFromGroups(tabGroups)
-    .filter((tab) => {
-      return tab !== currentTab && isSaveableTab(tab);
-    })
+    .filter((tab) => tab !== currentTab && isSaveableTab(tab))
     .filter(notInBlackList);
-  if (tabs.length === 0) {
-    return undefined;
-  } else {
-    return tabs;
-  }
+  return tabs.length === 0 ? undefined : tabs;
 }
 
 export function getLeftTabs(
   uri: vscode.Uri,
   tabGroups?: vscode.TabGroup[],
 ): vscode.Tab[] | undefined {
-  let currentTab = getActiveTab(uri);
+  const currentTab = getActiveTab(uri);
   const tabs = getTabsFromGroups(tabGroups).filter(isSaveableTab);
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
-  if (currentIdx !== -1) {
-    const leftTabs = tabs.slice(0, currentIdx + 1).filter(notInBlackList);
-    if (leftTabs.length === 0) {
-      return undefined;
-    } else {
-      return leftTabs;
-    }
-  } else {
-    return undefined;
-  }
+  if (currentIdx === -1) return undefined;
+  
+  const leftTabs = tabs.slice(0, currentIdx + 1).filter(notInBlackList);
+  return leftTabs.length === 0 ? undefined : leftTabs;
 }
 
 export function getRightTabs(
   uri: vscode.Uri,
   tabGroups?: vscode.TabGroup[],
 ): vscode.Tab[] | undefined {
-  let currentTab = getActiveTab(uri);
+  const currentTab = getActiveTab(uri);
   const tabs = getTabsFromGroups(tabGroups).filter(isSaveableTab);
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
-  if (currentIdx !== -1) {
-    const rightTabs = tabs
-      .slice(currentIdx, tabs.length)
-      .filter(notInBlackList);
-    if (rightTabs.length === 0) {
-      return undefined;
-    } else {
-      return rightTabs;
-    }
-  } else {
-    return undefined;
-  }
-}
-
-// safety: getCurrentTab will only be called when at least one tab is opened
-export function getActive(): vscode.Tab {
-  return vscode.window.tabGroups.activeTabGroup.activeTab as vscode.Tab;
+  if (currentIdx === -1) return undefined;
+  
+  const rightTabs = tabs.slice(currentIdx).filter(notInBlackList);
+  return rightTabs.length === 0 ? undefined : rightTabs;
 }
 
 export function getActiveTab(uri: vscode.Uri): vscode.Tab | undefined {
   const allTabs = getAllTabsWithoutBlackList();
-  if (allTabs) {
-    const tab = allTabs.find((tab) => {
-      const tabUri = getTabUri(tab);
-      return tabUri && tabUri.path === uri.path;
-    });
-    if (tab) {
-      return tab;
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
+  if (!allTabs) return undefined;
+  
+  return allTabs.find((tab) => {
+    const tabUri = getTabUri(tab);
+    return tabUri && tabUri.path === uri.path;
+  });
 }
 
 function getLabelBaseFolder(uri: vscode.Uri): string | undefined {
@@ -339,7 +289,6 @@ export function getTabInfo(
   return undefined;
 }
 
-// Update sendTabs to use the new label helper
 export async function sendTabs(
   tabs: vscode.Tab[],
   groupId?: string,
@@ -350,8 +299,8 @@ export async function sendTabs(
       const info = getTabInfo(tab);
       if (!info) return null;
 
-      let item = new TabItem();
-      item.setLabel(getTabLabel(tab, info)); // Use new label generator
+      const item = new TabItem();
+      item.setLabel(getTabLabel(tab, info));
       item.setFileUri(info.uri);
       item.setTabType(info.tabType);
 
@@ -364,11 +313,10 @@ export async function sendTabs(
     })
     .filter((item): item is TabItem => item !== null);
   let updated = false;
-  let group = null;
 
   if (groupId) {
     Global.tabsProvider.updateState((state) => {
-      group = state.getGroup(groupId);
+      const group = state.getGroup(groupId);
       if (group) {
         state.addTabsToGroup(groupId, tabItems);
         updated = true;
@@ -376,7 +324,7 @@ export async function sendTabs(
     });
   } else {
     Global.tabsProvider.updateState((state) => {
-      group = new TabsGroup();
+      const group = new TabsGroup();
       if (groupName) {
         group.setLabel(groupName);
       }
@@ -386,12 +334,9 @@ export async function sendTabs(
     });
   }
 
-  // check if state are updated
   if (updated) {
     listAllKeys();
     const tabsToClose = tabs.filter((tab) => !tab.isPinned);
-    // Close tabs in reverse order to avoid index shifting issues
-    // Or close them all at once using the close method with array
     if (tabsToClose.length > 0) {
       try {
         // Try to close all tabs at once - this is more reliable for multiple tabs
@@ -476,7 +421,6 @@ export async function reorderTabsByOnetabGroups(
       isPinned: boolean;
       isActive: boolean;
       onetabGroupId?: string;
-      onetabGroupLabel?: string;
       onetabGroupOrder: number; // Order index for sorting
     }
 
@@ -491,14 +435,12 @@ export async function reorderTabsByOnetabGroups(
 
       const uriString = tabUri.toString();
       let foundGroupId: string | undefined;
-      let foundGroupLabel: string | undefined;
       let foundGroupOrder = Number.MAX_SAFE_INTEGER;
 
       // Check which OneTab group this tab belongs to
       for (const groupData of onetabGroupsInOrder) {
         if (groupData.tabs.some((t) => t.uri === uriString)) {
           foundGroupId = groupData.id;
-          foundGroupLabel = groupData.label;
           foundGroupOrder =
             onetabGroupsMap.get(groupData.id) ?? Number.MAX_SAFE_INTEGER;
           break;
@@ -511,7 +453,6 @@ export async function reorderTabsByOnetabGroups(
         isPinned: tab.isPinned,
         isActive: tab === activeTab,
         onetabGroupId: foundGroupId,
-        onetabGroupLabel: foundGroupLabel,
         onetabGroupOrder: foundGroupOrder,
       });
     }
@@ -558,7 +499,6 @@ export async function reorderTabsByOnetabGroups(
       }
 
       try {
-        // Open the tab
         const doc = await vscode.workspace.openTextDocument(
           vscode.Uri.parse(catTab.uri),
         );
@@ -568,7 +508,6 @@ export async function reorderTabsByOnetabGroups(
           preserveFocus: i !== activeTabIndex,
         });
 
-        // Re-pin if it was pinned
         if (catTab.isPinned) {
           await vscode.commands.executeCommand("workbench.action.pinEditor");
         }
@@ -580,18 +519,16 @@ export async function reorderTabsByOnetabGroups(
     // Ensure the originally active tab is focused
     if (activeTabIndex >= 0 && activeTabIndex < reorderedTabs.length) {
       const activeTabData = reorderedTabs[activeTabIndex];
-      if (activeTabData) {
-        try {
-          const doc = await vscode.workspace.openTextDocument(
-            vscode.Uri.parse(activeTabData.uri),
-          );
-          await vscode.window.showTextDocument(doc, {
-            viewColumn: vscodeTabGroup.viewColumn,
-            preserveFocus: false,
-          });
-        } catch (error) {
-          console.error(`Failed to activate tab: ${activeTabData.uri}`, error);
-        }
+      try {
+        const doc = await vscode.workspace.openTextDocument(
+          vscode.Uri.parse(activeTabData.uri),
+        );
+        await vscode.window.showTextDocument(doc, {
+          viewColumn: vscodeTabGroup.viewColumn,
+          preserveFocus: false,
+        });
+      } catch (error) {
+        console.error(`Failed to activate tab: ${activeTabData.uri}`, error);
       }
     }
   }
