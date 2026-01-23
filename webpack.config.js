@@ -19,6 +19,7 @@ const config = {
     fsevents: "commonjs fsevents",
   },
   node: {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __dirname: false,
   },
   resolve: {
