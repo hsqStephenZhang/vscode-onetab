@@ -67,20 +67,70 @@ export function notInBlackList(tab: vscode.Tab): boolean {
   return !blacklistService.isBlacklisted(uri);
 }
 
-// Updated to support all saveable tab types
-export function getAllTabsWithBlackList(): vscode.Tab[] | undefined {
-  const tabs = vscode.window.tabGroups.all
+/**
+ * Prompts user to select which VSCode tab groups to include
+ * Returns selected tab groups or undefined if cancelled
+ */
+export async function selectTabGroups(): Promise<readonly vscode.TabGroup[] | undefined> {
+  const allTabGroups = vscode.window.tabGroups.all;
+  
+  if (allTabGroups.length === 0) {
+    return undefined;
+  }
+  
+  if (allTabGroups.length === 1) {
+    // Only one group, return it directly
+    return allTabGroups;
+  }
+  
+  // Create quick pick items for each tab group
+  const quickPickItems = allTabGroups.map((group, index) => {
+    const tabCount = group.tabs.length;
+    const activeTab = group.activeTab;
+    const label = activeTab?.label || `Group ${index + 1}`;
+    
+    return {
+      label: `${index + 1}: ${label}`,
+      description: `${tabCount} tab${tabCount !== 1 ? 's' : ''}`,
+      detail: group.isActive ? '(Active)' : undefined,
+      group: group,
+      picked: true // Pre-select all groups by default
+    };
+  });
+  
+  const selected = await vscode.window.showQuickPick(quickPickItems, {
+    canPickMany: true,
+    placeHolder: 'Select tab groups to include (ESC to cancel, Enter to use all selected)',
+    title: 'Select Tab Groups'
+  });
+  
+  if (!selected || selected.length === 0) {
+    return undefined;
+  }
+  
+  return selected.map(item => item.group);
+}
+
+/**
+ * Get tabs from specified tab groups or all tab groups
+ */
+function getTabsFromGroups(tabGroups?: vscode.TabGroup[]): vscode.Tab[] {
+  const groups = tabGroups || vscode.window.tabGroups.all;
+  return groups
     .map((group) => group.tabs)
-    .flat(1)
+    .flat(1);
+}
+
+// Updated to support all saveable tab types
+export function getAllTabsWithBlackList(tabGroups?: vscode.TabGroup[]): vscode.Tab[] | undefined {
+  const tabs = getTabsFromGroups(tabGroups)
     .filter(isSaveableTab)
     .filter(notInBlackList);
   return tabs.length === 0 ? undefined : tabs;
 }
 
-export function getAllTabsWithoutBlackList(): vscode.Tab[] | undefined {
-  const tabs = vscode.window.tabGroups.all
-    .map((group) => group.tabs)
-    .flat(1)
+export function getAllTabsWithoutBlackList(tabGroups?: vscode.TabGroup[]): vscode.Tab[] | undefined {
+  const tabs = getTabsFromGroups(tabGroups)
     .filter(isSaveableTab);
   if (tabs.length === 0) {
     return undefined;
@@ -91,11 +141,10 @@ export function getAllTabsWithoutBlackList(): vscode.Tab[] | undefined {
 
 export function getOtherTabsWithBlacklist(
   uri: vscode.Uri,
+  tabGroups?: vscode.TabGroup[]
 ): vscode.Tab[] | undefined {
   let currentTab = getActiveTab(uri);
-  const tabs = vscode.window.tabGroups.all
-    .map((group) => group.tabs)
-    .flat(1)
+  const tabs = getTabsFromGroups(tabGroups)
     .filter((tab) => {
       return tab !== currentTab && isSaveableTab(tab);
     })
@@ -107,11 +156,9 @@ export function getOtherTabsWithBlacklist(
   }
 }
 
-export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
+export function getLeftTabs(uri: vscode.Uri, tabGroups?: vscode.TabGroup[]): vscode.Tab[] | undefined {
   let currentTab = getActiveTab(uri);
-  const tabs = vscode.window.tabGroups.all
-    .map((group) => group.tabs)
-    .flat(1)
+  const tabs = getTabsFromGroups(tabGroups)
     .filter(isSaveableTab);
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {
@@ -126,11 +173,9 @@ export function getLeftTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
   }
 }
 
-export function getRightTabs(uri: vscode.Uri): vscode.Tab[] | undefined {
+export function getRightTabs(uri: vscode.Uri, tabGroups?: vscode.TabGroup[]): vscode.Tab[] | undefined {
   let currentTab = getActiveTab(uri);
-  const tabs = vscode.window.tabGroups.all
-    .map((group) => group.tabs)
-    .flat(1)
+  const tabs = getTabsFromGroups(tabGroups)
     .filter(isSaveableTab);
   const currentIdx = tabs.findIndex((tab) => tab === currentTab);
   if (currentIdx !== -1) {

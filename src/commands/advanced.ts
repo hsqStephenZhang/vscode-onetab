@@ -14,6 +14,7 @@ import {
   getActiveTab,
   sendTabs,
   tabIsTextInput,
+  selectTabGroups,
 } from "../utils/tab";
 import { TabInputText } from "vscode";
 import { TabsGroup } from "../model/tabsgroup";
@@ -69,7 +70,12 @@ export async function advancedSendThisTab(uri: vscode.Uri) {
 }
 
 export async function advancedSendOtherTabs(uri: vscode.Uri) {
-  let otherTabs = getOtherTabsWithBlacklist(uri);
+  const selectedGroups = await selectTabGroups();
+  if (selectedGroups === undefined) {
+    return; // User cancelled
+  }
+  
+  let otherTabs = getOtherTabsWithBlacklist(uri, selectedGroups);
   if (!otherTabs) {
     vscode.window.showWarningMessage("No tabs to be saved");
     return;
@@ -85,7 +91,12 @@ export async function advancedSendOtherTabs(uri: vscode.Uri) {
 }
 
 export async function advancedSendLeftTabs(uri: vscode.Uri) {
-  let leftTabs = getLeftTabs(uri);
+  const selectedGroups = await selectTabGroups();
+  if (selectedGroups === undefined) {
+    return; // User cancelled
+  }
+  
+  let leftTabs = getLeftTabs(uri, selectedGroups);
   if (!leftTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;
@@ -101,7 +112,12 @@ export async function advancedSendLeftTabs(uri: vscode.Uri) {
 }
 
 export async function advancedSendRightTabs(uri: vscode.Uri) {
-  let rightTabs = getRightTabs(uri);
+  const selectedGroups = await selectTabGroups();
+  if (selectedGroups === undefined) {
+    return; // User cancelled
+  }
+  
+  let rightTabs = getRightTabs(uri, selectedGroups);
   if (!rightTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;
@@ -117,7 +133,12 @@ export async function advancedSendRightTabs(uri: vscode.Uri) {
 }
 
 export async function advancedSendAllTabs() {
-  let allTabs = getAllTabsWithBlackList();
+  const selectedGroups = await selectTabGroups();
+  if (selectedGroups === undefined) {
+    return; // User cancelled
+  }
+  
+  let allTabs = getAllTabsWithBlackList(selectedGroups);
   if (!allTabs) {
     vscode.window.showInformationMessage("No tabs to be saved");
     return;
