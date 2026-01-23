@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT
 
 import * as vscode from "vscode";
-import moment from "moment";
 
 export enum LogLevel {
   DEBUG = 1,
@@ -62,7 +61,14 @@ export class OutputChannelLogger implements Logger {
 }
 
 function DateFormat(date: Date) {
-  return moment(date).format("DD-MMM-YYYY HH:mm:ss");
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 }
 
 function format(level: string, message?: any, ...optionalParams: any[]) {

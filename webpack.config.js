@@ -1,6 +1,7 @@
 /* IMPORT */
 
 const path = require("path");
+const webpack = require("webpack");
 
 /* CONFIG */
 
@@ -13,7 +14,7 @@ const config = {
     libraryTarget: "commonjs2",
     devtoolModuleFilenameTemplate: "file:///[absolute-resource-path]",
   },
-  devtool: "source-map",
+  devtool: process.env.NODE_ENV === "production" ? false : "source-map",
   externals: {
     vscode: "commonjs vscode",
     fsevents: "commonjs fsevents",
@@ -23,7 +24,7 @@ const config = {
     __dirname: false,
   },
   resolve: {
-    extensions: ["tsx", ".ts", ".jsx", ".js"],
+    extensions: [".ts", ".js"],
   },
   module: {
     rules: [
@@ -41,6 +42,19 @@ const config = {
       },
     ],
   },
+  optimization: {
+    minimize: true,
+    usedExports: true,
+  },
+  performance: {
+    hints: false,
+  },
+  plugins: [
+    new webpack.DefinePlugin({
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
+    }),
+  ],
 };
 
 /* EXPORT */
